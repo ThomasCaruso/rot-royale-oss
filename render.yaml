@@ -1,0 +1,403 @@
+# Render Blueprint — Rot Royale (M7: web deploy + PWA, no native push yet).
+#
+# How to deploy (owner does this — nothing here auto-deploys):
+#   1. In Render, create a new Blueprint from this repo.
+#   2. Set the env vars marked `sync: false` BEFORE the first build:
+#        - rot-royale-api  → CORS_ORIGINS   = the real web origin(s) (now https://rotroyale.live)
+#        - rot-royale-web  → VITE_API_BASE  = https://<your-api>.onrender.com       (baked at build)
+#      (Vite bakes VITE_API_BASE in at build time, so it must be set before the web build runs.)
+#   3. Apply. SECRET_KEY and DATABASE_URL are wired automatically (see below).
+#
+# Region is pinned to oregon for every service so the API/cron use the DB's PRIVATE network URL.
+# Keep them in the same region or the internal connection string won't resolve.
+
+databases:
+  - name: rot-royale-db
+    databaseName: rot_royale
+    user: rot_royale
+    region: oregon
+    plan: basic-256mb
+    # NOTE: Render's free Postgres is time-limited (the instance is removed after the free period).
+    # For anything you want to keep, bump this to a paid plan (e.g. basic-256mb).
+
+services:
+  # ── FastAPI web service (the API) ────────────────────────────────────────────────────────────
+  - type: web
+    name: rot-royale-api
+    runtime: python
+    rootDir: backend
+    region: oregon
+    plan: starter
+    # uv is PINNED. Unpinned, every production build installed whatever uv was newest that
+    # minute and then handed it full control of resolving the entire dependency graph — the one
+    # floating input in an otherwise lockfile-pinned chain. All four services must use the SAME
+    # version; `[tool.uv] required-version` in backend/pyproject.toml enforces the range so a
+    # mismatch fails loudly instead of resolving differently. This is the version Render has
+    # ALREADY been building with successfully (verified in a build log) — pinning is meant to
+    # freeze a proven toolchain, not to introduce a new one.
+    # The content fetch runs HERE, in the build, for two reasons. Render's pre-deploy runs on a
+    # separate instance whose filesystem changes never reach the deployed service, so a package
+    # fetched there would validate and then vanish before the app started. And fetching during
+    # the build puts the content INSIDE the build artifact, so a Render rollback — which reuses
+    # the previous artifact and skips the build — restores the content revision that shipped
+    # with that deploy, rather than re-fetching whatever CONTENT_COMMIT happens to say today.
+    #
+    # Every content-consuming service runs it, cron jobs included: each builds independently, and
+    # all four pin the SAME immutable CONTENT_COMMIT so no two can resolve different content.
+    # It aborts the build on any failure — a bad revision must fail the deploy, never boot the
+    # service against absent or wrong content.
+    buildCommand: pip install uv==0.12.5 && uv sync --frozen --no-dev && uv run python -m scripts.fetch_private_content
+    # Migrate, SEED the legacy placeholder bank, INGEST the reviewed categorized bank, INGEST the
+    # estimate (Fermi) set, then serve. All four are idempotent (migrate = no-op at head; seed skips
+    # dupes; both ingests UPSERT — new items are added and edited ones are refreshed in place, so an
+    # edited bank syncs to the DB on deploy while unchanged rows are a no-op), so they re-run safely
+    # on every start. They live on the WEB service ONLY (never the cron) so they can't double-run.
+    # The bank is the content PACKAGE's `content/bank` (from rootDir=backend) — the SINGLE canonical
+    # content tree, and the same source the campaign manifest is built from
+    # (content/campaign/build_manifest.py), so campaign question_keys always resolve against the
+    # ingested DB. ingest exits non-zero on a malformed row, which (via &&) fails the deploy loudly
+    # rather than shipping a broken bank. On a paid plan the cleaner option is Render's
+    # `preDeployCommand: <the migrate && seed && ingest chain>` (runs once per deploy) — then drop
+    # that prefix from startCommand.
+    #
+    # `ingest-estimate --retire-missing` makes content/estimate/fermi.json the ACTIVE SET: items it
+    # no longer carries are deactivated (kept, never deleted, so an already-pinned window plan still
+    # resolves them) and returning items are reactivated. Estimate content used to have NO deploy
+    # step at all, so prod silently kept whatever was ingested by hand — the 40-item authored bank
+    # would never have replaced the retired machine-generated one without a manual DB session. The
+    # retire is inside the ingest's all-or-nothing gate, so a malformed file retires nothing and
+    # fails the deploy instead of emptying the live bank; and it is symmetric, so reverting the file
+    # restores the previous active set. §5d.
+    #
+    # `ingest-change` loads the change-detection pairs. It is UPSERT-only (no retire): the image
+    # files are served by the web service from public/assets/change, so a manifest that lost an item
+    # while its images were still deployed would deactivate content that is perfectly serveable.
+    # Difficulty is stamped from content/change/difficulty.json on the way in — the manifest is
+    # generated by the QC pipeline, which deliberately does not carry it. Deliberately added ONLY
+    # now that a manifest exists: ingest-change on a missing file exits non-zero and, via &&, would
+    # have failed every deploy.
+    startCommand: uv run alembic upgrade head && uv run python -m app.jobs.run seed && uv run python -m app.jobs.run ingest && uv run python -m app.jobs.run ingest-estimate --retire-missing && uv run python -m app.jobs.run ingest-change && uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: rot-royale-db
+          property: connectionString # private-network URL; the app upgrades it to the asyncpg
+                                     # driver and strips libpq-only params (sslmode) automatically.
+      - key: SECRET_KEY
+        generateValue: true # Render generates a strong random 256-bit secret (never committed).
+      - key: APP_ENV
+        value: production
+      # The private content root. Production REFUSES TO BOOT without it (app/core/config.py): there
+      # is no fallback to the synthetic sample corpus, because serving placeholder questions in a
+      # ranked contest is worse than not starting. Point it at wherever the private bank is
+      # mounted; the loader does not care how it got there.
+      - key: ROT_CONTENT_DIR
+        # Root-relative, because every service sets `rootDir: backend` and Render runs build and
+        # start commands from there. Not an absolute path: the deployed source location is Render's
+        # to choose, and hard-coding an internal one makes our production contract depend on an
+        # undocumented detail. Settings.content_root resolves it to an absolute path once, at
+        # startup, so nothing later is sensitive to the working directory.
+        #
+        # `.content` rather than `content` — `backend/content/` is the Python package.
+        value: .content
+      - key: CONTENT_REPO
+        value: ThomasCaruso/rot-royale-content
+      # GITHUB_CONTENT_TOKEN + CONTENT_COMMIT come from the environment group, never from source.
+      # The token is a credential. CONTENT_COMMIT is deliberately NOT here either: keeping it in the
+      # group lets a content release ship without an application commit, while still demanding an
+      # explicit immutable SHA (the fetcher refuses anything that is not a full 40-character one).
+      #
+      # The group name is ENVIRONMENT-SPECIFIC, not one name shadowed per environment: nothing
+      # documents that two identically named groups resolve safely through `fromGroup`, and getting
+      # that wrong would point production at a staging credential — or worse, a staging content
+      # revision. Explicit names make the mistake unrepresentable.
+      #
+      # This group does not exist yet, so `render blueprints validate ./render.yaml` reports it as
+      # invalid. That is accurate, not a defect: production cannot be applied until the group is
+      # created and filled. Creating it is a pre-cutover step, deliberately not done during staging.
+      - fromGroup: rot-royale-content-production
+      - key: SCHEDULER_ENABLED
+        value: "false" # In prod the cron job owns scheduling (exactly-once). No in-process daemon.
+      # The deployed WEB origins (HTTPS, no localhost), comma-separated. rotroyale.live is the
+      # custom domain served by rot-royale-web; www is listed too because Render answers both, and
+      # the .onrender.com origin stays allowed so the site keeps working straight off the Render URL
+      # (and through any DNS cutover). Browser API calls from an origin missing here are BLOCKED.
+      - key: CORS_ORIGINS
+        value: https://rotroyale.live,https://www.rotroyale.live,https://rot-royale-web.onrender.com
+      # ── Viral share loop hosts. web_base_url = where /c/<id> redirects a human to play in the SPA;
+      #    challenge_base_url = the public API origin embedded in the share link + OG tags. Update
+      #    both if you move the SPA / API to a custom domain (and add it to CORS_ORIGINS above).
+      #    The SPA now lives on the custom domain; the API has NOT been moved, so shared links still
+      #    read …onrender.com/c/<id>. Moving it (e.g. api.rotroyale.live) is a separate change:
+      #    add the domain in Render, then update this value AND frontend/.env.production's
+      #    VITE_API_BASE, which is baked into the bundle at build time.
+      - key: WEB_BASE_URL
+        value: https://rotroyale.live
+      - key: CHALLENGE_BASE_URL
+        value: https://rot-royale-api.onrender.com
+      - key: VAPID_PUBLIC_KEY
+        sync: false # Web Push (M9): the API serves this to the browser. Same value as the cron's.
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+
+  # ── Cron: timed window work (transition + settlement + window provisioning) ───────────────────
+  # Runs the existing one-shot entrypoint. `both` = create (idempotent) + transition + settle.
+  # Settlement is exactly-once-guarded (window-row FOR UPDATE + state==CLOSED guard, never commits
+  # partially), so running every few minutes is safe and resolves the single-instance-scheduler risk
+  # flagged since M3. `both` provisions upcoming windows on every run, so it already SUBSUMES the
+  # separate "daily window creation" job — no second cron needed.
+  - type: cron
+    name: rot-royale-cron
+    runtime: python
+    rootDir: backend
+    region: oregon
+    plan: starter # NOTE: confirm cron pricing for your account — Render cron jobs are not free.
+    schedule: "*/2 * * * *" # every 2 minutes — the robust heartbeat (create + transition + catch-up
+                            # settle). Relaxed from */3 so opens/closes and any missed settle resolve
+                            # within ~2 min. The targeted rot-royale-settle cron below nails 12:15 ET.
+    # The content fetch runs HERE, in the build, for two reasons. Render's pre-deploy runs on a
+    # separate instance whose filesystem changes never reach the deployed service, so a package
+    # fetched there would validate and then vanish before the app started. And fetching during
+    # the build puts the content INSIDE the build artifact, so a Render rollback — which reuses
+    # the previous artifact and skips the build — restores the content revision that shipped
+    # with that deploy, rather than re-fetching whatever CONTENT_COMMIT happens to say today.
+    #
+    # Every content-consuming service runs it, cron jobs included: each builds independently, and
+    # all four pin the SAME immutable CONTENT_COMMIT so no two can resolve different content.
+    # It aborts the build on any failure — a bad revision must fail the deploy, never boot the
+    # service against absent or wrong content.
+    buildCommand: pip install uv==0.12.5 && uv sync --frozen --no-dev && uv run python -m scripts.fetch_private_content
+    startCommand: uv run python -m app.jobs.run both
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: rot-royale-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true # config requires it to be set even though the job doesn't sign tokens.
+      - key: APP_ENV
+        value: production
+      # The private content root. Production REFUSES TO BOOT without it (app/core/config.py): there
+      # is no fallback to the synthetic sample corpus, because serving placeholder questions in a
+      # ranked contest is worse than not starting. Point it at wherever the private bank is
+      # mounted; the loader does not care how it got there.
+      - key: ROT_CONTENT_DIR
+        # Root-relative, because every service sets `rootDir: backend` and Render runs build and
+        # start commands from there. Not an absolute path: the deployed source location is Render's
+        # to choose, and hard-coding an internal one makes our production contract depend on an
+        # undocumented detail. Settings.content_root resolves it to an absolute path once, at
+        # startup, so nothing later is sensitive to the working directory.
+        #
+        # `.content` rather than `content` — `backend/content/` is the Python package.
+        value: .content
+      - key: CONTENT_REPO
+        value: ThomasCaruso/rot-royale-content
+      # GITHUB_CONTENT_TOKEN + CONTENT_COMMIT come from the environment group, never from source.
+      # The token is a credential. CONTENT_COMMIT is deliberately NOT here either: keeping it in the
+      # group lets a content release ship without an application commit, while still demanding an
+      # explicit immutable SHA (the fetcher refuses anything that is not a full 40-character one).
+      #
+      # The group name is ENVIRONMENT-SPECIFIC, not one name shadowed per environment: nothing
+      # documents that two identically named groups resolve safely through `fromGroup`, and getting
+      # that wrong would point production at a staging credential — or worse, a staging content
+      # revision. Explicit names make the mistake unrepresentable.
+      #
+      # This group does not exist yet, so `render blueprints validate ./render.yaml` reports it as
+      # invalid. That is accurate, not a defect: production cannot be applied until the group is
+      # created and filled. Creating it is a pre-cutover step, deliberately not done during staging.
+      - fromGroup: rot-royale-content-production
+      # Web Push (M9): the cron sends the 'window open' push, so it needs the full VAPID pair.
+      # Generate ONE pair (see backend/.env.example): put the PUBLIC key on BOTH this cron and the
+      # api service (must be identical — it's what the browser subscribes with), and the PRIVATE key
+      # on the cron ONLY. A mismatched public/private pair → 403 from the push service. No-op if unset.
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false # secret — server only, never exposed to the browser.
+      - key: VAPID_SUBJECT
+        value: mailto:admin@rotroyale.example
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+
+  # ── Cron: targeted 12:15 AM ET settle (Daily Royale "Results settling" beat) ──────────────────
+  # The Daily Royale closes at 12:00 AM ET (midnight); results settle 15 min later. This cron fires
+  # at BOTH 04:15 and 05:15 UTC, which are 12:15 AM ET in EDT (UTC-4) and EST (UTC-5) respectively —
+  # so one of the two is always the DST-correct 12:15-ET instant. The settle gate (now >= close_at +
+  # SETTLE_DELAY_MINUTES) makes exactly the correct one settle the day's window; the other runs after
+  # the window is already SETTLED (or before settle_at on the wrong-DST side) and is a clean no-op.
+  # This pins settlement to 12:15 ET without lazy/first-user-open settlement. The */2 heartbeat above
+  # remains the fallback. `both` is exactly-once-guarded, so running it here is safe.
+  - type: cron
+    name: rot-royale-settle
+    runtime: python
+    rootDir: backend
+    region: oregon
+    plan: starter # NOTE: confirm cron pricing for your account — Render cron jobs are not free.
+    schedule: "15 4,5 * * *" # 04:15 + 05:15 UTC = 12:15 AM ET in EDT/EST; gate makes the right one win
+    # The content fetch runs HERE, in the build, for two reasons. Render's pre-deploy runs on a
+    # separate instance whose filesystem changes never reach the deployed service, so a package
+    # fetched there would validate and then vanish before the app started. And fetching during
+    # the build puts the content INSIDE the build artifact, so a Render rollback — which reuses
+    # the previous artifact and skips the build — restores the content revision that shipped
+    # with that deploy, rather than re-fetching whatever CONTENT_COMMIT happens to say today.
+    #
+    # Every content-consuming service runs it, cron jobs included: each builds independently, and
+    # all four pin the SAME immutable CONTENT_COMMIT so no two can resolve different content.
+    # It aborts the build on any failure — a bad revision must fail the deploy, never boot the
+    # service against absent or wrong content.
+    buildCommand: pip install uv==0.12.5 && uv sync --frozen --no-dev && uv run python -m scripts.fetch_private_content
+    startCommand: uv run python -m app.jobs.run both
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: rot-royale-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true # config requires it set even though this job doesn't sign tokens.
+      - key: APP_ENV
+        value: production
+      # The private content root. Production REFUSES TO BOOT without it (app/core/config.py): there
+      # is no fallback to the synthetic sample corpus, because serving placeholder questions in a
+      # ranked contest is worse than not starting. Point it at wherever the private bank is
+      # mounted; the loader does not care how it got there.
+      - key: ROT_CONTENT_DIR
+        # Root-relative, because every service sets `rootDir: backend` and Render runs build and
+        # start commands from there. Not an absolute path: the deployed source location is Render's
+        # to choose, and hard-coding an internal one makes our production contract depend on an
+        # undocumented detail. Settings.content_root resolves it to an absolute path once, at
+        # startup, so nothing later is sensitive to the working directory.
+        #
+        # `.content` rather than `content` — `backend/content/` is the Python package.
+        value: .content
+      - key: CONTENT_REPO
+        value: ThomasCaruso/rot-royale-content
+      # GITHUB_CONTENT_TOKEN + CONTENT_COMMIT come from the environment group, never from source.
+      # The token is a credential. CONTENT_COMMIT is deliberately NOT here either: keeping it in the
+      # group lets a content release ship without an application commit, while still demanding an
+      # explicit immutable SHA (the fetcher refuses anything that is not a full 40-character one).
+      #
+      # The group name is ENVIRONMENT-SPECIFIC, not one name shadowed per environment: nothing
+      # documents that two identically named groups resolve safely through `fromGroup`, and getting
+      # that wrong would point production at a staging credential — or worse, a staging content
+      # revision. Explicit names make the mistake unrepresentable.
+      #
+      # This group does not exist yet, so `render blueprints validate ./render.yaml` reports it as
+      # invalid. That is accurate, not a defect: production cannot be applied until the group is
+      # created and filled. Creating it is a pre-cutover step, deliberately not done during staging.
+      - fromGroup: rot-royale-content-production
+      # VAPID pair (mirrors rot-royale-cron): `both` runs notify_window_opens, so keep the keys
+      # consistent. No-op if unset.
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false # secret — server only, never exposed to the browser.
+      - key: VAPID_SUBJECT
+        value: mailto:admin@rotroyale.example
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+
+  # ── Cron: daily Rot Rating difficulty convergence (12:15 AM ET, alongside settle) ─────────────
+  # Converges the just-closed ET day's FLOATING difficulty pools (estimate/notice) on observed pass
+  # rate, then re-centres them to seed means (the anchor; §5e). Same dual-UTC 12:15-ET firing as the
+  # settle cron. The batch is NOT idempotent (per-difficulty game counts accumulate), so it is
+  # guarded EXACTLY-ONCE per ET day (INSERT ... ON CONFLICT on rot_difficulty_batches): whichever of
+  # the two UTC fires runs first converges the day; the other is a clean no-op. Kept as its OWN cron
+  # (not folded into `both`) so the once-daily guard is never coupled to the */2 heartbeat.
+  - type: cron
+    name: rot-royale-rot-converge
+    runtime: python
+    rootDir: backend
+    region: oregon
+    plan: starter # NOTE: confirm cron pricing for your account — Render cron jobs are not free.
+    schedule: "15 4,5 * * *" # 04:15 + 05:15 UTC = 12:15 AM ET in EDT/EST; the guard makes it once/day
+    # The content fetch runs HERE, in the build, for two reasons. Render's pre-deploy runs on a
+    # separate instance whose filesystem changes never reach the deployed service, so a package
+    # fetched there would validate and then vanish before the app started. And fetching during
+    # the build puts the content INSIDE the build artifact, so a Render rollback — which reuses
+    # the previous artifact and skips the build — restores the content revision that shipped
+    # with that deploy, rather than re-fetching whatever CONTENT_COMMIT happens to say today.
+    #
+    # Every content-consuming service runs it, cron jobs included: each builds independently, and
+    # all four pin the SAME immutable CONTENT_COMMIT so no two can resolve different content.
+    # It aborts the build on any failure — a bad revision must fail the deploy, never boot the
+    # service against absent or wrong content.
+    buildCommand: pip install uv==0.12.5 && uv sync --frozen --no-dev && uv run python -m scripts.fetch_private_content
+    startCommand: uv run python -m app.jobs.run rot-converge
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: rot-royale-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true # config requires it set even though this job doesn't sign tokens.
+      - key: APP_ENV
+        value: production
+      # The private content root. Production REFUSES TO BOOT without it (app/core/config.py): there
+      # is no fallback to the synthetic sample corpus, because serving placeholder questions in a
+      # ranked contest is worse than not starting. Point it at wherever the private bank is
+      # mounted; the loader does not care how it got there.
+      - key: ROT_CONTENT_DIR
+        # Root-relative, because every service sets `rootDir: backend` and Render runs build and
+        # start commands from there. Not an absolute path: the deployed source location is Render's
+        # to choose, and hard-coding an internal one makes our production contract depend on an
+        # undocumented detail. Settings.content_root resolves it to an absolute path once, at
+        # startup, so nothing later is sensitive to the working directory.
+        #
+        # `.content` rather than `content` — `backend/content/` is the Python package.
+        value: .content
+      - key: CONTENT_REPO
+        value: ThomasCaruso/rot-royale-content
+      # GITHUB_CONTENT_TOKEN + CONTENT_COMMIT come from the environment group, never from source.
+      # The token is a credential. CONTENT_COMMIT is deliberately NOT here either: keeping it in the
+      # group lets a content release ship without an application commit, while still demanding an
+      # explicit immutable SHA (the fetcher refuses anything that is not a full 40-character one).
+      #
+      # The group name is ENVIRONMENT-SPECIFIC, not one name shadowed per environment: nothing
+      # documents that two identically named groups resolve safely through `fromGroup`, and getting
+      # that wrong would point production at a staging credential — or worse, a staging content
+      # revision. Explicit names make the mistake unrepresentable.
+      #
+      # This group does not exist yet, so `render blueprints validate ./render.yaml` reports it as
+      # invalid. That is accurate, not a defect: production cannot be applied until the group is
+      # created and filled. Creating it is a pre-cutover step, deliberately not done during staging.
+      - fromGroup: rot-royale-content-production
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+
+  # ── Vite static site (frontend SPA / PWA) ────────────────────────────────────────────────────
+  - type: web
+    name: rot-royale-web
+    runtime: static
+    # (no `region` — static sites are edge/CDN-served and don't take a region.)
+    buildCommand: cd frontend && npm ci && npm run build
+    staticPublishPath: frontend/dist # relative to repo root
+    # SPA fallback: serve index.html for any path that isn't a built file (also lets the PWA work
+    # offline via the service worker's navigate fallback). Rewrite keeps the URL (not a redirect).
+    routes:
+      # /download — the canonical public acquisition link (Instagram/Facebook/TikTok bios, QR
+      # codes). It is its OWN built HTML entry (frontend/download.html) so the Apple Smart App
+      # Banner meta ships in the initial response for this route only, instead of globally. These
+      # two rules MUST stay above the SPA catch-all; a rewrite keeps the visitor's URL as
+      # https://rotroyale.live/download.
+      - type: rewrite
+        source: /download
+        destination: /download.html
+      - type: rewrite
+        source: /download/
+        destination: /download.html
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      # Never let the service worker (or the imported push handlers) be cached, or clients get
+      # stuck on a stale SW.
+      - path: /sw.js
+        name: Cache-Control
+        value: no-cache
+      - path: /push-sw.js
+        name: Cache-Control
+        value: no-cache
+    envVars:
+      - key: VITE_API_BASE
+        sync: false # The deployed API HTTPS origin. MUST be set before the first build (baked in).

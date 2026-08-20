@@ -1,0 +1,116 @@
+{
+  "version": 1,
+  "_note": "Campaign topology for the SYNTHETIC sample package. MINIMALLY FAITHFUL: production's 6 worlds and 10 levels, with 3 questions per level instead of 10 \u2014 the smallest width at which clear/strong/perfect are distinguishable, so the sample exercises real engine semantics (chest at L5, boss at L10, non-perfect clears, reward tiers, subtopic mixing). Production declares 10 per level with thresholds 7/8/10; the engine is identical.",
+  "levels_per_world": 10,
+  "questions_per_level": 3,
+  "worlds": [
+    {
+      "world": "Science",
+      "category": "Science & Nature"
+    },
+    {
+      "world": "History",
+      "category": "History"
+    },
+    {
+      "world": "Sports",
+      "category": "Sports"
+    },
+    {
+      "world": "Geography",
+      "category": "Geography"
+    },
+    {
+      "world": "Arts",
+      "category": "Arts & Literature"
+    },
+    {
+      "world": "Pop Culture",
+      "category": "Pop Culture & Entertainment"
+    }
+  ],
+  "ramp": [
+    [
+      3,
+      0,
+      0
+    ],
+    [
+      3,
+      0,
+      0
+    ],
+    [
+      2,
+      1,
+      0
+    ],
+    [
+      2,
+      1,
+      0
+    ],
+    [
+      1,
+      2,
+      0
+    ],
+    [
+      1,
+      2,
+      0
+    ],
+    [
+      0,
+      3,
+      0
+    ],
+    [
+      0,
+      2,
+      1
+    ],
+    [
+      0,
+      1,
+      2
+    ],
+    [
+      0,
+      0,
+      3
+    ]
+  ],
+  "arcs": [
+    {
+      "name": "Foundations",
+      "first_level": 1,
+      "last_level": 4
+    },
+    {
+      "name": "Ascent",
+      "first_level": 5,
+      "last_level": 8
+    },
+    {
+      "name": "Mastery",
+      "first_level": 9,
+      "last_level": 10
+    }
+  ],
+  "level_titles": [
+    "Warm-Up",
+    "Finding Your Footing",
+    "Building Momentum",
+    "Hitting Your Stride",
+    "Raising the Stakes",
+    "Into the Deep",
+    "Trial by Fire",
+    "No Easy Answers",
+    "The Gauntlet",
+    "Final Trial"
+  ],
+  "clear_threshold": 1,
+  "perfect_threshold": 3,
+  "strong_threshold": 2
+}

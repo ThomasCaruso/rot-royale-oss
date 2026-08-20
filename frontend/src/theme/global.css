@@ -1,0 +1,718 @@
+/* Fonts are loaded from index.html as a non-blocking <link> (media="print" swap trick), NOT as a
+   CSS @import here. An @import at the top of the only stylesheet made first paint wait on
+   fonts.googleapis.com — on a wrapped mobile build with a slow or absent network that was a blank
+   screen until the request failed. display=swap in the URL keeps text visible either way. */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  /* Never scroll sideways on small screens — content is laid out within the viewport width.
+     `clip` (where supported) forbids horizontal scrolling entirely — unlike `hidden`, it can't be
+     panned/scrolled programmatically or by touch momentum on WebKit. The `hidden` line stays as the
+     fallback for older engines. */
+  width: 100%;
+  overflow-x: hidden;
+  overflow-x: clip;
+}
+
+/* Belt-and-braces: the app root also clips sideways overflow, so a stray wide/absolutely-positioned
+   layer inside the app can never widen the page or create a horizontal pan. */
+.rr-root {
+  overflow-x: hidden;
+  overflow-x: clip;
+}
+
+body {
+  /* Emoji fonts are appended to the base stack: they only carry emoji glyphs, so plain text still
+     renders in Sora while every emoji codepoint falls back to a full-color glyph on iOS, Android,
+     macOS/Safari, Windows/Chrome and Linux. Without this, some platforms render emoji as flat
+     monochrome outlines. */
+  font-family: "Sora", system-ui, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji", "Android Emoji", sans-serif;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg);
+  background-attachment: fixed;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.rr-root {
+  min-height: 100dvh;
+  position: relative;
+}
+
+/* ---- Premium matte depth (DESIGN §4): static, GPU-cheap, theme-driven ----
+   Two fixed layers sit BEHIND all content (z-index 0; app content is positioned above).
+   ::before — a faint brand-tinted vignette that deepens the edges so the background reads as a
+   lit room, not a flat fill. ::after — an ultra-low-opacity CSS-only noise (layered hairline
+   conic/linear gradients, no image, no repaint) that gives the matte surface tooth at premium
+   density. Both are pointer-transparent and purely decorative. They are STATIC (no animation),
+   so the reduced-motion block leaves them fully intact. */
+.rr-root::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(140% 90% at 50% -10%, transparent 55%, rgba(0, 0, 0, 0.16) 100%),
+    radial-gradient(120% 70% at 50% 120%, rgba(0, 0, 0, 0.12), transparent 60%);
+}
+.rr-root::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.4;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.012) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.018) 0 1px, transparent 1px 3px);
+  background-size: 3px 3px;
+}
+/* Light themes (soft/mono) want a gentler, warmer matte — the dark-edge vignette is heavier than a
+   bright surface should carry, so soften it and let the noise do the texturing. */
+.rr-root.s-soft::before,
+.rr-root.s-mono::before {
+  background:
+    radial-gradient(140% 90% at 50% -10%, transparent 60%, rgba(40, 30, 70, 0.06) 100%),
+    radial-gradient(120% 70% at 50% 120%, rgba(40, 30, 70, 0.05), transparent 60%);
+}
+.rr-root.s-soft::after,
+.rr-root.s-mono::after {
+  opacity: 0.28;
+}
+
+/* ---- Per-style CHARACTER (Job 2b): each art style reads distinctly, not just recolored ----
+   The ARCADE style (Royale) leans into neon: a stronger ambient brand glow on glass cards + a
+   crisper, more saturated wordmark, so it feels like a lit arcade cabinet. The SOFT styles
+   (Daylight/Bubblegum/Evergreen/Midnight) stay gentler and rounder — their distinct character comes
+   from their own --glow tone (candy pink / mossy green / neon-magenta / soft daylight). All effects
+   are transform/box-shadow/filter only (GPU-cheap) and collapse under the reduced-motion rule. */
+
+/* Base glass surface (GlassCard). Driven entirely by theme vars so every theme reskins it; the
+   final shadow layer is the per-theme ambient glow (--glow) so the same card takes on each theme's
+   signature bloom (neon violet on Royale, hot magenta on Midnight, candy pink on Bubblegum, mossy
+   green on Evergreen, soft warm haze on Daylight). */
+.rr-glass {
+  position: relative;
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(255, 255, 255, 0.1), transparent 60%),
+    linear-gradient(180deg, var(--panel2), var(--panel));
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--line);
+  /* Radius + padding come from the theme's shape contract (tokens.ts) so a theme can retune the
+     app's physical density, not just its palette (mono sharpens corners + opens the padding). */
+  border-radius: var(--radius-card, 22px);
+  padding: var(--pad-card, 20px);
+  box-shadow:
+    0 22px 48px rgba(0, 0, 0, 0.4),
+    0 6px 16px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -18px 30px rgba(0, 0, 0, 0.16),
+    0 0 36px var(--glow);
+}
+/* Arcade (Royale): amplify the glow so cards pop off the dark cosmic world like a lit cabinet. */
+.rr-root.s-arcade .rr-glass {
+  box-shadow:
+    0 22px 48px rgba(0, 0, 0, 0.45),
+    0 6px 16px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -18px 30px rgba(0, 0, 0, 0.18),
+    0 0 54px var(--glow);
+}
+/* Soft: a softer, wider bloom + a brighter top sheen so light themes feel pillowy and friendly,
+   not arcade-hard (their rounder 26px corners come from --radius-card in their theme vars). */
+.rr-root.s-soft .rr-glass {
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -18px 30px rgba(0, 0, 0, 0.06),
+    0 0 34px var(--glow);
+}
+
+/* A faint full-screen aura in each theme's own glow tone — the cheapest way to make the WHOLE app
+   (not just cards) feel like a different place per theme. Static, pointer-transparent, behind all
+   content (z 0, like the matte layers). */
+.rr-root::after {
+  /* layer the theme glow on top of the existing CSS-noise via an extra radial (no new element). */
+  box-shadow: inset 0 0 220px 40px var(--glow);
+}
+
+/* ---- Display heading (DESIGN §3) ---- */
+/* Flat + clearly letter-spaced by default. "Luckiest Guy" is chunky and smears when tight, so give
+   every display string real breathing room. The 3D extrude is opt-in (.display-3d) and reserved for
+   the ROT ROYALE wordmark only. */
+.display {
+  /* The display face is themable (--font-display): arcade/soft keep the chunky Luckiest Guy;
+     the mono skin swaps to a tight, refined Sora (weight/tracking corrected in its block below). */
+  font-family: var(--font-display, "Luckiest Guy", "Sora", cursive);
+  font-weight: 400;
+  letter-spacing: 0.07em;
+  line-height: 1.08;
+  color: var(--text);
+}
+.display.gold {
+  color: var(--amber);
+}
+.display-3d {
+  color: #fff;
+  -webkit-text-stroke: 2px rgba(27, 17, 54, 0.9);
+  text-shadow:
+    0 2px 0 #4c1d95,
+    0 4px 0 #3b1782,
+    0 7px 10px rgba(0, 0, 0, 0.45);
+}
+.display-3d.gold {
+  color: #ffd24a;
+  text-shadow:
+    0 2px 0 #b97900,
+    0 4px 0 #8a5a00,
+    0 7px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* In light modes (soft/pixel/mono) the heavy violet 3D shadow is wrong — soften it. */
+.rr-root.s-soft .display-3d,
+.rr-root.s-mono .display-3d {
+  -webkit-text-stroke: 0;
+  color: var(--lime);
+  text-shadow: none;
+}
+/* Mono goes further: the wordmark is plain ink — no color accent at all. */
+.rr-root.s-mono .display-3d {
+  color: var(--text);
+}
+
+/* ---- Emoji (DESIGN: must pop on iPhone, Android, Safari, Chrome — everywhere) ----
+   Apply to any element whose content is an emoji glyph. Pins the color-emoji font stack and forces
+   emoji (not text) presentation, so dual-presentation glyphs like ⚡/⚔️/🛡️ never fall back to a
+   monochrome outline. Emoji fonts contain no Latin glyphs, so this is safe on mixed content too. */
+.emoji {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+    "Noto Color Emoji", "Android Emoji", "Twemoji Mozilla", sans-serif;
+  font-variant-emoji: emoji;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1;
+  -webkit-font-smoothing: auto;
+}
+
+/* ---- Motion primitives (keyframes; components opt in) ---- */
+@keyframes rr-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+@keyframes rr-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-7px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(3px); }
+}
+@keyframes rr-ring-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+/* Last-seconds urgency: a tighter, tenser beat than rr-ring-pulse (used under ~3s). */
+@keyframes rr-ring-urgent {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+/* A soft glow halo behind the ring that breathes red in the final seconds (box-shadow only). Bleed
+   kept modest (18px blur, 2px spread) so the halo stays inside the question card's rounded corner +
+   the RoundHeader's top/right clearance and is never clipped. */
+@keyframes rr-ring-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 46, 77, 0); }
+  50% { box-shadow: 0 0 18px 2px rgba(255, 46, 77, 0.55); }
+}
+/* Memory tile flash: a punchy pop when a tile lights (watch phase) or is tapped. */
+@keyframes rr-tile-flash {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.09); }
+  100% { transform: scale(1); }
+}
+/* The correct-answer pill on reveal gets a brief gold ring sweep around it (outline glow). */
+@keyframes rr-correct-ring {
+  0% { box-shadow: 0 8px 26px rgba(47, 212, 94, .2), 0 0 0 0 rgba(47, 212, 94, .6); }
+  60% { box-shadow: 0 8px 26px rgba(47, 212, 94, .45), 0 0 0 6px rgba(47, 212, 94, 0); }
+  100% { box-shadow: 0 8px 26px rgba(47, 212, 94, .45), 0 0 0 0 rgba(47, 212, 94, 0); }
+}
+/* Streak ▲ cue rises and settles when a correct answer extends a streak. */
+@keyframes rr-streak-rise {
+  0% { transform: translateY(8px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes rr-splash-in {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes rr-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes rr-glow-pulse {
+  0%, 100% { box-shadow: 0 10px 30px rgba(255, 201, 30, 0.4); }
+  50% { box-shadow: 0 12px 40px rgba(255, 201, 30, 0.7); }
+}
+@keyframes rr-live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.82); }
+}
+@keyframes rr-drift {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, -1400px, 0); }
+}
+@keyframes rr-rise {
+  0% { transform: translateY(0); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translateY(-46px); opacity: 0; }
+}
+/* Results reveal: a light sweep across the placement card, and idle sparkle twinkles for top-3. */
+@keyframes rr-shine {
+  0% { transform: translateX(-120%) skewX(-16deg); opacity: 0; }
+  18% { opacity: 1; }
+  60%, 100% { transform: translateX(220%) skewX(-16deg); opacity: 0; }
+}
+@keyframes rr-twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+/* Winner aura: a slow gold breath on the radial halo behind a #1 card (opacity only — the gradient
+ * itself never repaints). Under reduced motion the global collapse below leaves it as a static glow. */
+@keyframes rr-aura {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+/* Gentle bob (floating crown / CONTINUE chevron) and a slow orbit (Science medallion sparks). */
+@keyframes rr-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+@keyframes rr-orbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+/* Bottom-sheet entrance (Vault confirm): springy rise + fade. Overlay gets a plain fade. */
+@keyframes rr-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes rr-sheet-in {
+  0% { transform: translateY(46px); opacity: 0; }
+  70% { transform: translateY(-5px); opacity: 1; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+/* Change-detection commit mark: the ring snaps down onto the tap point and a halo pushes out from
+   it. Two jobs — confirm the tap landed, and give the round a beat of stillness before it resolves,
+   so it does not vanish under the player's finger mid-flicker. */
+@keyframes rr-tap-land {
+  0% { transform: scale(1.9); opacity: 0; }
+  55% { transform: scale(0.92); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes rr-tap-halo {
+  0% { transform: scale(0.6); opacity: 0.55; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+.rr-tap-land { animation: rr-tap-land 0.26s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
+.rr-tap-halo { animation: rr-tap-halo 0.5s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .rr-tap-land, .rr-tap-halo { animation: none; }
+  .rr-tap-halo { opacity: 0; }
+}
+
+.rr-pop { animation: rr-pop 0.4s ease; }
+.rr-shake { animation: rr-shake 0.45s ease; }
+.rr-tile-flash { animation: rr-tile-flash 0.32s ease; }
+.rr-correct-ring { animation: rr-correct-ring 0.6s ease-out; }
+.rr-streak-rise { animation: rr-streak-rise 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.4) both; }
+.rr-splash-in { animation: rr-splash-in 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.4); }
+.rr-shine { animation: rr-shine 1.5s ease-in 1; }
+.rr-twinkle { animation: rr-twinkle 1.7s ease-in-out infinite; }
+.rr-aura { animation: rr-aura 3.4s ease-in-out infinite; }
+.rr-float { animation: rr-float 3.2s ease-in-out infinite; }
+.rr-orbit { animation: rr-orbit 7s linear infinite; }
+.rr-glow-pulse { animation: rr-glow-pulse 2.6s ease-in-out infinite; }
+.rr-sheet-in { animation: rr-sheet-in 0.34s cubic-bezier(0.22, 0.9, 0.3, 1.15) both; }
+
+/* ---- Home lobby game-feel primitives (animated backdrop, card shine, idle motion) ----
+   All transform/opacity only (GPU-cheap) and all collapsed by the reduced-motion rule below. */
+
+/* Diagonal light sweep across a premium card surface — runs every few seconds. Host must be
+   position:relative + overflow:hidden; the sweep is an absolute, pointer-transparent span. The angle
+   is deliberately NOT 90deg so it never trips HeroCard's progress-fill detection in tests. */
+@keyframes rr-card-shine {
+  0% { transform: translateX(-150%) skewX(-18deg); opacity: 0; }
+  8% { opacity: 1; }
+  24% { transform: translateX(160%) skewX(-18deg); opacity: 0; }
+  100% { transform: translateX(160%) skewX(-18deg); opacity: 0; }
+}
+/* Stat counters settle into place on mount (rise + fade). Reduced motion → jumps to visible. */
+@keyframes rr-rise-in {
+  0% { transform: translateY(9px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+/* Slow ambient drift for the Home backdrop glow blobs. 0% == 100% so reduced-motion freezes them at
+   their origin (a clean static glow), never mid-drift. */
+@keyframes rr-bg-float-1 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(20px, -28px, 0) scale(1.08); }
+}
+@keyframes rr-bg-float-2 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-24px, 22px, 0) scale(1.1); }
+}
+/* Faint lightning flicker for the Battle clash — a charged, electric pulse (not a bounce). */
+@keyframes rr-bolt-flicker {
+  0%, 100% { opacity: 0.92; transform: scale(1); }
+  45% { opacity: 1; transform: scale(1.07); }
+  55% { opacity: 0.74; transform: scale(0.99); }
+}
+/* Breathing eye/charge glow for the duel fighters (filter only). */
+@keyframes rr-charge {
+  0%, 100% { filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.2)); }
+  50% { filter: drop-shadow(0 0 7px rgba(255, 255, 255, 0.55)); }
+}
+
+/* The gold VS lettermark on the Battle card gives a soft throb — a calm heartbeat, not a clash. */
+@keyframes rr-duel-vs {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 6px rgba(255, 201, 30, 0.5)); }
+  50% { transform: scale(1.06); filter: drop-shadow(0 0 13px rgba(255, 201, 30, 0.85)); }
+}
+
+/* Battle face-off: every ~5.4s the two rivals lean IN toward the VS while the gold divider flashes —
+   one shared 5.4s timeline so the clash beat lands together, followed by a long calm hold. The
+   percent translate is relative to the avatar's own width so the nudge scales with the card. Brief
+   (~16% of the loop) and small — a 1v1 confrontation beat, not a fight scene. All three collapse
+   under the reduced-motion block below. */
+@keyframes rr-faceoff-a {
+  0%, 70%, 94%, 100% { transform: translateX(0); }
+  78%, 86% { transform: translateX(5%); }
+}
+@keyframes rr-faceoff-b {
+  0%, 70%, 94%, 100% { transform: translateX(0); }
+  78%, 86% { transform: translateX(-5%); }
+}
+@keyframes rr-faceoff-flash {
+  0%, 70%, 94%, 100% { opacity: 0.55; }
+  78%, 86% { opacity: 1; }
+}
+.rr-faceoff-a { animation: rr-faceoff-a 5.4s ease-in-out infinite; }
+.rr-faceoff-b { animation: rr-faceoff-b 5.4s ease-in-out infinite; }
+.rr-faceoff-flash { animation: rr-faceoff-flash 5.4s ease-in-out infinite; }
+
+/* Stage-spotlight sway for the Battle scene's party-side beam — a slow pendulum around the cone's
+   apex (transform-origin top-centre). Gentle by design; collapses under reduced motion. */
+@keyframes rr-spot-sway {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+.rr-spot-sway { animation: rr-spot-sway 6.5s ease-in-out infinite; transform-origin: 50% 0%; }
+
+/* Campaign road: the dotted centreline drifts along the route — each stroke sets --rr-flow to a
+   whole number of its own dash periods, so the linear loop is seamless. Collapses under the global
+   reduced-motion rule like every other animation. */
+@keyframes rr-road-flow {
+  to { stroke-dashoffset: var(--rr-flow, -28px); }
+}
+.rr-road-flow { animation: rr-road-flow 2.8s linear infinite; }
+
+/* ---- Battle Mode card: hover/press interactions (idle motion reuses rr-aura/rr-card-shine/rr-duel-vs) ----
+   Transitions collapse automatically under the reduced-motion block below, so state still changes,
+   just without the animated tween. Hover effects gate on real hover devices (no sticky touch hover). */
+.rr-battle { transition: transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1.1), box-shadow 240ms ease; }
+.rr-battle-ring { transition: transform 220ms ease; }
+.rr-battle-glow { transition: opacity 260ms ease; }
+.rr-battle:active { transform: translateY(-1px); }
+@media (hover: hover) {
+  .rr-battle:hover { transform: translateY(-3px); }
+  .rr-battle:hover .rr-battle-ring { transform: scale(0.955); }
+  .rr-battle:hover .rr-battle-glow { opacity: 1; }
+}
+
+/* ---- Daily Royale card: hover/press (idle motion reuses rr-aura/rr-float/rr-card-shine) ---- */
+.rr-daily { transition: transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1.1), box-shadow 240ms ease; }
+.rr-daily-glow { transition: transform 240ms ease; }
+.rr-daily-chevron { transition: transform 200ms ease; }
+.rr-daily:active { transform: translateY(-1px); }
+@media (hover: hover) {
+  .rr-daily:hover { transform: translateY(-3px); }
+  .rr-daily:hover .rr-daily-glow { transform: scale(0.94); }
+  .rr-daily:hover .rr-daily-chevron { transform: translateX(3px); }
+}
+
+.rr-rise-in { animation: rr-rise-in 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
+.rr-card-shine { animation: rr-card-shine 6.5s ease-in-out infinite; }
+
+/* Tap/hover/press affordance for game cards & pills. Hover-lift only on real hover devices (no sticky
+   hover on touch). Active press + focus ring everywhere; transitions collapse under reduced motion. */
+.rr-tap {
+  transition: transform 140ms cubic-bezier(0.2, 0.9, 0.3, 1.1), box-shadow 220ms ease, filter 220ms ease;
+}
+.rr-tap:active { transform: scale(0.96); }
+.rr-tap:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+@media (hover: hover) {
+  .rr-tap:hover { transform: translateY(-3px); filter: brightness(1.05); }
+  .rr-tap:active { transform: translateY(-1px) scale(0.975); }
+}
+
+/* ---- MONO ("Blank" / "Blank Light"): the refined minimal reskin, in both polarities ----
+   More than a palette: mono strips the game's arcade physics down to a gallery. No vignette, no
+   ambient aura, no starfield/lobby glow, no light sweeps, no idle pulses — stillness IS the
+   premium. Surfaces flatten to hairline cards (white line-art on OLED black, or ink on paper);
+   the display face is a slim Sora (via --font-display); density opens up via the shape/spacing
+   vars. Every rule here is polarity-neutral (var-driven), so the dark and light Blank share one
+   skin. Confetti, reveals and state changes stay — feedback is content, glow is decoration. */
+
+/* Mono speaks Manrope — a quieter, more refined grotesque than the game's Sora — at a slim 500
+   body weight (elements that set their own weight — buttons, headings, stats — keep it). The
+   emoji stack rides along so any content glyphs still render in color. */
+.rr-root.s-mono {
+  font-family: "Manrope", "Sora", system-ui, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji", "Android Emoji", sans-serif;
+  font-weight: 500;
+}
+
+/* Blank space: no edge vignette, and the CSS noise drops to a whisper of grain. The base
+   .rr-root::after also carries the inset --glow aura via box-shadow — remove it entirely. */
+.rr-root.s-mono::before {
+  background: none;
+}
+.rr-root.s-mono::after {
+  opacity: 0.16;
+  box-shadow: none;
+}
+
+/* The cosmic layers read as noise on paper — mono hides them (they're aria-hidden decoration). */
+.rr-root.s-mono .rr-stars,
+.rr-root.s-mono .rr-lobby-glow {
+  display: none;
+}
+
+/* Liquid glass, both polarities: cards are frosted panels floating over the background — a
+   slightly translucent panel gradient with real backdrop blur, a hairline border, a specular
+   top-edge light-catch (--sheen: bright gloss on light, whisper rim on OLED dark), and two calm
+   contact/ambient shadows. Depth from light and contrast, never from color or neon. */
+.rr-root.s-mono .rr-glass {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--panel) 88%, transparent),
+    color-mix(in srgb, var(--panel) 74%, transparent)
+  );
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+  backdrop-filter: blur(18px) saturate(1.15);
+  border: 1px solid color-mix(in srgb, var(--line) 85%, transparent);
+  box-shadow:
+    inset 0 1px 0 var(--sheen),
+    0 1px 2px rgba(17, 17, 17, 0.05),
+    0 14px 36px rgba(17, 17, 17, 0.08);
+}
+
+/* Sora as a display face: slim-modern — 600, tight editorial tracking (thin line-art energy). */
+.rr-root.s-mono .display {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* Stillness: light sweeps and shine layers vanish; idle glow/float pulses stop (the !important
+   is required — GoldButton and the nav Play disc set their pulse as an inline style). One-shot
+   feedback (confetti, pops, reveals, splash-in) is untouched. */
+.rr-root.s-mono .rr-card-shine,
+.rr-root.s-mono .rr-shine {
+  display: none;
+}
+.rr-root.s-mono .rr-aura,
+.rr-root.s-mono .rr-glow-pulse,
+.rr-root.s-mono .rr-float,
+.rr-root.s-mono .rr-twinkle {
+  animation: none !important;
+}
+.rr-root.s-mono button {
+  animation: none !important;
+}
+
+/* The gold CTA becomes a slim, confident mono button (ink pill on paper / white pill on black):
+   flat cap, trimmed height, smaller type, one crisp shadow — no bevel, no glow (the inline
+   gold-bevel shadows are amber-derived and would read muddy on ink). !important because
+   GoldButton sets these inline. */
+.rr-root.s-mono button.display {
+  padding: 14px 20px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase;
+  background: var(--cta) !important;
+  color: var(--ctaText) !important;
+  box-shadow:
+    0 1px 2px rgba(17, 17, 17, 0.2),
+    0 8px 20px rgba(17, 17, 17, 0.12) !important;
+}
+
+/* ---- Auth form input (login / sign-up). Token-driven so it re-skins with the theme; the states
+   are done in CSS (not inline) so autofill, ::placeholder, :focus and the error state are all
+   covered. A warm lavender-tinted panel surface that clearly reads as ACTIVE (never the flat
+   disabled-looking gray it was), a hairline lavender border, the app's specular top edge, and a
+   refined purple focus ring — the one moment of colour on an otherwise calm form. */
+.rr-auth-input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: var(--radius-ctl, 14px);
+  border: 1px solid var(--line);
+  /* Solid, not a transparent mix over the page: a whisper of the theme's lavender panel2 blended
+     into the white panel. Reads as a clean, filled, tappable field. */
+  background: color-mix(in srgb, var(--panel2) 45%, var(--panel));
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.2;
+  outline: none;
+  /* Restrained: the glass top-edge light-catch plus the faintest inner shade for depth. No heavy
+     drop shadow — the surface contrast and border carry it. */
+  box-shadow:
+    inset 0 1px 0 var(--sheen),
+    inset 0 1px 2px color-mix(in srgb, var(--brand) 5%, transparent);
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+}
+.rr-auth-input::placeholder {
+  /* Between --faint and --muted: clearly a hint (lighter than the navy entered text) but readable
+     — ~3.4:1 on the field, above the low-contrast gray-on-gray the flat design fell into. */
+  color: color-mix(in srgb, var(--muted) 60%, var(--faint));
+  font-weight: 500;
+  opacity: 1; /* Firefox dims placeholders by default */
+}
+@media (hover: hover) {
+  .rr-auth-input:hover:not(:disabled):not(:focus) {
+    border-color: color-mix(in srgb, var(--brand) 26%, var(--line));
+  }
+}
+.rr-auth-input:focus {
+  border-color: var(--brand);
+  background: var(--panel);
+  box-shadow:
+    inset 0 1px 0 var(--sheen),
+    0 0 0 3px color-mix(in srgb, var(--brand) 16%, transparent);
+}
+.rr-auth-input[aria-invalid="true"] {
+  border-color: var(--pink);
+}
+.rr-auth-input[aria-invalid="true"]:focus {
+  box-shadow:
+    inset 0 1px 0 var(--sheen),
+    0 0 0 3px color-mix(in srgb, var(--pink) 15%, transparent);
+}
+.rr-auth-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+/* Autofill: browsers force their own flat fill + text colour. Repaint the warm surface and keep the
+   navy-purple ink so an autofilled field matches an empty one instead of flashing white/yellow. */
+.rr-auth-input:-webkit-autofill,
+.rr-auth-input:-webkit-autofill:hover,
+.rr-auth-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text);
+  caret-color: var(--text);
+  -webkit-box-shadow:
+    0 0 0 1000px color-mix(in srgb, var(--panel2) 45%, var(--panel)) inset,
+    inset 0 1px 0 var(--sheen);
+  transition: background-color 6000s ease-in-out 0s; /* defer the browser's autofill colour flash */
+}
+/* The leading field icon (mail / lock) rides the surface muted, and lifts to the brand accent while
+   the field is focused — a quiet cue that pairs with the purple ring. */
+.rr-auth-field:focus-within .rr-auth-lead {
+  color: var(--brand);
+}
+
+/* The floating nav flips from the violet HUD to a slim hairline bar in the theme's own panel
+   (white bar with ink icons on Blank Light; near-black bar with white line-art on Blank — like
+   the reference dock). The lit top-edge line is arcade language — gone. !important because the
+   bar's surface is set inline in BottomNav. */
+.rr-root.s-mono .rr-navbar {
+  /* Liquid-glass dock: translucent panel over the page (BottomNav's own backdrop blur stays),
+     hairline border, the same specular light-catch as the cards. */
+  background: color-mix(in srgb, var(--panel) 82%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--line) 85%, transparent) !important;
+  box-shadow:
+    inset 0 1px 0 var(--sheen),
+    0 10px 30px rgba(17, 17, 17, 0.12) !important;
+}
+.rr-root.s-mono .rr-navbar-edge {
+  display: none;
+}
+
+/* Popup surfaces (ProfileMenu, language dropdown, identity/vault bottom sheets) become the same
+   frosted liquid glass as the cards: translucent panel + blur, hairline border, the polarity's
+   specular light-catch, one calm shadow. !important because every host sets its arcade surface
+   (violet/gold border + heavy glow) inline. */
+.rr-root.s-mono .rr-menu {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--panel) 92%, transparent),
+    color-mix(in srgb, var(--panel) 80%, transparent)
+  ) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.15);
+  backdrop-filter: blur(20px) saturate(1.15);
+  border: 1px solid color-mix(in srgb, var(--line) 85%, transparent) !important;
+  box-shadow:
+    inset 0 1px 0 var(--sheen),
+    0 18px 44px rgba(17, 17, 17, 0.18) !important;
+}
+/* The scrim behind them: a neutral ink veil with a light blur — depth without the violet cast. */
+.rr-root.s-mono .rr-scrim {
+  background: rgba(15, 15, 13, 0.35) !important;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+/* The language chip flattens to a quiet hairline panel (its arcade face is a violet gradient). */
+.rr-root.s-mono .rr-menu-chip {
+  background: var(--panel) !important;
+  border: 1px solid var(--line) !important;
+  box-shadow: none !important;
+}
+
+/* ---- Respect reduced motion (DESIGN §5 / §8): drop decorative motion, keep state changes ---- */
+/* Skeleton loading placeholder (src/ui/Skeleton.tsx). Token-derived so it renders correctly on
+   every theme, light or dark; opacity-only pulse keeps it GPU-cheap. The global reduced-motion
+   block below freezes the pulse automatically — a static block is still a fine placeholder. */
+.rr-skeleton {
+  display: block;
+  background: color-mix(in srgb, var(--text) 10%, var(--panel));
+  animation: rr-skeleton-pulse 1.4s ease-in-out infinite;
+}
+@keyframes rr-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

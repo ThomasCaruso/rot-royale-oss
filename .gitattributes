@@ -1,0 +1,12 @@
+# Scoped to the content package only.
+#
+# The sample corpus is a CONTENT PACKAGE, byte-for-byte comparable with the private production one
+# (backend/content/package.py validates both, and the campaign manifest's SHA-256 is used as release
+# identity). build_manifest writes LF explicitly so its output does not depend on the host OS, but
+# core.autocrlf on Windows wants CRLF on disk — so without this, a freshly built manifest shows up
+# as permanently "modified" with no actual content change, on every Windows machine.
+#
+# Deliberately NOT repo-wide: changing checkout behaviour for the whole tree is a much larger change
+# than the problem needs, and this is the only directory whose exact bytes we make claims about.
+backend/content/sample/** text=auto eol=lf
+backend/content/sample/change/assets/*.png -text

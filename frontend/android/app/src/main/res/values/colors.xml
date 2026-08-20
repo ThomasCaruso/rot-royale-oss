@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Brand colours for the native chrome (status bar, splash background).
+
+  Without this file the app inherits capacitor-android's library defaults — Material indigo
+  #3F51B5 / pink #FF4081 — which have nothing to do with Rot Royale and would frame an ivory app
+  in blue. Overriding here wins at resource-merge time.
+
+  Values track `starter` in frontend/src/theme/tokens.ts, the DEFAULT equipped theme: a warm ivory
+  field with a royal-purple accent. A player who equips a dark skin restyles the web view only;
+  this native chrome stays as-is, which is why it follows the default rather than any one skin.
+-->
+<resources>
+    <!-- starter `bg`, top of the ivory gradient. Splash + window background. -->
+    <color name="colorPrimary">#FAF7F1</color>
+    <!-- Status-bar backdrop on pre-edge-to-edge Android. Slightly deeper ivory so the bar reads
+         as a distinct edge rather than bleeding into the page. -->
+    <color name="colorPrimaryDark">#F3EDE2</color>
+    <!-- starter `brand`, the royal purple. -->
+    <color name="colorAccent">#6C3FC5</color>
+    <color name="splashBackground">#FAF7F1</color>
+</resources>

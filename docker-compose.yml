@@ -1,0 +1,24 @@
+# Local Postgres for Rot Royale.
+# NOTE: this dev machine runs a native PostgreSQL 16 service instead of Docker (see CLAUDE.md §4).
+# This file is committed per PLAN.md §3 for environments that have Docker. Same creds either way,
+# so a single DATABASE_URL works against both: postgresql+asyncpg://rot_royale:rot_royale@localhost:5432/rot_royale
+services:
+  postgres:
+    image: postgres:16
+    container_name: rot_royale_pg
+    environment:
+      POSTGRES_USER: rot_royale
+      POSTGRES_PASSWORD: rot_royale
+      POSTGRES_DB: rot_royale
+    ports:
+      - "5432:5432"
+    volumes:
+      - rot_royale_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rot_royale -d rot_royale"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  rot_royale_pgdata:

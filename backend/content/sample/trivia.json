@@ -1,0 +1,392 @@
+[
+  {
+    "prompt": "On the fictional planet Vurl, what colour is rain said to be?",
+    "options": [
+      "Green",
+      "Silver",
+      "Amber",
+      "Blue"
+    ],
+    "correctIndex": 2,
+    "category": "Science & Nature",
+    "difficulty": "easy",
+    "icon": "\ud83d\udd2c"
+  },
+  {
+    "prompt": "How many moons does the sample planet Kesh have?",
+    "options": [
+      "One",
+      "Two",
+      "Three",
+      "Seven"
+    ],
+    "correctIndex": 2,
+    "category": "Science & Nature",
+    "difficulty": "medium",
+    "icon": "\ud83d\udd2c"
+  },
+  {
+    "prompt": "What is the made-up element 'Florium' said to smell like?",
+    "options": [
+      "Pepper",
+      "Rain",
+      "Copper",
+      "Nothing"
+    ],
+    "correctIndex": 3,
+    "category": "Science & Nature",
+    "difficulty": "hard",
+    "icon": "\ud83d\udd2c"
+  },
+  {
+    "prompt": "In this sample data, which invented creature glows at dawn?",
+    "options": [
+      "Marrow moth",
+      "Glass hare",
+      "Dust wren",
+      "Reed eel"
+    ],
+    "correctIndex": 0,
+    "category": "Science & Nature",
+    "difficulty": "easy",
+    "icon": "\ud83d\udd2c"
+  },
+  {
+    "prompt": "The fictional mineral 'Skarn-9' is hardest at which temperature?",
+    "options": [
+      "Freezing",
+      "Boiling",
+      "Room temperature",
+      "It never hardens"
+    ],
+    "correctIndex": 0,
+    "category": "Science & Nature",
+    "difficulty": "medium",
+    "icon": "\ud83d\udd2c"
+  },
+  {
+    "prompt": "What is the capital of the fictional country Aldoria?",
+    "options": [
+      "Pell",
+      "Marrow",
+      "Sixmile",
+      "Tern"
+    ],
+    "correctIndex": 3,
+    "category": "Geography",
+    "difficulty": "easy",
+    "icon": "\ud83c\udf0d"
+  },
+  {
+    "prompt": "The invented river Sill flows into which made-up sea?",
+    "options": [
+      "Sea of Coins",
+      "Sea of Glass",
+      "Sea of Reeds",
+      "Sea of Ash"
+    ],
+    "correctIndex": 1,
+    "category": "Geography",
+    "difficulty": "medium",
+    "icon": "\ud83c\udf0d"
+  },
+  {
+    "prompt": "Which fictional mountain is tallest in this dataset?",
+    "options": [
+      "Mt. Quill",
+      "Mt. Anvil",
+      "Mt. Sorrow",
+      "Mt. Pin"
+    ],
+    "correctIndex": 1,
+    "category": "Geography",
+    "difficulty": "hard",
+    "icon": "\ud83c\udf0d"
+  },
+  {
+    "prompt": "How many provinces does sample-nation Brenn have?",
+    "options": [
+      "Two",
+      "Five",
+      "Nine",
+      "Twelve"
+    ],
+    "correctIndex": 2,
+    "category": "Geography",
+    "difficulty": "easy",
+    "icon": "\ud83c\udf0d"
+  },
+  {
+    "prompt": "The made-up island Corvo is best known for what?",
+    "options": [
+      "Salt",
+      "Kites",
+      "Bells",
+      "Ink"
+    ],
+    "correctIndex": 2,
+    "category": "Geography",
+    "difficulty": "medium",
+    "icon": "\ud83c\udf0d"
+  },
+  {
+    "prompt": "In this fixture, which invented year did the Paper Treaty get signed?",
+    "options": [
+      "Year 4",
+      "Year 19",
+      "Year 77",
+      "Year 210"
+    ],
+    "correctIndex": 1,
+    "category": "History",
+    "difficulty": "easy",
+    "icon": "\ud83c\udfdb\ufe0f"
+  },
+  {
+    "prompt": "Who is the fictional first archivist of Tern?",
+    "options": [
+      "Odo Vane",
+      "Mira Sett",
+      "Cal Renn",
+      "Isa Pol"
+    ],
+    "correctIndex": 0,
+    "category": "History",
+    "difficulty": "medium",
+    "icon": "\ud83c\udfdb\ufe0f"
+  },
+  {
+    "prompt": "The made-up Lantern War ended by what means?",
+    "options": [
+      "A duel",
+      "A trade",
+      "A flood",
+      "A song"
+    ],
+    "correctIndex": 2,
+    "category": "History",
+    "difficulty": "hard",
+    "icon": "\ud83c\udfdb\ufe0f"
+  },
+  {
+    "prompt": "Which invented order kept the Sixmile roads?",
+    "options": [
+      "The Wardens",
+      "The Coopers",
+      "The Quiet",
+      "The Nine"
+    ],
+    "correctIndex": 0,
+    "category": "History",
+    "difficulty": "easy",
+    "icon": "\ud83c\udfdb\ufe0f"
+  },
+  {
+    "prompt": "How long did the fictional Long Winter last here?",
+    "options": [
+      "Two years",
+      "Four years",
+      "Eight years",
+      "A decade"
+    ],
+    "correctIndex": 1,
+    "category": "History",
+    "difficulty": "medium",
+    "icon": "\ud83c\udfdb\ufe0f"
+  },
+  {
+    "prompt": "Who wrote the fictional novel 'Salt and Compass'?",
+    "options": [
+      "Ivo Marr",
+      "Bel Ashe",
+      "Tor Vandy",
+      "Nel Quist"
+    ],
+    "correctIndex": 1,
+    "category": "Arts & Literature",
+    "difficulty": "easy",
+    "icon": "\ud83c\udfa8"
+  },
+  {
+    "prompt": "The made-up painting 'Two Lanterns' uses which dominant colour?",
+    "options": [
+      "Ochre",
+      "Indigo",
+      "Rust",
+      "Pale green"
+    ],
+    "correctIndex": 3,
+    "category": "Arts & Literature",
+    "difficulty": "medium",
+    "icon": "\ud83c\udfa8"
+  },
+  {
+    "prompt": "In this sample, which invented instrument has nine strings?",
+    "options": [
+      "The corran",
+      "The vell",
+      "The pipe-harp",
+      "The bow-drum"
+    ],
+    "correctIndex": 0,
+    "category": "Arts & Literature",
+    "difficulty": "hard",
+    "icon": "\ud83c\udfa8"
+  },
+  {
+    "prompt": "The fictional poem 'Reed Song' is written in what form?",
+    "options": [
+      "Sonnet",
+      "Triplet",
+      "Ballad",
+      "Free verse"
+    ],
+    "correctIndex": 2,
+    "category": "Arts & Literature",
+    "difficulty": "easy",
+    "icon": "\ud83c\udfa8"
+  },
+  {
+    "prompt": "Which made-up sculptor carved the Glass Hare?",
+    "options": [
+      "Ana Vex",
+      "Pol Reddy",
+      "Sim Toure",
+      "Wren Ilo"
+    ],
+    "correctIndex": 3,
+    "category": "Arts & Literature",
+    "difficulty": "medium",
+    "icon": "\ud83c\udfa8"
+  },
+  {
+    "prompt": "In this fixture, what is the fictional band Ninefold's first album?",
+    "options": [
+      "Kite",
+      "Anvil",
+      "Paper Moon",
+      "Slow Bell"
+    ],
+    "correctIndex": 2,
+    "category": "Pop Culture & Entertainment",
+    "difficulty": "easy",
+    "icon": "\ud83c\udfac"
+  },
+  {
+    "prompt": "The made-up show 'Quiet Season' is set where?",
+    "options": [
+      "A ferry",
+      "A bakery",
+      "A lighthouse",
+      "A newsroom"
+    ],
+    "correctIndex": 2,
+    "category": "Pop Culture & Entertainment",
+    "difficulty": "medium",
+    "icon": "\ud83c\udfac"
+  },
+  {
+    "prompt": "Which invented character says 'mind the reeds'?",
+    "options": [
+      "Sella",
+      "Bram",
+      "Ito",
+      "Nook"
+    ],
+    "correctIndex": 1,
+    "category": "Pop Culture & Entertainment",
+    "difficulty": "hard",
+    "icon": "\ud83c\udfac"
+  },
+  {
+    "prompt": "The fictional film 'Coin Weather' won which made-up award?",
+    "options": [
+      "The Tern",
+      "The Quill",
+      "The Lantern",
+      "The Anvil"
+    ],
+    "correctIndex": 0,
+    "category": "Pop Culture & Entertainment",
+    "difficulty": "easy",
+    "icon": "\ud83c\udfac"
+  },
+  {
+    "prompt": "How many seasons of sample-show 'Sixmile' exist here?",
+    "options": [
+      "One",
+      "Three",
+      "Six",
+      "Nine"
+    ],
+    "correctIndex": 1,
+    "category": "Pop Culture & Entertainment",
+    "difficulty": "medium",
+    "icon": "\ud83c\udfac"
+  },
+  {
+    "prompt": "In the invented sport 'reedball', how many players per side?",
+    "options": [
+      "Four",
+      "Five",
+      "Seven",
+      "Eleven"
+    ],
+    "correctIndex": 2,
+    "category": "Sports",
+    "difficulty": "easy",
+    "icon": "\u26bd"
+  },
+  {
+    "prompt": "The fictional Tern Cup is contested how often?",
+    "options": [
+      "Yearly",
+      "Every two years",
+      "Every four years",
+      "Once only"
+    ],
+    "correctIndex": 1,
+    "category": "Sports",
+    "difficulty": "medium",
+    "icon": "\u26bd"
+  },
+  {
+    "prompt": "What ends a made-up 'kite match'?",
+    "options": [
+      "A bell",
+      "A goal",
+      "Sundown",
+      "A tie"
+    ],
+    "correctIndex": 0,
+    "category": "Sports",
+    "difficulty": "hard",
+    "icon": "\u26bd"
+  },
+  {
+    "prompt": "Which invented club has won the sample league most?",
+    "options": [
+      "Anvil FC",
+      "Pell Rangers",
+      "Corvo Bells",
+      "Sill United"
+    ],
+    "correctIndex": 2,
+    "category": "Sports",
+    "difficulty": "easy",
+    "icon": "\u26bd"
+  },
+  {
+    "prompt": "In this dataset, a 'quiet point' is worth how much?",
+    "options": [
+      "Zero",
+      "One",
+      "Two",
+      "Five"
+    ],
+    "correctIndex": 3,
+    "category": "Sports",
+    "difficulty": "medium",
+    "icon": "\u26bd"
+  }
+]

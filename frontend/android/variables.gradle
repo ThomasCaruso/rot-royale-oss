@@ -1,0 +1,27 @@
+ext {
+    minSdkVersion = 22
+    // Capacitor 6's template ships 34, which Play REJECTS: since 2025-08-31 new apps and updates
+    // must target API 35+. Bumped to 35 to be publishable at all.
+    //
+    // ⚠️ Dated risk: the next annual step (API 36 / Android 16) lands 2026-08-31. Capacitor 6
+    // officially supports up to 35, so meeting that deadline most likely means upgrading to
+    // Capacitor 7 rather than editing this number. Plan it before late August 2026.
+    //
+    // API 35 also enforces edge-to-edge on Android 15+: content draws behind the status/navigation
+    // bars unless insets are handled. The app already pads with env(safe-area-inset-*) throughout
+    // for the iOS notch, which is the same mechanism — but this needs a look on a real device
+    // before release (see docs/android-play-store-prep.md).
+    compileSdkVersion = 35
+    targetSdkVersion = 35
+    androidxActivityVersion = '1.8.0'
+    androidxAppCompatVersion = '1.6.1'
+    androidxCoordinatorLayoutVersion = '1.2.0'
+    androidxCoreVersion = '1.12.0'
+    androidxFragmentVersion = '1.6.2'
+    coreSplashScreenVersion = '1.0.1'
+    androidxWebkitVersion = '1.9.0'
+    junitVersion = '4.13.2'
+    androidxJunitVersion = '1.1.5'
+    androidxEspressoCoreVersion = '3.5.1'
+    cordovaAndroidVersion = '10.1.1'
+}

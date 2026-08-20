@@ -1,0 +1,905 @@
+{
+  "counts": {
+    "by_category": {
+      "Arts & Literature": 12,
+      "Geography": 24,
+      "History": 10,
+      "Money & Business": 7,
+      "Pop Culture & Entertainment": 20,
+      "Science & Nature": 99,
+      "Sports": 12,
+      "Street Smarts": 57
+    },
+    "by_rule": {
+      "Q006": 1,
+      "Q008": 37,
+      "Q011": 2,
+      "Q020": 8,
+      "Q021": 138,
+      "Q022": 6,
+      "Q023": 1,
+      "Q024": 15,
+      "Q027": 6,
+      "Q028": 24,
+      "Q029": 3
+    },
+    "by_severity": {
+      "error": 60,
+      "info": 0,
+      "warning": 181
+    }
+  },
+  "duplicate_clusters": [
+    {
+      "categories": [
+        "Science & Nature"
+      ],
+      "difficulties": [
+        "easy"
+      ],
+      "idents": [
+        "2cb793ae-25a8-403a-8442-b5298c66d8c5",
+        "aa10c0a4-5966-4615-bdb6-2e4b43514fe0"
+      ],
+      "kind": "exact",
+      "rule_id": "Q027",
+      "size": 2,
+      "stems": [
+        "How many legs does a spider have?",
+        "How many legs does a spider have?"
+      ]
+    },
+    {
+      "categories": [
+        "Geography",
+        "Science & Nature"
+      ],
+      "difficulties": [
+        "easy"
+      ],
+      "idents": [
+        "cf0fc08f-0f70-41ea-b2e3-22e06240611d",
+        "fe0a7ec0-ae1c-4105-8fd1-197314699bab"
+      ],
+      "kind": "exact",
+      "rule_id": "Q027",
+      "size": 2,
+      "stems": [
+        "What is the largest ocean on Earth?",
+        "What is the largest ocean on Earth?"
+      ]
+    },
+    {
+      "categories": [
+        "Arts & Literature",
+        "History"
+      ],
+      "difficulties": [
+        "easy"
+      ],
+      "idents": [
+        "2f4284a3-37b6-47d8-aa6b-0d0b6ee82ce0",
+        "e775d9d9-2a36-4eac-91f2-4adef559d778"
+      ],
+      "kind": "exact",
+      "rule_id": "Q027",
+      "size": 2,
+      "stems": [
+        "Who painted the Mona Lisa?",
+        "Who painted the Mona Lisa?"
+      ]
+    },
+    {
+      "categories": [
+        "Geography"
+      ],
+      "difficulties": [
+        "easy"
+      ],
+      "idents": [
+        "b3fbd57a-5269-44f1-990a-23c48867b5e2",
+        "d9e2e38d-6ab0-4d96-9e5a-3dda31a539b8",
+        "dc801811-0ef1-45ce-865f-80f50c12242c"
+      ],
+      "kind": "near",
+      "rule_id": "Q028",
+      "size": 3,
+      "stems": [
+        "What is the capital of France?",
+        "What is the capital of Germany?",
+        "What is the capital of Greece?"
+      ]
+    },
+    {
+      "categories": [
+        "Science & Nature"
+      ],
+      "difficulties": [
+        "easy",
+        "medium"
+      ],
+      "idents": [
+        "8939f8d4-2f87-4a0c-acea-9646cda3dfe8",
+        "b62133b8-0470-4c65-9d97-ead935974085",
+        "f0c8f0e7-2d12-4478-92f6-e77613f040f0"
+      ],
+      "kind": "near",
+      "rule_id": "Q028",
+      "size": 3,
+      "stems": [
+        "What is the chemical symbol for gold?",
+        "What is the chemical symbol for oxygen?",
+        "What is the chemical symbol for sodium?"
+      ]
+    },
+    {
+      "categories": [
+        "Geography"
+      ],
+      "difficulties": [
+        "medium"
+      ],
+      "idents": [
+        "03a25037-a8ff-4e9a-97ab-57e62da39da5",
+        "0e09306e-7afd-4765-9cf8-29221f2018cc"
+      ],
+      "kind": "near",
+      "rule_id": "Q028",
+      "size": 2,
+      "stems": [
+        "The Danube River empties into which body of water?",
+        "The Ganges River empties into which body of water?"
+      ]
+    },
+    {
+      "categories": [
+        "Geography"
+      ],
+      "difficulties": [
+        "easy"
+      ],
+      "idents": [
+        "23fcd3a4-2f51-4545-b26e-1361f4ae784c",
+        "b5c1e884-5425-4650-a9d2-3b47881f6edb"
+      ],
+      "kind": "near",
+      "rule_id": "Q028",
+      "size": 2,
+      "stems": [
+        "The Sahara Desert is located on which continent?",
+        "The Sahara Desert is on which continent?"
+      ]
+    },
+    {
+      "categories": [
+        "Geography"
+      ],
+      "difficulties": [
+        "hard",
+        "medium"
+      ],
+      "idents": [
+        "80bf1f4a-f388-47a8-8942-4fff65d7af1b",
+        "c1db93fc-db4a-47f6-be67-c2244406ad31"
+      ],
+      "kind": "near",
+      "rule_id": "Q028",
+      "size": 2,
+      "stems": [
+        "The island of Crete belongs to which country?",
+        "The island of Socotra belongs to which country?"
+      ]
+    },
+    {
+      "categories": [
+        "Science & Nature"
+      ],
+      "difficulties": [
+        "hard",
+        "medium"
+      ],
+      "idents": [
+        "2b33bc31-fe62-4b9b-a8cf-64fa340a8433",
+        "5833353b-67f4-4734-a47a-cd424396a9e2"
+      ],
+      "kind": "near",
+      "rule_id": "Q028",
+      "size": 2,
+      "stems": [
+        "What element has the chemical symbol Fe?",
+        "Which element has the chemical symbol 'Au'?"
+      ]
+    },
+    {
+      "categories": [
+        "Geography"
+      ],
+      "difficulties": [
+        "easy",
+        "hard"
+      ],
+      "idents": [
+        "6642dbfe-e24a-4a48-9c85-78d2e004169e",
+        "f9fe7c00-1c21-4c84-9a2a-a1693c6acbae"
+      ],
+      "kind": "near",
+      "rule_id": "Q028",
+      "size": 2,
+      "stems": [
+        "What is the capital of Canada?",
+        "What is the capital of Namibia?"
+      ]
+    },
+    {
+      "categories": [
+        "Geography"
+      ],
+      "difficulties": [
+        "easy",
+        "medium"
+      ],
+      "idents": [
+        "96af0e05-2528-4d3f-940f-3822a77bde5e",
+        "9c048710-082e-4331-915c-f49c4545cdbd"
+      ],
+      "kind": "near",
+      "rule_id": "Q028",
+      "size": 2,
+      "stems": [
+        "What is the capital of Mexico?",
+        "What is the capital of Morocco?"
+      ]
+    },
+    {
+      "categories": [
+        "Sports"
+      ],
+      "difficulties": [
+        "hard"
+      ],
+      "idents": [
+        "7e52d1ad-8275-44aa-a648-bc90d16a1a92",
+        "928e9348-cf9e-4cd5-90f2-e470f330f79b"
+      ],
+      "kind": "near",
+      "rule_id": "Q028",
+      "size": 2,
+      "stems": [
+        "Which country won the first Cricket World Cup in 1975?",
+        "Which country won the first Rugby World Cup in 1987?"
+      ]
+    },
+    {
+      "categories": [
+        "Science & Nature"
+      ],
+      "difficulties": [
+        "easy",
+        "hard"
+      ],
+      "idents": [
+        "45f2acd6-c5f7-42fd-8c55-07804b59f358",
+        "5b734907-6086-4627-ab87-e89385e6d7da"
+      ],
+      "kind": "near",
+      "rule_id": "Q028",
+      "size": 2,
+      "stems": [
+        "Which metal is liquid at room temperature?",
+        "Which nonmetal is liquid at room temperature?"
+      ]
+    },
+    {
+      "categories": [
+        "Geography"
+      ],
+      "difficulties": [
+        "easy",
+        "medium"
+      ],
+      "idents": [
+        "144609e8-5973-462e-974a-f1f16c22c351",
+        "a28087b4-1887-4666-ae22-5832b9185e7e"
+      ],
+      "kind": "near",
+      "rule_id": "Q028",
+      "size": 2,
+      "stems": [
+        "Which river flows through Paris?",
+        "Which river flows through Rome?"
+      ]
+    }
+  ],
+  "failed": false,
+  "meta": {
+    "is_new_import": false,
+    "mode": "report",
+    "source": "db",
+    "total_questions": 912,
+    "warnings": []
+  },
+  "position_balance": {
+    "Arts & Literature": {
+      "counts": {
+        "A": 23,
+        "B": 35,
+        "C": 25,
+        "D": 23
+      },
+      "shares": {
+        "A": 0.217,
+        "B": 0.33,
+        "C": 0.236,
+        "D": 0.217
+      },
+      "total": 106
+    },
+    "Geography": {
+      "counts": {
+        "A": 23,
+        "B": 33,
+        "C": 30,
+        "D": 18
+      },
+      "shares": {
+        "A": 0.221,
+        "B": 0.317,
+        "C": 0.288,
+        "D": 0.173
+      },
+      "total": 104
+    },
+    "History": {
+      "counts": {
+        "A": 81,
+        "B": 20,
+        "C": 4,
+        "D": 0
+      },
+      "shares": {
+        "A": 0.771,
+        "B": 0.19,
+        "C": 0.038,
+        "D": 0.0
+      },
+      "total": 105
+    },
+    "Money & Business": {
+      "counts": {
+        "A": 32,
+        "B": 40,
+        "C": 30,
+        "D": 24
+      },
+      "shares": {
+        "A": 0.254,
+        "B": 0.317,
+        "C": 0.238,
+        "D": 0.19
+      },
+      "total": 126
+    },
+    "Pop Culture & Entertainment": {
+      "counts": {
+        "A": 100,
+        "B": 2,
+        "C": 3,
+        "D": 0
+      },
+      "shares": {
+        "A": 0.952,
+        "B": 0.019,
+        "C": 0.029,
+        "D": 0.0
+      },
+      "total": 105
+    },
+    "Science & Nature": {
+      "counts": {
+        "A": 110,
+        "B": 7,
+        "C": 5,
+        "D": 0
+      },
+      "shares": {
+        "A": 0.902,
+        "B": 0.057,
+        "C": 0.041,
+        "D": 0.0
+      },
+      "total": 122
+    },
+    "Sports": {
+      "counts": {
+        "A": 22,
+        "B": 33,
+        "C": 31,
+        "D": 18
+      },
+      "shares": {
+        "A": 0.212,
+        "B": 0.317,
+        "C": 0.298,
+        "D": 0.173
+      },
+      "total": 104
+    },
+    "Street Smarts": {
+      "counts": {
+        "A": 35,
+        "B": 35,
+        "C": 35,
+        "D": 35
+      },
+      "shares": {
+        "A": 0.25,
+        "B": 0.25,
+        "C": 0.25,
+        "D": 0.25
+      },
+      "total": 140
+    }
+  },
+  "practical_failures": [],
+  "worst_questions": [
+    {
+      "category": "History",
+      "ident": "2f4284a3-37b6-47d8-aa6b-0d0b6ee82ce0",
+      "rules": [
+        "Q008:error",
+        "Q027:error"
+      ],
+      "score": 200,
+      "stem": "Who painted the Mona Lisa?"
+    },
+    {
+      "category": "Science & Nature",
+      "ident": "aa10c0a4-5966-4615-bdb6-2e4b43514fe0",
+      "rules": [
+        "Q008:error",
+        "Q027:error"
+      ],
+      "score": 200,
+      "stem": "How many legs does a spider have?"
+    },
+    {
+      "category": "Geography",
+      "ident": "b5c1e884-5425-4650-a9d2-3b47881f6edb",
+      "rules": [
+        "Q008:error",
+        "Q028:warning"
+      ],
+      "score": 101,
+      "stem": "The Sahara Desert is on which continent?"
+    },
+    {
+      "category": "Science & Nature",
+      "ident": "2cb793ae-25a8-403a-8442-b5298c66d8c5",
+      "rules": [
+        "Q021:warning",
+        "Q027:error"
+      ],
+      "score": 101,
+      "stem": "How many legs does a spider have?"
+    },
+    {
+      "category": "Science & Nature",
+      "ident": "4c460f0a-0221-4be2-aac0-529378fb5d9a",
+      "rules": [
+        "Q006:error",
+        "Q021:warning"
+      ],
+      "score": 101,
+      "stem": "What is the freezing point of pure water at standard pressure?"
+    },
+    {
+      "category": "Sports",
+      "ident": "2f0ee3e5-5d32-4025-a3d6-81eef98baa8d",
+      "rules": [
+        "Q011:error",
+        "Q024:warning"
+      ],
+      "score": 101,
+      "stem": "In baseball, what is a no-hitter?"
+    },
+    {
+      "category": "Sports",
+      "ident": "da66e7d1-34fa-4a77-a522-f7b2a2ce58bc",
+      "rules": [
+        "Q011:error",
+        "Q024:warning"
+      ],
+      "score": 101,
+      "stem": "In golf, what does “par” mean?"
+    },
+    {
+      "category": "Street Smarts",
+      "ident": "2d8323bd-42db-4618-98c7-e1ce57691df6",
+      "rules": [
+        "Q021:warning",
+        "Q022:error"
+      ],
+      "score": 101,
+      "stem": "What screams scam?"
+    },
+    {
+      "category": "Street Smarts",
+      "ident": "7474bd05-b563-4a61-b4e5-fe8d0010a373",
+      "rules": [
+        "Q020:error",
+        "Q024:warning"
+      ],
+      "score": 101,
+      "stem": "Why do assets beat stuff?"
+    },
+    {
+      "category": "Arts & Literature",
+      "ident": "14672f73-a16c-4b26-a9c4-f9e702e2c7a0",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "How many strings does a standard guitar have?"
+    },
+    {
+      "category": "Arts & Literature",
+      "ident": "155413e4-20ec-4c88-a7ac-7c5d9c0373d5",
+      "rules": [
+        "Q022:error"
+      ],
+      "score": 100,
+      "stem": "Who wrote Moby-Dick?"
+    },
+    {
+      "category": "Arts & Literature",
+      "ident": "1bd422fb-44ad-47c4-b390-52181097a9ef",
+      "rules": [
+        "Q022:error"
+      ],
+      "score": 100,
+      "stem": "Who wrote 1984?"
+    },
+    {
+      "category": "Arts & Literature",
+      "ident": "1e8cf692-e2d5-4fe5-acf7-d98dcd1199d1",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "What instrument has 88 keys?"
+    },
+    {
+      "category": "Arts & Literature",
+      "ident": "330bfc66-759e-4df9-96d5-727d9af5d2b8",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "Which genre is Bob Marley most associated with?"
+    },
+    {
+      "category": "Arts & Literature",
+      "ident": "d4cd7851-3cb3-496c-87e4-4d21f8066d9d",
+      "rules": [
+        "Q022:error"
+      ],
+      "score": 100,
+      "stem": "Who wrote Ulysses?"
+    },
+    {
+      "category": "Arts & Literature",
+      "ident": "dd4bff17-c9ee-456a-bddb-6901a1a4efc1",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "How many letters are in the English alphabet?"
+    },
+    {
+      "category": "Arts & Literature",
+      "ident": "e25556b2-a9e8-4c43-b402-65cd7ebd511f",
+      "rules": [
+        "Q022:error"
+      ],
+      "score": 100,
+      "stem": "Who wrote Frankenstein?"
+    },
+    {
+      "category": "Arts & Literature",
+      "ident": "e3bedfc2-9d80-46d1-9545-efb61b2a52ba",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "What is the plural of 'cactus'?"
+    },
+    {
+      "category": "Arts & Literature",
+      "ident": "e643c3b9-0408-4135-ac6a-58cbb63fc550",
+      "rules": [
+        "Q022:error"
+      ],
+      "score": 100,
+      "stem": "Who wrote Beloved?"
+    },
+    {
+      "category": "Arts & Literature",
+      "ident": "e775d9d9-2a36-4eac-91f2-4adef559d778",
+      "rules": [
+        "Q027:error"
+      ],
+      "score": 100,
+      "stem": "Who painted the Mona Lisa?"
+    },
+    {
+      "category": "Arts & Literature",
+      "ident": "e91a46dd-77c1-411e-9def-63c573fb54e0",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "Which band released the album 'Abbey Road'?"
+    },
+    {
+      "category": "Geography",
+      "ident": "017a0d76-73b6-4a3e-a558-177add87c143",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "Which river is the longest in the world?"
+    },
+    {
+      "category": "Geography",
+      "ident": "23aceaee-2180-44ce-89b8-50e5363bdbb9",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "What is the capital of Australia?"
+    },
+    {
+      "category": "Geography",
+      "ident": "3785f402-b0c4-40a2-9d32-3b2cfb748ef6",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "Which country has the most natural lakes?"
+    },
+    {
+      "category": "Geography",
+      "ident": "cf0fc08f-0f70-41ea-b2e3-22e06240611d",
+      "rules": [
+        "Q027:error"
+      ],
+      "score": 100,
+      "stem": "What is the largest ocean on Earth?"
+    },
+    {
+      "category": "History",
+      "ident": "1e1bab36-ba41-443a-8101-c1c4f7b9796d",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "Who was the first President of the United States?"
+    },
+    {
+      "category": "History",
+      "ident": "44ca6ca9-fa55-4517-87bb-3b27f376ea86",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "In which year did World War II end?"
+    },
+    {
+      "category": "History",
+      "ident": "e92130a7-cf1a-48e3-9cf3-08076b7ffd5a",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "The Great Wall is most associated with which country?"
+    },
+    {
+      "category": "Pop Culture & Entertainment",
+      "ident": "08cadd45-8550-4126-8bf1-ac206a34ce55",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "In which fictional city does Batman operate?"
+    },
+    {
+      "category": "Pop Culture & Entertainment",
+      "ident": "1128e189-fcf6-4c03-864b-5a522047ebbf",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "Which superhero is known as the 'Dark Knight'?"
+    },
+    {
+      "category": "Pop Culture & Entertainment",
+      "ident": "243a1d3e-861a-4c5d-9cca-53cc8566bdc8",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "Which movie features a character named Forrest Gump?"
+    },
+    {
+      "category": "Pop Culture & Entertainment",
+      "ident": "4f7a2232-b141-4dcb-bd0c-ac1abc03132c",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "What is the name of the wizarding school in Harry Potter?"
+    },
+    {
+      "category": "Pop Culture & Entertainment",
+      "ident": "d4f99335-391b-4760-80b6-447b9017a680",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "What animated film features a snowman named Olaf?"
+    },
+    {
+      "category": "Science & Nature",
+      "ident": "00f1847d-c578-4905-9507-5c97010ffb75",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "What gas do plants primarily absorb from the air?"
+    },
+    {
+      "category": "Science & Nature",
+      "ident": "1d672cfb-fe2f-42c1-8bd6-8a6339373a32",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "Which part of the cell contains genetic material?"
+    },
+    {
+      "category": "Science & Nature",
+      "ident": "355f6458-dc09-4c02-a787-cb822f9782e8",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "Which bird is known for its ability to mimic human speech?"
+    },
+    {
+      "category": "Science & Nature",
+      "ident": "4a2b20cf-92a1-45d1-8a15-d46c9ba3f445",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "What is 15% of 200?"
+    },
+    {
+      "category": "Science & Nature",
+      "ident": "4f091f76-a8d6-4565-bdce-22545b363a11",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "Which tree produces acorns?"
+    },
+    {
+      "category": "Science & Nature",
+      "ident": "50147e0e-e097-4dbb-bbce-bfed4b2e86be",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "What is the fastest land animal?"
+    },
+    {
+      "category": "Science & Nature",
+      "ident": "549768a5-a0e9-4635-b81d-2ee385269baf",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "What is the largest mammal on Earth?"
+    },
+    {
+      "category": "Science & Nature",
+      "ident": "807c7a59-e995-43d1-bc6e-dca5b978f244",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "What is the hardest known natural material?"
+    },
+    {
+      "category": "Science & Nature",
+      "ident": "8120d57d-85bc-4e2d-9b94-cc441bc6e54b",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "What planet is known as the Red Planet?"
+    },
+    {
+      "category": "Science & Nature",
+      "ident": "887b0f86-c90a-4d42-a8e9-3ab312dbff47",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "What is the value of pi rounded to two decimal places?"
+    },
+    {
+      "category": "Science & Nature",
+      "ident": "b388b7ba-5287-4791-9a3f-80826533021b",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "How many bones are in the adult human body?"
+    },
+    {
+      "category": "Science & Nature",
+      "ident": "def4acd8-33ad-4d20-aa3d-810b036c80e8",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "How many sides does a hexagon have?"
+    },
+    {
+      "category": "Science & Nature",
+      "ident": "ec47382d-5389-472f-9517-38162a85acd7",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "Which number is prime?"
+    },
+    {
+      "category": "Science & Nature",
+      "ident": "fe0a7ec0-ae1c-4105-8fd1-197314699bab",
+      "rules": [
+        "Q027:error"
+      ],
+      "score": 100,
+      "stem": "What is the largest ocean on Earth?"
+    },
+    {
+      "category": "Sports",
+      "ident": "1b11ef34-8ea3-44d4-8b81-a1dbb9fa0677",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "In which sport would you perform a 'slam dunk'?"
+    },
+    {
+      "category": "Sports",
+      "ident": "a2ff3dd9-9cf4-4f99-bb9c-7253a95b7503",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "How many players are on a soccer team on the field?"
+    },
+    {
+      "category": "Sports",
+      "ident": "e80f5729-ed40-41cb-b3f0-00a6f23f0905",
+      "rules": [
+        "Q008:error"
+      ],
+      "score": 100,
+      "stem": "What sport is associated with Wimbledon?"
+    }
+  ]
+}

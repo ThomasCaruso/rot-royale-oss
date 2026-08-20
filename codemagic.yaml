@@ -1,0 +1,230 @@
+# ── Release version — THE ONE PLACE IT LIVES ────────────────────────────────────────────────────
+# Bump this for every store release, and nothing else.
+#
+# WHY IT IS AN ANCHOR AND NOT TWO LITERALS: the iOS lane used to run
+# `agvtool new-marketing-version 1.0` hardcoded, which silently OVERWROTE whatever MARKETING_VERSION
+# the Xcode project held. Bumping the version in Xcode looked correct, built clean, and produced
+# 1.0 anyway — and App Store Connect then refuses to attach the build, because 1.0 is already
+# released. No error appears in the build log; the failure surfaces days later at submission. The
+# anchor means iOS and Android cannot drift from each other or from this file either.
+definitions:
+  app_version: &app_version "1.1"
+
+workflows:
+  ios-testflight:
+    name: Rot Royale iOS TestFlight
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+
+    integrations:
+      app_store_connect: codemagic-rot-royale
+
+    environment:
+      node: 20
+      xcode: latest
+      cocoapods: default
+      ios_signing:
+        provisioning_profiles:
+          - profile: rot_royale_push_profile_20260716
+            environment_variable: ROT_ROYALE_PROFILE_PATH
+        certificates:
+          - rotroyale_distribution
+      vars:
+        XCODE_WORKSPACE: "App.xcworkspace"
+        XCODE_SCHEME: "App"
+        APP_VERSION: *app_version
+
+    scripts:
+      - name: Install npm dependencies
+        script: |
+          cd frontend
+          npm ci
+
+      - name: Build Vite web app
+        script: |
+          cd frontend
+          npm run build
+
+      - name: Sync Capacitor iOS
+        script: |
+          cd frontend
+          npx cap sync ios
+
+      - name: Install CocoaPods
+        script: |
+          cd frontend/ios/App
+          pod install
+
+      - name: Set up iOS signing
+        script: |
+          set -euo pipefail
+
+          echo "Verifying explicitly selected Rot Royale provisioning profile..."
+
+          if [ -z "${ROT_ROYALE_PROFILE_PATH:-}" ]; then
+            echo "ERROR: ROT_ROYALE_PROFILE_PATH was not provided by Codemagic."
+            exit 1
+          fi
+
+          if [ ! -f "$ROT_ROYALE_PROFILE_PATH" ]; then
+            echo "ERROR: Provisioning profile file does not exist at $ROT_ROYALE_PROFILE_PATH"
+            exit 1
+          fi
+
+          security cms -D -i "$ROT_ROYALE_PROFILE_PATH" > /tmp/rot-profile.plist
+
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print :UUID" /tmp/rot-profile.plist)
+          PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print :Name" /tmp/rot-profile.plist)
+          APP_IDENTIFIER=$(/usr/libexec/PlistBuddy -c "Print :Entitlements:application-identifier" /tmp/rot-profile.plist)
+          PUSH_ENV=$(/usr/libexec/PlistBuddy -c "Print :Entitlements:aps-environment" /tmp/rot-profile.plist)
+
+          echo "Profile name: $PROFILE_NAME"
+          echo "Profile UUID: $PROFILE_UUID"
+          echo "Application identifier: $APP_IDENTIFIER"
+          echo "Push environment: $PUSH_ENV"
+
+          if [ "$PROFILE_UUID" != "b4c19ed7-1ba3-429d-a5e6-edafaf1a3a8c" ]; then
+            echo "ERROR: Codemagic loaded the wrong provisioning profile."
+            exit 1
+          fi
+
+          if [ "$APP_IDENTIFIER" != "X7A3NVYX8K.live.rotroyale.app" ]; then
+            echo "ERROR: Provisioning profile has the wrong application identifier."
+            exit 1
+          fi
+
+          if [ "$PUSH_ENV" != "production" ]; then
+            echo "ERROR: Provisioning profile is missing the production push entitlement."
+            exit 1
+          fi
+
+          cd frontend/ios/App
+          xcode-project use-profiles
+
+      - name: Verify profile has push
+        script: |
+          for p in "$HOME/Library/MobileDevice/Provisioning Profiles/"*.mobileprovision; do
+            echo "=== $p ==="
+            security cms -D -i "$p" 2>/dev/null | plutil -p - | grep -A1 -E "aps-environment|Name"
+          done
+
+      - name: Set iOS version and build number
+        script: |
+          set -euo pipefail
+          cd frontend/ios/App
+          # Marketing version = the store-facing version users see, and the version record App Store
+          # Connect attaches the build to. Build number just has to be unique within it.
+          agvtool new-marketing-version "$APP_VERSION"
+          agvtool new-version -all "$BUILD_NUMBER"
+          # Print both — a wrong version is invisible in a green build log otherwise.
+          agvtool what-marketing-version -terse1
+          agvtool what-version -terse
+
+      - name: Build signed IPA
+        script: |
+          cd frontend/ios/App
+          xcode-project build-ipa \
+            --workspace "$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME"
+
+    artifacts:
+      - frontend/ios/App/build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: false
+        submit_to_app_store: false
+
+  # ── Android / Google Play ──────────────────────────────────────────────────────────────────────
+  # Mirrors ios-testflight: same npm ci → vite build → cap sync, then a signed AAB instead of an
+  # IPA. Runs on Linux (no Mac needed), so it's cheaper and faster than the iOS lane.
+  #
+  # Before the first run, set these in the Codemagic UI:
+  #   • Group `google_play` with CM_KEYSTORE (base64 .jks), CM_KEYSTORE_PASSWORD,
+  #     CM_KEY_ALIAS, CM_KEY_PASSWORD  — or use Codemagic's Android code-signing UI, which
+  #     populates the same variables.
+  #   • Integration `codemagic-rot-royale-play` — a Google Play service account with
+  #     "Release to testing tracks" permission.
+  # Uploads are left DISABLED below, same as the iOS lane, so the first build is inspected by hand.
+  android-play:
+    name: Rot Royale Android (Play)
+    max_build_duration: 90
+    instance_type: linux_x2
+
+    environment:
+      node: 20
+      java: 17 # Android Gradle Plugin 8.x requires JDK 17
+      groups:
+        - google_play
+      vars:
+        PACKAGE_NAME: "live.rotroyale.app"
+        APP_VERSION: *app_version
+
+    scripts:
+      - name: Install npm dependencies
+        script: |
+          cd frontend
+          npm ci
+
+      - name: Build Vite web app
+        script: |
+          cd frontend
+          npm run build
+
+      - name: Sync Capacitor Android
+        script: |
+          cd frontend
+          npx cap sync android
+
+      - name: Set Android version name and code
+        script: |
+          set -euo pipefail
+          # versionCode: Play rejects one it has seen before, so it tracks the build number rather
+          # than the placeholder in build.gradle. versionName: the store-facing string, kept in
+          # lockstep with iOS via the app_version anchor.
+          #
+          # Both patterns match the VALUE, not a literal. The previous `s/versionCode 1/...` was a
+          # prefix match: against `versionCode 12` it would rewrite the leading 1 and leave the 2,
+          # turning build 5 into versionCode 52. It only worked while the file stayed pinned at 1,
+          # and would have failed silently the first time it didn't.
+          cd frontend/android
+          sed -i -E "s/versionCode [0-9]+/versionCode $BUILD_NUMBER/" app/build.gradle
+          sed -i -E "s/versionName \"[^\"]*\"/versionName \"$APP_VERSION\"/" app/build.gradle
+          grep -nE "versionCode|versionName" app/build.gradle
+
+      - name: Set up keystore
+        script: |
+          set -euo pipefail
+          if [ -z "${CM_KEYSTORE:-}" ]; then
+            echo "ERROR: CM_KEYSTORE is not set — add the google_play variable group in Codemagic."
+            exit 1
+          fi
+          echo "$CM_KEYSTORE" | base64 --decode > /tmp/keystore.jks
+          cat > frontend/android/key.properties <<EOF
+          storeFile=/tmp/keystore.jks
+          storePassword=$CM_KEYSTORE_PASSWORD
+          keyAlias=$CM_KEY_ALIAS
+          keyPassword=$CM_KEY_PASSWORD
+          EOF
+
+      - name: Build signed AAB
+        script: |
+          set -euo pipefail
+          cd frontend/android
+          # Play requires an App Bundle for new apps; the APK is built too for local sideload QA.
+          ./gradlew bundleRelease assembleRelease
+
+    artifacts:
+      - frontend/android/app/build/outputs/bundle/release/*.aab
+      - frontend/android/app/build/outputs/apk/release/*.apk
+      - frontend/android/app/build/outputs/**/mapping.txt
+
+    publishing:
+      google_play:
+        credentials: $GOOGLE_PLAY_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal
+        submit_as_draft: true

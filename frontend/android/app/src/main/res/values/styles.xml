@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <!-- UNUSED: nothing references this style. Kept as Capacitor shipped it; the flags that
+         matter live on AppTheme.NoActionBarLaunch below, which is the applied theme. -->
+    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:background">@null</item>
+    </style>
+
+
+    <!--
+      THE THEME THAT IS ACTUALLY APPLIED. AndroidManifest sets this on the activity, and
+      MainActivity is a bare BridgeActivity: no setTheme(), no postSplashScreenTheme. So the
+      activity keeps this theme for its whole life, not just the splash.
+
+      That is why the window flags below live HERE and not in AppTheme.NoActionBar — which is
+      declared above, referenced by nothing, and therefore dead. Putting them there (as the first
+      version of this change did) silently applied nothing at all.
+    -->
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <item name="android:background">@drawable/splash</item>
+
+        <!--
+          Android 15 (API 35) FORCES edge-to-edge for apps targeting 35: the window draws behind the
+          status and navigation bars. Capacitor 6's WebView does not translate those system insets
+          into CSS `env(safe-area-inset)` the way iOS does, so the app's existing safe-area padding
+          (real, and used throughout for the iOS notch) would receive zeroes and the header would
+          sit under the clock.
+
+          Opting out keeps the WebView inside the system bars — the layout the app was designed for
+          and identical to iOS today.
+
+          DEPRECATED in API 36 and inert once targeting it: the same 2026-08-31 deadline that forces
+          the Capacitor 7 upgrade. Handle both together, then let real insets flow through instead.
+        -->
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+
+        <!-- The default skin is light ivory, so status-bar icons must be DARK or they vanish. -->
+        <item name="android:statusBarColor">@color/colorPrimaryDark</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>

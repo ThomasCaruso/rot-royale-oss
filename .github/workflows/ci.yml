@@ -1,0 +1,117 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Least privilege for GITHUB_TOKEN, workflow-wide. Without this the token inherits the repository
+# default, which on older repositories is read/write — meaning any step, including a compromised
+# third-party action, could push commits or move tags. Declared at the TOP level so a job added
+# later inherits read-only instead of silently getting the default back. No job here writes:
+# nothing publishes, comments, or tags. Verified by test_ci_workflow_permissions.py.
+permissions:
+  contents: read
+
+jobs:
+  secrets-guard:
+    name: No signing material or env files tracked
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # .gitignore only stops ACCIDENTS, and only for files nobody has forced in yet. This makes the
+      # invariant explicit and enforced: a keystore, an Apple key or a real .env committed by
+      # `git add -f`, by a merge, or by a future directory layout the ignore rules don't anticipate
+      # fails the build instead of shipping quietly. Checks TRACKED files, which is what would
+      # actually become public.
+      - name: Fail if credential material is tracked
+        run: |
+          set -euo pipefail
+          # Extensions that are never legitimate in this repo, plus real env files. The two
+          # deliberately-committed exceptions are *.example and frontend/.env.production (one public
+          # https URL, documented in its own header).
+          offenders=$(git ls-files             | grep -Ei '(\.(jks|keystore|p8|p12|pfx|mobileprovision|pem)$|(^|/)key\.properties$|(^|/)\.env($|\.))'             | grep -vE '\.example$'             | grep -vE '^frontend/\.env\.production$' || true)
+          if [ -n "$offenders" ]; then
+            echo "::error::Credential material is tracked and would become public:"
+            echo "$offenders" | sed 's/^/  /'
+            exit 1
+          fi
+          echo "OK - no signing material or real env files are tracked."
+
+  backend:
+    name: Backend (lint + typecheck + tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    # The suite runs against a REAL Postgres (conftest.py runs `alembic upgrade head` against
+    # TEST_DATABASE_URL and wraps each test in a rolled-back transaction), so CI needs one too.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: rot_royale
+          POSTGRES_PASSWORD: rot_royale
+          POSTGRES_DB: rot_royale_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          # Same version production bootstraps (render.yaml), so CI resolves the graph the way the
+          # deployment will rather than on whatever uv shipped that morning.
+          version: "0.12.5"
+          enable-cache: true
+      - name: Sync dependencies
+        # --frozen matches what production runs (render.yaml: `uv sync --frozen --no-dev`) and makes
+        # CI FAIL when pyproject.toml and uv.lock disagree, instead of quietly re-resolving and
+        # testing a dependency graph that will never be deployed. Drift becomes a red build in the
+        # place designed to catch it.
+        run: uv sync --frozen
+      - name: Ruff (lint + format check)
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+      - name: Mypy
+        run: uv run mypy app
+      - name: Tests
+        env:
+          TEST_DATABASE_URL: postgresql+asyncpg://rot_royale:rot_royale@localhost:5432/rot_royale_test
+          DATABASE_URL: postgresql+asyncpg://rot_royale:rot_royale@localhost:5432/rot_royale_test
+          SECRET_KEY: ci-only-not-a-real-secret
+        run: uv run pytest -q
+
+  frontend:
+    name: Frontend (lint + typecheck + tests + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
+      # Neither job ran its test suite until 2026-08-02. PR #38 was green here for eight days while
+      # adding an i18n key to en/es/tr but not fr — a failure only `i18n.test.ts` catches. Typecheck
+      # missed it because `fr.ts` didn't exist on that branch at all, so `Dict` had nothing to
+      # object to. Merging it would have broken main with a green tick.
+      - name: Tests
+        run: npx vitest run
+      - name: Build
+        run: npm run build

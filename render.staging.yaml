@@ -1,0 +1,128 @@
+# Render Blueprint — Rot Royale STAGING (Phase 2S). FREE TIER.
+#
+# A throwaway, non-live environment whose only job is to prove the production content architecture
+# on the real platform before any of it touches the live service:
+#
+#     public-source candidate code  +  private rot-royale-content  +  APP_ENV=production
+#
+# It answers four questions, and nothing else:
+#   1. Does the private content fetch work on Render, during a build?
+#   2. Does .content survive build -> runtime?
+#   3. Does production mode serve the private corpus rather than the samples?
+#   4. Does a rollback restore the content revision paired with that deploy?
+#
+# ONE web service and ONE database answer all four. The production blueprint's three cron jobs are
+# deliberately absent: a cron's buildCommand runs the SAME fetch string through the same code and
+# the same environment group, so deploying three more services would re-prove one code path at
+# triple the cost, and two of the three only fire at 04:15/05:15 UTC anyway. The "all four services
+# resolve the same CONTENT_COMMIT" property is instead structural — one shared environment group —
+# and asserted against render.yaml by tests/test_render_contract.py.
+#
+# Derived from the tested production render.yaml. Every difference is deliberate:
+#
+#   - Free plans throughout. This runs for days and is then deleted.
+#   - Every resource name carries a `-staging` suffix. NOTHING shares a name with production, so no
+#     apply against this file can adopt, mutate or delete a live resource.
+#   - Its own Postgres, referenced via `fromDatabase`. No staging service may ever hold a connection
+#     string to the live database.
+#   - Branch is `oss/public-release`, the candidate, not `main`.
+#   - No static site. Change imagery moved behind the API in Phase 2Q, so the frontend build no
+#     longer touches the corpus. The smoke gates are server-to-server.
+#   - SCHEDULER_ENABLED is TRUE here, the one behavioural difference from production — see below.
+#   - Secrets are `sync: false` placeholders, filled in the Dashboard. Never literals.
+#
+# APP_ENV is `production` ON PURPOSE. It is the mode under test: the production content guard, the
+# disabled API docs and the no-fallback content rule are exactly what staging exists to exercise.
+# This is not the live environment; it is production MODE against throwaway resources.
+#
+# KNOWN LIMITS of the free tier, recorded so a slow or odd result is not mistaken for a fault:
+#   - The instance sleeps when idle and cold-starts in roughly a minute. The first request after a
+#     quiet period is slow; that is the plan, not the app.
+#   - Free Postgres is removed after its free period. Fine for a throwaway; keep nothing here.
+#   - SSH may be unavailable on free instances. It is not needed: the startup log line prints the
+#     content revision, and it gets that by READING .content/.content-revision off the deployed
+#     disk — which is the build-to-runtime persistence proof, from `render logs` alone.
+#
+# Owner steps before the first build:
+#   1. Create the Blueprint from THIS file (path: render.staging.yaml — the default is render.yaml,
+#      which is production), choosing a STAGING project environment.
+#   2. Fill the two values in `rot-royale-content-staging`. They are the only ones asked for.
+
+databases:
+  - name: rot-royale-db-staging
+    databaseName: rot_royale_staging
+    user: rot_royale
+    region: oregon
+    plan: free
+
+envVarGroups:
+  # Declared here so the group EXISTS with the right keys before anything references it; the values
+  # are entered in the Dashboard. Both are deliberately `sync: false`:
+  #   GITHUB_CONTENT_TOKEN — a credential, and it must never be in source.
+  #   CONTENT_COMMIT       — keeping it out of source is what lets a content release ship without an
+  #                          application commit, while still demanding an explicit immutable SHA.
+  - name: rot-royale-content-staging
+    envVars:
+      - key: GITHUB_CONTENT_TOKEN
+        sync: false
+      - key: CONTENT_COMMIT
+        sync: false
+
+services:
+  # ── FastAPI web service — the whole of staging ───────────────────────────────────────────────
+  - type: web
+    name: rot-royale-api-staging
+    runtime: python
+    rootDir: backend
+    region: oregon
+    plan: free
+    # `repo` is REQUIRED once `branch` is set. Production's blueprint specifies neither and inherits
+    # both from the repo it was created against; staging pins the candidate branch explicitly, so it
+    # has to be explicit about the repo too. (Caught by `render blueprints validate`.)
+    repo: https://github.com/ThomasCaruso/rot-royale
+    branch: oss/public-release
+    # Byte-identical to production's, including the pinned uv. The content fetch runs in the BUILD:
+    # Render's pre-deploy runs on a separate instance whose filesystem changes never reach the
+    # deployed service, and building the content into the artifact is what makes a rollback restore
+    # the content revision that shipped with that deploy. Chained with && so a failed retrieval
+    # fails the build rather than booting against absent content.
+    buildCommand: pip install uv==0.12.5 && uv sync --frozen --no-dev && uv run python -m scripts.fetch_private_content
+    startCommand: uv run alembic upgrade head && uv run python -m app.jobs.run seed && uv run python -m app.jobs.run ingest && uv run python -m app.jobs.run ingest-estimate --retire-missing && uv run python -m app.jobs.run ingest-change && uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: rot-royale-db-staging
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true # staging gets its OWN generated key; production's is never reused
+      - key: APP_ENV
+        value: production
+      - key: ROT_CONTENT_DIR
+        # Root-relative: the service sets `rootDir: backend` and Render runs build and start
+        # commands from there. `.content` rather than `content`, because `backend/content/` is the
+        # Python package and unpacking a corpus over it would shadow the code that reads it.
+        value: .content
+      - key: CONTENT_REPO
+        value: ThomasCaruso/rot-royale-content
+      - fromGroup: rot-royale-content-staging
+      # THE ONE BEHAVIOURAL DIFFERENCE FROM PRODUCTION, and it follows from dropping the crons.
+      # Production requires `false`: the cron owns scheduling so settlement stays exactly-once
+      # across services. Here there is no cron, and something has to provision the day's Daily
+      # Royale window or there is no contest to enter and the smoke gates cannot run at all. A
+      # single instance running its own scheduler has nothing to race. This changes WHO schedules,
+      # never what content is served, so it weakens nothing Phase 2S is testing.
+      - key: SCHEDULER_ENABLED
+        value: "true"
+      # CORS_ORIGINS, WEB_BASE_URL, CHALLENGE_BASE_URL and the VAPID pair are all deliberately
+      # ABSENT, so the only values typed by hand are the two secrets in the group above.
+      #
+      # CHALLENGE_BASE_URL is the one that mattered: it is load-bearing for change imagery
+      # (`_asset_url` builds the absolute URLs a client fetches from it), and it could not be known
+      # before Render assigned the hostname. Settings now derives it from RENDER_EXTERNAL_URL, which
+      # Render sets on every web service, so it is correct with no configuration at all.
+      #
+      # CORS_ORIGINS and WEB_BASE_URL only matter to a browser; the gates are server-to-server.
+      # VAPID unset makes push a clean no-op, and push is not under test here.
+      - key: PYTHON_VERSION
+        value: "3.12.7"

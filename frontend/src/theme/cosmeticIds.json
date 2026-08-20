@@ -1,0 +1,72 @@
+{
+  "presets": [
+    "knight",
+    "crescent",
+    "rook",
+    "bishop",
+    "ember",
+    "sol",
+    "willow",
+    "onyx"
+  ],
+  "frames": [
+    "frame_none",
+    "bronze_ring",
+    "violet_glow",
+    "gold_crown",
+    "science_orbit",
+    "history_relic",
+    "geo_compass",
+    "arts_brush",
+    "sports_champion",
+    "pop_neon",
+    "crowned_scholar",
+    "violet_duel_frame",
+    "crown_duel_frame",
+    "apex_frame",
+    "crown_master_frame",
+    "cosmic_boss_frame",
+    "duelist_gold_frame"
+  ],
+  "themes": [
+    "starter",
+    "royale",
+    "daylight",
+    "bubblegum",
+    "forest",
+    "midnight",
+    "blank",
+    "blank_light",
+    "champion",
+    "apex",
+    "crown_arena"
+  ],
+  "badges": [
+    "medal_science",
+    "medal_history",
+    "medal_geography",
+    "medal_arts",
+    "medal_sports",
+    "medal_pop",
+    "crown_all",
+    "perfectionist",
+    "podium_finisher",
+    "first_crown"
+  ],
+  "titles": [
+    "crown_chaser",
+    "world_traveler",
+    "perfect_clear",
+    "podium_regular",
+    "champion",
+    "trivia_menace"
+  ],
+  "worlds": [
+    "Science",
+    "History",
+    "Sports",
+    "Geography",
+    "Arts",
+    "Pop Culture"
+  ]
+}

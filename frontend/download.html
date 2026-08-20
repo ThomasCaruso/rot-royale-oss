@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Same viewport contract as index.html: pinned to device width, safe-area aware. -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <!--
+      Apple Smart App Banner. It ONLY works when it is present in the HTML Safari receives — a tag
+      injected later by React is not reliably picked up — which is why /download is its own build
+      entry instead of sharing index.html. Render rewrites /download → /download.html (render.yaml),
+      so the URL the visitor sees stays https://rotroyale.live/download.
+      The app id is duplicated here by necessity: static HTML can't import from src/lib/appLinks.ts.
+      Keep it in sync with APPLE_APP_ID.
+    -->
+    <meta name="apple-itunes-app" content="app-id=6781928142" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <!-- Starter's warm ivory, same as index.html — the browser chrome matches the page. -->
+    <meta name="theme-color" content="#F8F3EA" />
+    <meta name="apple-mobile-web-app-title" content="Rot Royale" />
+    <title>Download Rot Royale</title>
+    <meta name="description" content="8 questions. One shot a day. Rot Royale for iPhone." />
+    <!-- Link unfurl for the channels this URL exists to be pasted into (IG/FB/TikTok/Threads). -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Download Rot Royale" />
+    <meta property="og:description" content="8 questions. One shot a day. Rot Royale for iPhone." />
+    <meta property="og:url" content="https://rotroyale.live/download" />
+    <meta property="og:image" content="https://rotroyale.live/icons/pwa-512.png" />
+    <meta name="twitter:card" content="summary" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/download.tsx"></script>
+  </body>
+</html>

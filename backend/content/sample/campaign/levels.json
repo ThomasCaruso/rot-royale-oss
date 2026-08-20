@@ -1,0 +1,1571 @@
+{
+  "version": 1,
+  "worlds": [
+    {
+      "world": "Science",
+      "category": "Science & Nature",
+      "arcs": [
+        {
+          "name": "Foundations",
+          "levels": [
+            {
+              "level_number": 1,
+              "title": "Warm-Up",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 3,
+                "medium": 0,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "13aa120a90fcc51e",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "0c4b33702bb2e079",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "ecefe8cda7d092b6",
+                  "difficulty": "easy"
+                }
+              ]
+            },
+            {
+              "level_number": 2,
+              "title": "Finding Your Footing",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 3,
+                "medium": 0,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "ca31569d06a7be0f",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "5fb0baf259b2bca5",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "8dfea5079f003762",
+                  "difficulty": "easy"
+                }
+              ]
+            },
+            {
+              "level_number": 3,
+              "title": "Building Momentum",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 2,
+                "medium": 1,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "fb0e17ae2e8ef8c1",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "2be728677574d7b5",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "606155d8cb23a94e",
+                  "difficulty": "easy"
+                }
+              ]
+            },
+            {
+              "level_number": 4,
+              "title": "Hitting Your Stride",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 2,
+                "medium": 1,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "57c3fa0867f4c588",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "2c76230196e556e2",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "f35301ebdb636808",
+                  "difficulty": "easy"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Ascent",
+          "levels": [
+            {
+              "level_number": 5,
+              "title": "Raising the Stakes",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 1,
+                "medium": 2,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "d1806ce4157c7322",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "621f5bcab7cf78ec",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "91d238f65a9db21a",
+                  "difficulty": "easy"
+                }
+              ]
+            },
+            {
+              "level_number": 6,
+              "title": "Into the Deep",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 1,
+                "medium": 2,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "f9b9db3e4246fd68",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "9a382dfca6907388",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "d4fb51d6786fb124",
+                  "difficulty": "easy"
+                }
+              ]
+            },
+            {
+              "level_number": 7,
+              "title": "Trial by Fire",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 0,
+                "medium": 3,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "d58e27e68a64c26f",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "67ac9c8fab7fc09c",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "cd08a9dad656f06c",
+                  "difficulty": "medium"
+                }
+              ]
+            },
+            {
+              "level_number": 8,
+              "title": "No Easy Answers",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 0,
+                "medium": 2,
+                "hard": 1
+              },
+              "questions": [
+                {
+                  "key": "40bd04545b86d7c2",
+                  "difficulty": "hard"
+                },
+                {
+                  "key": "40ad3da39cc2bc64",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "f7478838a2b7c61a",
+                  "difficulty": "medium"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Mastery",
+          "levels": [
+            {
+              "level_number": 9,
+              "title": "The Gauntlet",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 0,
+                "medium": 1,
+                "hard": 2
+              },
+              "questions": [
+                {
+                  "key": "6b4f36d32c89b19d",
+                  "difficulty": "hard"
+                },
+                {
+                  "key": "ca76378ebaae3711",
+                  "difficulty": "hard"
+                },
+                {
+                  "key": "7d018bf90a56c2ce",
+                  "difficulty": "medium"
+                }
+              ]
+            },
+            {
+              "level_number": 10,
+              "title": "Final Trial",
+              "is_boss": true,
+              "difficulty_mix": {
+                "easy": 0,
+                "medium": 0,
+                "hard": 3
+              },
+              "questions": [
+                {
+                  "key": "d122708b63197907",
+                  "difficulty": "hard"
+                },
+                {
+                  "key": "b8321cccec6a9fa2",
+                  "difficulty": "hard"
+                },
+                {
+                  "key": "7bd0156b2f7dd2f4",
+                  "difficulty": "hard"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "world": "History",
+      "category": "History",
+      "arcs": [
+        {
+          "name": "Foundations",
+          "levels": [
+            {
+              "level_number": 1,
+              "title": "Warm-Up",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 3,
+                "medium": 0,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "62e7279f008b6ecf",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "229b9a6007b7f635",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "11a5936ca57be2d2",
+                  "difficulty": "easy"
+                }
+              ]
+            },
+            {
+              "level_number": 2,
+              "title": "Finding Your Footing",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 3,
+                "medium": 0,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "541232d88d4f902a",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "21eac8622a06c808",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "f2d4b6bb193c5c1d",
+                  "difficulty": "easy"
+                }
+              ]
+            },
+            {
+              "level_number": 3,
+              "title": "Building Momentum",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 2,
+                "medium": 1,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "c9527034700dbae2",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "ccff2115c911db70",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "d14a6a73ffe5c696",
+                  "difficulty": "easy"
+                }
+              ]
+            },
+            {
+              "level_number": 4,
+              "title": "Hitting Your Stride",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 2,
+                "medium": 1,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "421f5624204ec2d0",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "9e473102d8768c9a",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "125b2d1a49042c1a",
+                  "difficulty": "easy"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Ascent",
+          "levels": [
+            {
+              "level_number": 5,
+              "title": "Raising the Stakes",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 1,
+                "medium": 2,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "62138f66e7814bef",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "7a2bc87c3a12093e",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "5ad5934b784fe958",
+                  "difficulty": "medium"
+                }
+              ]
+            },
+            {
+              "level_number": 6,
+              "title": "Into the Deep",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 1,
+                "medium": 2,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "3db9ea5d1caf1750",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "4a604b65256a2e57",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "0d887b809a4c1c71",
+                  "difficulty": "medium"
+                }
+              ]
+            },
+            {
+              "level_number": 7,
+              "title": "Trial by Fire",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 0,
+                "medium": 3,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "a0852dcc591fa672",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "363059d674e3106d",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "160ee1e56a79a069",
+                  "difficulty": "medium"
+                }
+              ]
+            },
+            {
+              "level_number": 8,
+              "title": "No Easy Answers",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 0,
+                "medium": 2,
+                "hard": 1
+              },
+              "questions": [
+                {
+                  "key": "fdab514cf210001f",
+                  "difficulty": "hard"
+                },
+                {
+                  "key": "1f3030a48e594af8",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "881b6412e268e022",
+                  "difficulty": "medium"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Mastery",
+          "levels": [
+            {
+              "level_number": 9,
+              "title": "The Gauntlet",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 0,
+                "medium": 1,
+                "hard": 2
+              },
+              "questions": [
+                {
+                  "key": "66bce7c87d603c63",
+                  "difficulty": "hard"
+                },
+                {
+                  "key": "f3a33b73259fff84",
+                  "difficulty": "hard"
+                },
+                {
+                  "key": "f871c6121d40a935",
+                  "difficulty": "medium"
+                }
+              ]
+            },
+            {
+              "level_number": 10,
+              "title": "Final Trial",
+              "is_boss": true,
+              "difficulty_mix": {
+                "easy": 0,
+                "medium": 0,
+                "hard": 3
+              },
+              "questions": [
+                {
+                  "key": "0b03107dd0f05455",
+                  "difficulty": "hard"
+                },
+                {
+                  "key": "93dff085d6434a43",
+                  "difficulty": "hard"
+                },
+                {
+                  "key": "51ed5149d4182c20",
+                  "difficulty": "hard"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "world": "Sports",
+      "category": "Sports",
+      "arcs": [
+        {
+          "name": "Foundations",
+          "levels": [
+            {
+              "level_number": 1,
+              "title": "Warm-Up",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 3,
+                "medium": 0,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "c80f635f6bb3d05f",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "dc2162444ad080ec",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "24bc56bbff7ea515",
+                  "difficulty": "easy"
+                }
+              ]
+            },
+            {
+              "level_number": 2,
+              "title": "Finding Your Footing",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 3,
+                "medium": 0,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "404ce0cf163b4120",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "0be76bcd4952f05a",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "aabb2cdbca0ea5a2",
+                  "difficulty": "easy"
+                }
+              ]
+            },
+            {
+              "level_number": 3,
+              "title": "Building Momentum",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 2,
+                "medium": 1,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "f229e9775bee63a5",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "b010c2c2bf295fa7",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "d03c2239fe72a50a",
+                  "difficulty": "easy"
+                }
+              ]
+            },
+            {
+              "level_number": 4,
+              "title": "Hitting Your Stride",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 2,
+                "medium": 1,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "a2500f73279689b1",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "f844fc2449b534df",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "5b2e7def79d5d5f6",
+                  "difficulty": "medium"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Ascent",
+          "levels": [
+            {
+              "level_number": 5,
+              "title": "Raising the Stakes",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 1,
+                "medium": 2,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "23da927b6be303ed",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "3e7d80f5268862b9",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "bd9a70832308e956",
+                  "difficulty": "easy"
+                }
+              ]
+            },
+            {
+              "level_number": 6,
+              "title": "Into the Deep",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 1,
+                "medium": 2,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "743e1c1357751c7d",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "0df61dbcfcd04300",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "5fb5ad656a56febc",
+                  "difficulty": "easy"
+                }
+              ]
+            },
+            {
+              "level_number": 7,
+              "title": "Trial by Fire",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 0,
+                "medium": 3,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "bdc78b82bc33bf1a",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "c149f47a60dac35c",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "9729d19be877cc58",
+                  "difficulty": "medium"
+                }
+              ]
+            },
+            {
+              "level_number": 8,
+              "title": "No Easy Answers",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 0,
+                "medium": 2,
+                "hard": 1
+              },
+              "questions": [
+                {
+                  "key": "3e077762b0f3aef3",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "58ef2ae0913229cd",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "2e13991f3701bdc2",
+                  "difficulty": "hard"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Mastery",
+          "levels": [
+            {
+              "level_number": 9,
+              "title": "The Gauntlet",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 0,
+                "medium": 1,
+                "hard": 2
+              },
+              "questions": [
+                {
+                  "key": "e4a11272843a6d6f",
+                  "difficulty": "hard"
+                },
+                {
+                  "key": "48fc89653d239d9c",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "95feec03b01abe65",
+                  "difficulty": "hard"
+                }
+              ]
+            },
+            {
+              "level_number": 10,
+              "title": "Final Trial",
+              "is_boss": true,
+              "difficulty_mix": {
+                "easy": 0,
+                "medium": 0,
+                "hard": 3
+              },
+              "questions": [
+                {
+                  "key": "f2b12935034adc4b",
+                  "difficulty": "hard"
+                },
+                {
+                  "key": "e6d5eb5224a49da9",
+                  "difficulty": "hard"
+                },
+                {
+                  "key": "338b090782cabdec",
+                  "difficulty": "hard"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "world": "Geography",
+      "category": "Geography",
+      "arcs": [
+        {
+          "name": "Foundations",
+          "levels": [
+            {
+              "level_number": 1,
+              "title": "Warm-Up",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 3,
+                "medium": 0,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "047c661d07a7c8ea",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "56d206ffe86ba25c",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "fd867a3536b1e491",
+                  "difficulty": "easy"
+                }
+              ]
+            },
+            {
+              "level_number": 2,
+              "title": "Finding Your Footing",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 3,
+                "medium": 0,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "cbde381281af8a34",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "17eb46843800e24f",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "b007f7c1d202fb6b",
+                  "difficulty": "easy"
+                }
+              ]
+            },
+            {
+              "level_number": 3,
+              "title": "Building Momentum",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 2,
+                "medium": 1,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "9b6514103b701d5a",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "ed60807d6a4bffc8",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "21108326cc387825",
+                  "difficulty": "easy"
+                }
+              ]
+            },
+            {
+              "level_number": 4,
+              "title": "Hitting Your Stride",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 2,
+                "medium": 1,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "4e397ce7c43be237",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "c77a2813effef50a",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "ad5e1de110bc632f",
+                  "difficulty": "medium"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Ascent",
+          "levels": [
+            {
+              "level_number": 5,
+              "title": "Raising the Stakes",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 1,
+                "medium": 2,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "673233dca861a165",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "c3fa37fc53959411",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "64c5b908200d9801",
+                  "difficulty": "medium"
+                }
+              ]
+            },
+            {
+              "level_number": 6,
+              "title": "Into the Deep",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 1,
+                "medium": 2,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "ecc6f2b145de13e8",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "4a02eb29c7354abb",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "fcdaacb2e59b624e",
+                  "difficulty": "medium"
+                }
+              ]
+            },
+            {
+              "level_number": 7,
+              "title": "Trial by Fire",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 0,
+                "medium": 3,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "c7e50caf41adcdd2",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "7d6617e9ec5941a5",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "fe80c76575dde9f0",
+                  "difficulty": "medium"
+                }
+              ]
+            },
+            {
+              "level_number": 8,
+              "title": "No Easy Answers",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 0,
+                "medium": 2,
+                "hard": 1
+              },
+              "questions": [
+                {
+                  "key": "22f9978d262de2c1",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "4e49e71314610970",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "c0d44e435aa89f17",
+                  "difficulty": "hard"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Mastery",
+          "levels": [
+            {
+              "level_number": 9,
+              "title": "The Gauntlet",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 0,
+                "medium": 1,
+                "hard": 2
+              },
+              "questions": [
+                {
+                  "key": "c9b772f7e7c8bfbe",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "59d27118bd647df7",
+                  "difficulty": "hard"
+                },
+                {
+                  "key": "63ce65de735f161d",
+                  "difficulty": "hard"
+                }
+              ]
+            },
+            {
+              "level_number": 10,
+              "title": "Final Trial",
+              "is_boss": true,
+              "difficulty_mix": {
+                "easy": 0,
+                "medium": 0,
+                "hard": 3
+              },
+              "questions": [
+                {
+                  "key": "1338e6ef029b59fb",
+                  "difficulty": "hard"
+                },
+                {
+                  "key": "501d66e2db1653fd",
+                  "difficulty": "hard"
+                },
+                {
+                  "key": "c1493890a1701528",
+                  "difficulty": "hard"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "world": "Arts",
+      "category": "Arts & Literature",
+      "arcs": [
+        {
+          "name": "Foundations",
+          "levels": [
+            {
+              "level_number": 1,
+              "title": "Warm-Up",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 3,
+                "medium": 0,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "b741a3da0a98569e",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "517e1b4fc90a5391",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "33ac24d862b97836",
+                  "difficulty": "easy"
+                }
+              ]
+            },
+            {
+              "level_number": 2,
+              "title": "Finding Your Footing",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 3,
+                "medium": 0,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "4282b77dac32e688",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "07f43df17e9f450d",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "fd5b8a1c01338cc1",
+                  "difficulty": "easy"
+                }
+              ]
+            },
+            {
+              "level_number": 3,
+              "title": "Building Momentum",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 2,
+                "medium": 1,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "9f5759cb232fdd7b",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "773625ca75e8a1c4",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "cc4faa0da76c3cd9",
+                  "difficulty": "easy"
+                }
+              ]
+            },
+            {
+              "level_number": 4,
+              "title": "Hitting Your Stride",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 2,
+                "medium": 1,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "c6c6c50a47d3626c",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "18cd8902b89c2ca6",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "50231b4ba4804190",
+                  "difficulty": "easy"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Ascent",
+          "levels": [
+            {
+              "level_number": 5,
+              "title": "Raising the Stakes",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 1,
+                "medium": 2,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "14b931806dea3f25",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "6590911f24f38d44",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "a10c068be58dcc72",
+                  "difficulty": "medium"
+                }
+              ]
+            },
+            {
+              "level_number": 6,
+              "title": "Into the Deep",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 1,
+                "medium": 2,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "f85b62d72c987632",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "abc4db41035cb11f",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "66970c5d440ba012",
+                  "difficulty": "medium"
+                }
+              ]
+            },
+            {
+              "level_number": 7,
+              "title": "Trial by Fire",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 0,
+                "medium": 3,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "f48485f9d80eded9",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "97a41c6407c37f56",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "28d0be8eb126e6d6",
+                  "difficulty": "medium"
+                }
+              ]
+            },
+            {
+              "level_number": 8,
+              "title": "No Easy Answers",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 0,
+                "medium": 2,
+                "hard": 1
+              },
+              "questions": [
+                {
+                  "key": "750c17d946cb9378",
+                  "difficulty": "hard"
+                },
+                {
+                  "key": "6312ef1f928c389f",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "aa19bc60c1a770b1",
+                  "difficulty": "medium"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Mastery",
+          "levels": [
+            {
+              "level_number": 9,
+              "title": "The Gauntlet",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 0,
+                "medium": 1,
+                "hard": 2
+              },
+              "questions": [
+                {
+                  "key": "82000fd1e368d5ad",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "a767ab051f985dbb",
+                  "difficulty": "hard"
+                },
+                {
+                  "key": "9385dbf05ff141ce",
+                  "difficulty": "hard"
+                }
+              ]
+            },
+            {
+              "level_number": 10,
+              "title": "Final Trial",
+              "is_boss": true,
+              "difficulty_mix": {
+                "easy": 0,
+                "medium": 0,
+                "hard": 3
+              },
+              "questions": [
+                {
+                  "key": "b0a8869ec844b6f3",
+                  "difficulty": "hard"
+                },
+                {
+                  "key": "cfcb14c2f02d5469",
+                  "difficulty": "hard"
+                },
+                {
+                  "key": "3f32e3a7b52acb6d",
+                  "difficulty": "hard"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "world": "Pop Culture",
+      "category": "Pop Culture & Entertainment",
+      "arcs": [
+        {
+          "name": "Foundations",
+          "levels": [
+            {
+              "level_number": 1,
+              "title": "Warm-Up",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 3,
+                "medium": 0,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "c6fa9089aa835f7a",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "76bdda14046a4af6",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "a2c8746a72069ffd",
+                  "difficulty": "easy"
+                }
+              ]
+            },
+            {
+              "level_number": 2,
+              "title": "Finding Your Footing",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 3,
+                "medium": 0,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "0a77d25fdb8dcffa",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "7ffc6860d633669e",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "c3f13f24e94cc347",
+                  "difficulty": "easy"
+                }
+              ]
+            },
+            {
+              "level_number": 3,
+              "title": "Building Momentum",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 2,
+                "medium": 1,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "d7711c496de0d8f1",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "7be77ff5e36ef2d3",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "da092cfda56c8d30",
+                  "difficulty": "easy"
+                }
+              ]
+            },
+            {
+              "level_number": 4,
+              "title": "Hitting Your Stride",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 2,
+                "medium": 1,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "fbe35640af3cc299",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "007391e19d0ff6ba",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "a154b5b0b8cb11b8",
+                  "difficulty": "medium"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Ascent",
+          "levels": [
+            {
+              "level_number": 5,
+              "title": "Raising the Stakes",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 1,
+                "medium": 2,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "c4239bc1ecb96d96",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "9d7c96b0e2177bec",
+                  "difficulty": "easy"
+                },
+                {
+                  "key": "1229ae8702f2d00c",
+                  "difficulty": "medium"
+                }
+              ]
+            },
+            {
+              "level_number": 6,
+              "title": "Into the Deep",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 1,
+                "medium": 2,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "e4c062ddf238fde3",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "b2bd75cebb5c9f54",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "7807d386ea762465",
+                  "difficulty": "easy"
+                }
+              ]
+            },
+            {
+              "level_number": 7,
+              "title": "Trial by Fire",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 0,
+                "medium": 3,
+                "hard": 0
+              },
+              "questions": [
+                {
+                  "key": "a0017a1d53828390",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "199b416a13292cb8",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "687a7c45c2de0a49",
+                  "difficulty": "medium"
+                }
+              ]
+            },
+            {
+              "level_number": 8,
+              "title": "No Easy Answers",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 0,
+                "medium": 2,
+                "hard": 1
+              },
+              "questions": [
+                {
+                  "key": "c7bfb0de4076dd7e",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "514469c8e9fca194",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "304e36f4a946697d",
+                  "difficulty": "hard"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Mastery",
+          "levels": [
+            {
+              "level_number": 9,
+              "title": "The Gauntlet",
+              "is_boss": false,
+              "difficulty_mix": {
+                "easy": 0,
+                "medium": 1,
+                "hard": 2
+              },
+              "questions": [
+                {
+                  "key": "b3c87a2f56b9686c",
+                  "difficulty": "medium"
+                },
+                {
+                  "key": "686edec9ee7963ce",
+                  "difficulty": "hard"
+                },
+                {
+                  "key": "525b4ffebb94ea41",
+                  "difficulty": "hard"
+                }
+              ]
+            },
+            {
+              "level_number": 10,
+              "title": "Final Trial",
+              "is_boss": true,
+              "difficulty_mix": {
+                "easy": 0,
+                "medium": 0,
+                "hard": 3
+              },
+              "questions": [
+                {
+                  "key": "ad325b63cc9e826e",
+                  "difficulty": "hard"
+                },
+                {
+                  "key": "ed07e7a50e834ed9",
+                  "difficulty": "hard"
+                },
+                {
+                  "key": "6931db2c91a066d0",
+                  "difficulty": "hard"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

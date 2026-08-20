@@ -1,0 +1,37 @@
+{
+  "version": 2,
+  "items": [
+    {
+      "qc": {
+        "note": "synthetic fixture - recoloured circle"
+      },
+      "key": "sample_01",
+      "base_asset": "sample_01_before.png",
+      "altered_asset": "sample_01_after.png",
+      "width": 640,
+      "height": 420,
+      "bbox": {
+        "x": 0.5781,
+        "y": 0.119,
+        "w": 0.125,
+        "h": 0.1905
+      }
+    },
+    {
+      "qc": {
+        "note": "synthetic fixture - removed square"
+      },
+      "key": "sample_02",
+      "base_asset": "sample_02_before.png",
+      "altered_asset": "sample_02_after.png",
+      "width": 640,
+      "height": 420,
+      "bbox": {
+        "x": 0.3312,
+        "y": 0.481,
+        "w": 0.1187,
+        "h": 0.181
+      }
+    }
+  ]
+}

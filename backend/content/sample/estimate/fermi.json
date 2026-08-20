@@ -1,0 +1,132 @@
+[
+  {
+    "id": "est_s0001",
+    "prompt": "The fictional town of Corvo has 12 bell towers, each holding 100 bells. How many bells hang in Corvo?",
+    "answer": 1200,
+    "unit": "bells",
+    "difficulty": "direct",
+    "acceptable_pct": 30,
+    "close_pct": 60,
+    "components": [
+      { "label": "bell towers", "value": 12, "unit": "towers" },
+      { "label": "bells per tower", "value": 100, "unit": "bells" }
+    ],
+    "reveal_explanation": "Twelve towers holding a hundred bells each is 1,200 bells in total.",
+    "intuition_note": "A direct multiply — the sample corpus opens with the easiest shape.",
+    "category": "sample"
+  },
+  {
+    "id": "est_s0002",
+    "prompt": "A synthetic library holds 400 shelves of 250 books each. How many books is that?",
+    "answer": 100000,
+    "unit": "books",
+    "difficulty": "direct",
+    "acceptable_pct": 25,
+    "close_pct": 50,
+    "components": [
+      { "label": "shelves", "value": 400, "unit": "shelves" },
+      { "label": "books per shelf", "value": 250, "unit": "books" }
+    ],
+    "reveal_explanation": "400 shelves times 250 books is 100,000 books.",
+    "intuition_note": "Round numbers, so the arithmetic never distracts from the mechanism.",
+    "category": "sample"
+  },
+  {
+    "id": "est_s0003",
+    "prompt": "A made-up river drops 3 metres every kilometre and runs 80 kilometres. How many metres does it fall?",
+    "answer": 240,
+    "unit": "metres",
+    "difficulty": "direct",
+    "acceptable_pct": 30,
+    "close_pct": 60,
+    "components": [
+      { "label": "drop per kilometre", "value": 3, "unit": "m/km" },
+      { "label": "river length", "value": 80, "unit": "km" }
+    ],
+    "reveal_explanation": "Three metres per kilometre over eighty kilometres is a 240 metre fall.",
+    "intuition_note": "A rate times a length — the same shape as the first two, different units.",
+    "category": "sample"
+  },
+  {
+    "id": "est_s0004",
+    "prompt": "A fictional festival runs 6 stages for 9 hours, with a 45-minute set on each stage. How many sets are played?",
+    "answer": 72,
+    "unit": "sets",
+    "difficulty": "two_step",
+    "acceptable_pct": 30,
+    "close_pct": 60,
+    "components": [
+      { "label": "stages", "value": 6, "unit": "stages" },
+      { "label": "hours per stage", "value": 9, "unit": "hours" },
+      { "label": "sets per hour", "value": 1.333, "unit": "sets/hour" }
+    ],
+    "reveal_explanation": "Nine hours holds twelve 45-minute sets, and six stages run at once, so 72 sets.",
+    "intuition_note": "Two steps: convert hours to sets, then multiply across stages.",
+    "category": "sample"
+  },
+  {
+    "id": "est_s0005",
+    "prompt": "An invented city of 500,000 people each drink 2 cups of tea a day. How many cups a day is that?",
+    "answer": 1000000,
+    "unit": "cups",
+    "difficulty": "two_step",
+    "acceptable_pct": 30,
+    "close_pct": 60,
+    "components": [
+      { "label": "population", "value": 500000, "unit": "people" },
+      { "label": "cups per person per day", "value": 2, "unit": "cups" }
+    ],
+    "reveal_explanation": "Half a million people at two cups each is a million cups a day.",
+    "intuition_note": "Per-capita rates scaled to a population — the classic Fermi move.",
+    "category": "sample"
+  },
+  {
+    "id": "est_s0006",
+    "prompt": "A sample warehouse stacks boxes 4 high on 300 pallets, 8 boxes per layer. How many boxes?",
+    "answer": 9600,
+    "unit": "boxes",
+    "difficulty": "two_step",
+    "acceptable_pct": 25,
+    "close_pct": 50,
+    "components": [
+      { "label": "pallets", "value": 300, "unit": "pallets" },
+      { "label": "boxes per layer", "value": 8, "unit": "boxes" },
+      { "label": "layers", "value": 4, "unit": "layers" }
+    ],
+    "reveal_explanation": "Eight boxes a layer, four layers high, is 32 per pallet — times 300 pallets is 9,600.",
+    "intuition_note": "Three factors instead of two, so the answer outruns most first guesses.",
+    "category": "sample"
+  },
+  {
+    "id": "est_s0007",
+    "prompt": "Folding a synthetic sheet of paper in half 20 times gives how many layers?",
+    "answer": 1048576,
+    "unit": "layers",
+    "difficulty": "counterintuitive",
+    "acceptable_pct": 40,
+    "close_pct": 80,
+    "components": [
+      { "label": "folds", "value": 20, "unit": "folds" },
+      { "label": "layers per fold", "value": 2, "unit": "x" }
+    ],
+    "reveal_explanation": "Each fold doubles the layers, so twenty folds is 2^20 — just over a million.",
+    "intuition_note": "Doubling reads as addition until it doesn't; this is the sample corpus's exponential case.",
+    "category": "sample"
+  },
+  {
+    "id": "est_s0008",
+    "prompt": "A fictional coin doubles in value each day starting at 1 unit. What is it worth on day 30?",
+    "answer": 536870912,
+    "unit": "units",
+    "difficulty": "counterintuitive",
+    "acceptable_pct": 40,
+    "close_pct": 80,
+    "components": [
+      { "label": "starting value", "value": 1, "unit": "units" },
+      { "label": "doublings", "value": 29, "unit": "x" }
+    ],
+    "reveal_explanation": "Day one is 1 unit and it doubles 29 more times, giving 2^29 — over half a billion.",
+    "intuition_note": "Off-by-one on the exponent is the trap: day 30 means 29 doublings, not 30.",
+    "category": "sample"
+  }
+]

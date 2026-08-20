@@ -1,0 +1,75 @@
+[project]
+name = "rot-royale-backend"
+version = "0.1.0"
+description = "Rot Royale backend — FastAPI + SQLAlchemy async + Alembic"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30",
+    "alembic>=1.14",
+    "pydantic[email]>=2.10",
+    "pydantic-settings>=2.7",
+    "argon2-cffi>=23.1",
+    "pyjwt>=2.10",
+    "apscheduler>=3.10,<4",
+    # IANA tz database — required for zoneinfo on Windows (no system zone data); see core/timezone.py.
+    "tzdata>=2024.2",
+    "pywebpush>=2.3.0",
+    # LLM classification client (app/services/ai_classifier.py) — batch/CLI use only.
+    "httpx>=0.28",
+    "h2>=4.3.0",
+    "pillow>=12.3.0",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.8",
+    "mypy>=1.13",
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "httpx>=0.28",
+    # tests/test_render_contract.py parses render.yaml. It arrives transitively today (via
+    # uvicorn[standard]), which is not something a test should depend on — an unrelated dependency
+    # change would break the suite for no visible reason.
+    "pyyaml>=6.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["app"]
+
+[tool.ruff.lint]
+# pycodestyle, pyflakes, isort, pyupgrade, bugbear
+select = ["E", "F", "I", "UP", "B"]
+# B008: FastAPI's Depends()/Query() in argument defaults is the framework's intended idiom.
+ignore = ["B008"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.12"
+plugins = ["pydantic.mypy"]
+strict = true
+ignore_missing_imports = true
+files = ["app"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.uv]
+# EXACT, not a range, and it matches what production actually runs (verified in a Render build log:
+# `Successfully installed uv-0.12.5`). A range would let a developer on 0.12.9 satisfy the guard
+# while CI and Render stayed on 0.12.5 — which is the reproducibility gap the pin exists to close.
+# uv exits when the running version does not satisfy this, so CI, Render and development all resolve
+# the dependency graph with the same binary. Move this in lockstep with `pip install uv==` in
+# render.yaml (x4) and `version:` for setup-uv in .github/workflows/ci.yml.
+required-version = "==0.12.5"

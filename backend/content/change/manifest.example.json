@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "items": [
+    {
+      "key": "example_kitchen_01",
+      "base_asset": "example_kitchen_01_base.png",
+      "altered_asset": "example_kitchen_01_altered.png",
+      "width": 1024,
+      "height": 768,
+      "bbox": { "x": 0.4, "y": 0.3, "w": 0.1, "h": 0.1 }
+    }
+  ]
+}

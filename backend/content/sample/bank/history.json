@@ -1,0 +1,422 @@
+[
+  {
+    "category": "History",
+    "question": "In this sample corpus, what is Paper Treaty chiefly associated with? (sample #1)",
+    "options": [
+      "Water",
+      "Stone",
+      "Air",
+      "Fire"
+    ],
+    "correct_index": 0,
+    "difficulty": "easy",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "Which invented rank is given to Bell Accord in the sample records? (sample #2)",
+    "options": [
+      "First",
+      "Second",
+      "Third",
+      "Fourth"
+    ],
+    "correct_index": 1,
+    "difficulty": "medium",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "How many entries mention Lantern War in this fixture? (sample #3)",
+    "options": [
+      "One",
+      "Two",
+      "Five",
+      "Nine"
+    ],
+    "correct_index": 2,
+    "difficulty": "easy",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "In the sample index, Long Winter is filed under which letter? (sample #4)",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_index": 3,
+    "difficulty": "medium",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "What colour marks Quiet Order on the sample chart? (sample #5)",
+    "options": [
+      "Red",
+      "Green",
+      "Blue",
+      "Grey"
+    ],
+    "correct_index": 0,
+    "difficulty": "hard",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "Which season is Salt Pact recorded in here? (sample #6)",
+    "options": [
+      "Thaw",
+      "Reed",
+      "Bell",
+      "Ash"
+    ],
+    "correct_index": 1,
+    "difficulty": "easy",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "In this sample corpus, what is Reed Charter chiefly associated with? (sample #7)",
+    "options": [
+      "Water",
+      "Stone",
+      "Air",
+      "Fire"
+    ],
+    "correct_index": 2,
+    "difficulty": "medium",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "Which invented rank is given to Glass Edict in the sample records? (sample #8)",
+    "options": [
+      "First",
+      "Second",
+      "Third",
+      "Fourth"
+    ],
+    "correct_index": 3,
+    "difficulty": "easy",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "How many entries mention Kite Rebellion in this fixture? (sample #9)",
+    "options": [
+      "One",
+      "Two",
+      "Five",
+      "Nine"
+    ],
+    "correct_index": 0,
+    "difficulty": "medium",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "In the sample index, Coin Reform is filed under which letter? (sample #10)",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_index": 1,
+    "difficulty": "hard",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "What colour marks Tern Census on the sample chart? (sample #11)",
+    "options": [
+      "Red",
+      "Green",
+      "Blue",
+      "Grey"
+    ],
+    "correct_index": 2,
+    "difficulty": "easy",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "Which season is Sill Survey recorded in here? (sample #12)",
+    "options": [
+      "Thaw",
+      "Reed",
+      "Bell",
+      "Ash"
+    ],
+    "correct_index": 3,
+    "difficulty": "medium",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "In this sample corpus, what is Corvo Compact chiefly associated with? (sample #13)",
+    "options": [
+      "Water",
+      "Stone",
+      "Air",
+      "Fire"
+    ],
+    "correct_index": 0,
+    "difficulty": "easy",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "Which invented rank is given to Anvil Assembly in the sample records? (sample #14)",
+    "options": [
+      "First",
+      "Second",
+      "Third",
+      "Fourth"
+    ],
+    "correct_index": 1,
+    "difficulty": "medium",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "How many entries mention Pale Concord in this fixture? (sample #15)",
+    "options": [
+      "One",
+      "Two",
+      "Five",
+      "Nine"
+    ],
+    "correct_index": 2,
+    "difficulty": "hard",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "In the sample index, Wick Ruling is filed under which letter? (sample #16)",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_index": 3,
+    "difficulty": "easy",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "What colour marks Fen Petition on the sample chart? (sample #17)",
+    "options": [
+      "Red",
+      "Green",
+      "Blue",
+      "Grey"
+    ],
+    "correct_index": 0,
+    "difficulty": "medium",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "Which season is Mell Decree recorded in here? (sample #18)",
+    "options": [
+      "Thaw",
+      "Reed",
+      "Bell",
+      "Ash"
+    ],
+    "correct_index": 1,
+    "difficulty": "easy",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "In this sample corpus, what is Ard Convention chiefly associated with? (sample #19)",
+    "options": [
+      "Water",
+      "Stone",
+      "Air",
+      "Fire"
+    ],
+    "correct_index": 2,
+    "difficulty": "medium",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "Which invented rank is given to Quill Register in the sample records? (sample #20)",
+    "options": [
+      "First",
+      "Second",
+      "Third",
+      "Fourth"
+    ],
+    "correct_index": 3,
+    "difficulty": "hard",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "How many entries mention Vane Inquiry in this fixture? (sample #21)",
+    "options": [
+      "One",
+      "Two",
+      "Five",
+      "Nine"
+    ],
+    "correct_index": 0,
+    "difficulty": "easy",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "In the sample index, Nim Proclamation is filed under which letter? (sample #22)",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_index": 1,
+    "difficulty": "medium",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "What colour marks Sett Ordinance on the sample chart? (sample #23)",
+    "options": [
+      "Red",
+      "Green",
+      "Blue",
+      "Grey"
+    ],
+    "correct_index": 2,
+    "difficulty": "easy",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "Which season is Vex Judgement recorded in here? (sample #24)",
+    "options": [
+      "Thaw",
+      "Reed",
+      "Bell",
+      "Ash"
+    ],
+    "correct_index": 3,
+    "difficulty": "medium",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "In this sample corpus, what is Toure Accord chiefly associated with? (sample #25)",
+    "options": [
+      "Water",
+      "Stone",
+      "Air",
+      "Fire"
+    ],
+    "correct_index": 0,
+    "difficulty": "hard",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "Which invented rank is given to Ashe Statute in the sample records? (sample #26)",
+    "options": [
+      "First",
+      "Second",
+      "Third",
+      "Fourth"
+    ],
+    "correct_index": 1,
+    "difficulty": "easy",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "How many entries mention Marr Covenant in this fixture? (sample #27)",
+    "options": [
+      "One",
+      "Two",
+      "Five",
+      "Nine"
+    ],
+    "correct_index": 2,
+    "difficulty": "medium",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "In the sample index, Quist Mandate is filed under which letter? (sample #28)",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_index": 3,
+    "difficulty": "easy",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "What colour marks Renn Writ on the sample chart? (sample #29)",
+    "options": [
+      "Red",
+      "Green",
+      "Blue",
+      "Grey"
+    ],
+    "correct_index": 0,
+    "difficulty": "medium",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  },
+  {
+    "category": "History",
+    "question": "Which season is Pol Edict recorded in here? (sample #30)",
+    "options": [
+      "Thaw",
+      "Reed",
+      "Bell",
+      "Ash"
+    ],
+    "correct_index": 1,
+    "difficulty": "hard",
+    "explanation": "Invented for the synthetic sample corpus; not a real-world fact.",
+    "confidence": "high"
+  }
+]
