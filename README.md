@@ -1,81 +1,129 @@
 # Rot Royale
 
-Windowed-async skill-contest game. See **[PLAN.md](./PLAN.md)** for the full spec and
-**[CLAUDE.md](./CLAUDE.md)** for repo conventions, commands, and the ET/DST + module-registry rules.
+A windowed-async skill-contest game. One eight-question **Daily Royale** per ET day, inside a
+24-hour window, scored against everyone else who played that day.
 
-## Layout
+FastAPI + PostgreSQL behind a Vite/React SPA, wrapped for iOS and Android with Capacitor.
 
+---
+
+## What this repository is
+
+**The engine, complete and runnable.** Clone it, point it at a Postgres, and you get a working game
+— contest windows, scoring, settlement, campaign, cognition rounds, duels, the lot — running on a
+synthetic sample corpus authored for this purpose.
+
+**What it does not contain is the production content.** The real question banks, the campaign
+topology, the change-detection imagery and the artwork are not here. That is deliberate:
+
+- Publishing the questions would spoil live answers for people playing today.
+- The artwork is the game's visual identity, and it is not being given away.
+
+Those live in a private package the deployment fetches at build time, pinned to an immutable
+revision (`backend/scripts/fetch_private_content.py`). Everything needed to *run* the game is in
+this repository; what is missing is the specific game rather than the machinery.
+
+Artwork ships here as dimension-accurate placeholders — flat panels at the exact sizes of the real
+assets. The app builds and lays out correctly; it just wears different clothes.
+
+---
+
+## Running it
+
+Prerequisites: Python 3.12+, Node 20+, PostgreSQL 16, and [uv](https://docs.astral.sh/uv/).
+
+```bash
+# database
+createdb rot_royale
+psql -c "CREATE ROLE rot_royale LOGIN PASSWORD 'rot_royale';" -c "ALTER DATABASE rot_royale OWNER TO rot_royale;"
+
+# backend
+cd backend
+cp .env.example .env
+uv sync
+uv run alembic upgrade head
+
+# Load the synthetic sample corpus. This is the same chain the deployment runs, so a local
+# database ends up in the same shape as a real one — with sample content instead of production.
+uv run python -m app.jobs.run seed             # legacy trivia seed (30 questions)
+uv run python -m app.jobs.run ingest           # the categorised bank (180 questions)
+uv run python -m app.jobs.run ingest-estimate  # Fermi estimation items
+uv run python -m app.jobs.run ingest-change    # change-detection pairs
+
+uv run uvicorn app.main:app --port 8000 --reload
+
+# frontend, in another shell
+cd frontend
+npm install
+npm run dev
 ```
-frontend/   Vite + React + TS SPA (+ Phaser, Capacitor)
-backend/    FastAPI + SQLAlchemy async + Alembic
-docker-compose.yml   local Postgres (this machine uses native Postgres 16 instead — see CLAUDE.md §4)
+
+No configuration is required for the content: with `ROT_CONTENT_DIR` unset and `APP_ENV` anything
+other than production, the app reads the committed sample corpus at `backend/content/sample/`.
+
+### Tests
+
+```bash
+cd backend  && uv run pytest            # needs the DB migrated first
+cd frontend && npx vitest run
 ```
 
-## Quick start (local dev)
+---
 
-1. **Postgres** — create the role + db once (no Docker on this machine):
-   ```
-   & 'C:\Program Files\PostgreSQL\16\bin\psql.exe' -U postgres `
-     -c "CREATE ROLE rot_royale LOGIN PASSWORD 'rot_royale';" `
-     -c "CREATE DATABASE rot_royale OWNER rot_royale;"
-   ```
-   (With Docker: `docker compose up -d`.)
-2. **Backend** — `cd backend; uv sync; uv run uvicorn app.main:app --reload` → http://localhost:8000
-   Health check: `GET /health` → `{"status":"ok","db":"ok"}`.
-3. **Frontend** — `cd frontend; npm install; npm run dev` → http://localhost:5173
+## The parts worth reading
 
-Current milestone: **M2 (contest engine + windows + trivia)** complete — ET/DST-correct windows
-with scheduler + lazy state transitions, seeded reproducible round sets, the round-module registry
-(server + client), the trivia module end-to-end with the `client_spec`/`server_answer` anti-cheat
-split, `enter`/`submit` with server-authoritative scoring, and the ported contest UI (category
-splash → timed round → server-scored results).
+**The content boundary** (`backend/app/core/config.py`, `backend/content/package.py`). Production
+refuses to start without an explicit private content root. There is deliberately no fallback:
+silently serving placeholder questions into a ranked contest would be worse than not booting.
 
-**M3 (scheduler daemon)** complete — APScheduler runs in the app lifespan: a transition tick flips
-windows SCHEDULED→OPEN→CLOSED on a timer, and a 00:30-ET cron provisions next-day windows
-(verified live; windows observably transitioned on the timer). Forced spring-forward/fall-back tests
-pin the DST-correct UTC instants.
+**Round modules** (`backend/app/modules/`, `frontend/src/modules/`). A contest is an ordered list of
+round modules; adding a game mode means adding a module, and the contest engine is never touched.
+Each module returns a `client_spec` that must never contain the answer, and a `server_answer` that
+never leaves the server.
 
-**M4 (more modules + templates)** complete — `rapid_math` and `memory_flash` added through the
-existing registry (engine untouched); `memory_flash` submits taps + per-tap timestamps, scored
-server-side against the stored sequence. Submit is now module-agnostic (opaque per-round `result`).
-Per-slot mixed templates (morning/midday/night) produce different compositions; verified live — a
-night contest rendered + scored a mixed trivia/rapid_math/memory_flash round set end-to-end.
+**Determinism** (`backend/app/services/engine.py`). The Daily Royale is seeded per *window*, not per
+player, so everyone gets the identical eight questions in the identical option order — the property
+that makes a leaderboard and a "beat my score" share meaningful.
 
-**UI re-skin → `royale` identity** complete (presentation-layer only; engine/scoring/scheduler
-untouched). New default theme `royale` + art style `arcade`: dark violet world, glowing gold CTAs,
-gold circular countdown ring, green-correct/red-wrong answer pills with A/B/C/D badges, 3D display
-headings, glassy cards, confetti + score count-up on results, starfield background. Reusable
-motion primitives in `src/ui/`, `prefers-reduced-motion` honored, WCAG-AA on dark. Honesty rules
-enforced (coins not cash, windowed not broadcast, real field counts — no fake chat/viewer numbers).
-See **[DESIGN.md](./DESIGN.md)**.
+**Windows and DST** (`backend/app/core/timezone.py`). Contest times are defined in America/New_York
+wall clock and stored as UTC instants. Getting this wrong drifts every window by an hour for eight
+months of the year, so it is computed with `zoneinfo` and never with a fixed offset.
 
-**M5 (settlement)** complete — at window close, settlement ranks the field (score, then speed),
-pays coins via the append-only ledger (placement bracket + streak bonus), applies Elo rating +
-division, advances the daily ET streak, and writes standings. **Exactly-once + atomic** (window-row
-`FOR UPDATE` + state guard; one commit so coins and the SETTLED flip land together). Cold-start
-**bots pad the field in memory only** (never persisted/paid — so entry counts stay honest). Wired
-into the daemon tick + a `python -m app.jobs.run settle` cron entrypoint. `GET
-/contests/{id}/standings` + `GET /me/history`; results surface as a banner on next open. Verified
-live: a closed window settled and placements/coins/rating/streak applied. Also hardened
-memory_flash plausibility (payout-affecting).
+**Ledgers** (`backend/app/services/ledger.py`, `gem_ledger.py`). Both currencies are append-only.
+Balances are caches that must always equal their ledger sum; nothing mutates a balance without
+writing a row.
 
-**M6 (categories + review-gated content ingestion)** complete — the active round modules are now
-**`trivia`, `rapid_math`, `memory_flash`** (the experimental `pattern_sequence`/`odd_one_out` visual
-mini-games were removed — testers found them incoherent/too-easy; the earlier `tap_target` Phaser
-game was removed before that). The questions schema was widened: `difficulty` enum (easy/medium/hard),
-`status` enum (draft/approved/live), and `explanation` — and the **serving gate is `status`**, so
-only `approved`/`live` content reaches a player (`draft` is staged). The **canonical six categories**
-are locked — `Science & Nature`, `History`, `Geography`, `Arts & Literature`, `Sports`,
-`Pop Culture & Entertainment` — with the legacy nine-category seed folded into them (data migration);
-ingest rejects any other category so typos can't spawn near-duplicates. A **review-gated ingest
-command** (`python -m app.jobs.run ingest <file.json>`) loads a reviewed JSON bank as `approved`,
-validating each row (4 options, correct_index 0–3, canonical category, valid difficulty, non-empty
-explanation), deduping on (question, category) against the DB and in-file, and reporting
-added/skipped/rejected — malformed rows are rejected loudly (non-zero exit), never silently dropped
-(`confidence` is a review aid, never stored). Players can pick a category for a **no-stakes
-category-scoped 10-question trivia session** with a weighted difficulty mix; **ranked windows stay
-mixed across all categories** (no category pick) for fair comparability. Verified: ingest
-validate/dedupe/reject + serving-gate + category-scope + difficulty-mix tests (backend), category
-picker render + scope (frontend), end-to-end CLI ingest against a placeholder bank. Phaser remains
-unused scaffolding for the §10 hub scene. _(Roadmap reordered from PLAN.md §12 at the owner's
-request.)_
+`CLAUDE.md` is the working reference for all of it — conventions, invariants, and the reasoning
+behind decisions that look arbitrary until you know what broke.
+
+---
+
+## Currencies
+
+Coins and Gems are in-app, closed-loop, and **earned only**. They cannot be purchased, cashed out or
+transferred. There is no real money and no gambling anywhere in this project, and player-facing copy
+is checked against a banned-terms list in every supported language (`frontend/src/i18n/copyGuard.ts`).
+
+---
+
+## Licence
+
+Code is [Apache-2.0](LICENSE).
+
+The trademarks, name, logo and brand assets are **not** covered by that licence — see
+[TRADEMARKS.md](TRADEMARKS.md). Third-party components and bundled fonts are listed in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+To report a vulnerability, see [SECURITY.md](SECURITY.md). To contribute, see
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
+## Why the history starts at one commit
+
+Because removing a file from a repository's HEAD does not remove it from the repository. The
+development history contained production questions and artwork in files that were later moved or
+deleted, and all of it stayed reachable in the object database.
+
+Starting from a clean root makes their absence a property of this repository rather than the result
+of a rewrite someone has to trust. The full history still exists privately.
