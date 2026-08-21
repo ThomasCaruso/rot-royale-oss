@@ -65,6 +65,11 @@ EXCLUDE = (
     # decision from publishing the application. It reached the tracked tree via a `git add -A`
     # during a merge; the export is what caught it.
     "tools/",
+    # The sync workflow itself is private infrastructure. The public repo cannot sync itself, the
+    # workflow references a secret that does not exist there, and GitHub refuses to let a PAT
+    # create or update a workflow file without the workflow scope — so exporting it also broke the
+    # push. ci.yml IS exported: it is the CI a contributor should see and run.
+    ".github/workflows/sync-public.yml",
 )
 
 SECRET_PATTERNS = {
