@@ -75,13 +75,15 @@ def _recorder():
 async def test_subscribe_is_idempotent(db_session: AsyncSession):
     uid = uuid.uuid4()
     await db_session.execute(insert(User).values(id=uid, email="s@x.com", password_hash="x"))
-    await subscribe_web(db_session, uid, "https://push/x", "p", "a")
-    await subscribe_web(db_session, uid, "https://push/x", "p", "a")  # double-subscribe → one row
+    await subscribe_web(db_session, uid, "https://push.example.com/x", "p", "a")
+    await subscribe_web(
+        db_session, uid, "https://push.example.com/x", "p", "a"
+    )  # double-subscribe → one row
     count = (
         await db_session.execute(
             select(func.count())
             .select_from(PushSubscription)
-            .where(PushSubscription.endpoint == "https://push/x")
+            .where(PushSubscription.endpoint == "https://push.example.com/x")
         )
     ).scalar_one()
     assert count == 1
@@ -90,13 +92,13 @@ async def test_subscribe_is_idempotent(db_session: AsyncSession):
 async def test_unsubscribe_removes_row(db_session: AsyncSession):
     uid = uuid.uuid4()
     await db_session.execute(insert(User).values(id=uid, email="u@x.com", password_hash="x"))
-    await subscribe_web(db_session, uid, "https://push/y", "p", "a")
-    await unsubscribe(db_session, uid, endpoint="https://push/y")
+    await subscribe_web(db_session, uid, "https://push.example.com/y", "p", "a")
+    await unsubscribe(db_session, uid, endpoint="https://push.example.com/y")
     count = (
         await db_session.execute(
             select(func.count())
             .select_from(PushSubscription)
-            .where(PushSubscription.endpoint == "https://push/y")
+            .where(PushSubscription.endpoint == "https://push.example.com/y")
         )
     ).scalar_one()
     assert count == 0
@@ -189,27 +191,27 @@ async def test_push_endpoints_subscribe_and_unsubscribe(
     sub = await client.post(
         "/push/subscribe",
         headers=auth,
-        json={"endpoint": "https://push/api", "keys": {"p256dh": "p", "auth": "a"}},
+        json={"endpoint": "https://push.example.com/api", "keys": {"p256dh": "p", "auth": "a"}},
     )
     assert sub.status_code == 200, sub.text
     n = (
         await db_session.execute(
             select(func.count())
             .select_from(PushSubscription)
-            .where(PushSubscription.endpoint == "https://push/api")
+            .where(PushSubscription.endpoint == "https://push.example.com/api")
         )
     ).scalar_one()
     assert n == 1
 
     unsub = await client.post(
-        "/push/unsubscribe", headers=auth, json={"endpoint": "https://push/api"}
+        "/push/unsubscribe", headers=auth, json={"endpoint": "https://push.example.com/api"}
     )
     assert unsub.status_code == 200, unsub.text
     n2 = (
         await db_session.execute(
             select(func.count())
             .select_from(PushSubscription)
-            .where(PushSubscription.endpoint == "https://push/api")
+            .where(PushSubscription.endpoint == "https://push.example.com/api")
         )
     ).scalar_one()
     assert n2 == 0

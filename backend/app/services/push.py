@@ -424,6 +424,17 @@ def _build_web_sender(settings: Settings) -> Sender:
     subject = settings.vapid_subject
 
     async def send(sub: Sub, payload: dict[str, str]) -> None:
+        # Re-checked at SEND time, not only at subscribe time. Rows written before the endpoint
+        # validator existed are still in the table, and this is the last point before the server
+        # makes an outbound request to a client-supplied URL. A bad row is retired rather than
+        # delivered, so it stops being retried forever.
+        from app.core.pushurl import InvalidPushEndpoint, validate_push_endpoint
+
+        try:
+            validate_push_endpoint(str(sub["endpoint"]))
+        except InvalidPushEndpoint as exc:
+            raise PushExpired() from exc
+
         def _deliver() -> None:
             try:
                 webpush(

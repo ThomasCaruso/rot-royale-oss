@@ -151,8 +151,11 @@ async def limit_body_size(request: Request, call_next):  # type: ignore[no-untyp
 # is taken), so allow any localhost/127.0.0.1 origin — otherwise login fails with a 400 on the CORS
 # preflight whenever Vite isn't on the one hardcoded port. Production stays LOCKED to the explicit
 # cors_origins (the deployed web origin); the regex is disabled there (PLAN.md M7 / CLAUDE.md).
+# PRODUCTION_ENVS, not `== "production"`. The docs gate above already uses the full set, and the
+# two disagreeing meant APP_ENV=staging or APP_ENV=prod hid the API schema while still allowing
+# any localhost origin to make CREDENTIALED requests. Same question, same answer, one constant.
 _dev_origin_regex = (
-    None if settings.app_env == "production" else r"https?://(localhost|127\.0\.0\.1)(:\d+)?"
+    None if settings.app_env in PRODUCTION_ENVS else r"https?://(localhost|127\.0\.0\.1)(:\d+)?"
 )
 
 app.add_middleware(
