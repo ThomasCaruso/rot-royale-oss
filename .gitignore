@@ -126,3 +126,18 @@ tools/change-pipeline/.pytest_cache/
 # Fetched private content package (scripts/fetch_private_content.py). Never committed: it is the
 # private corpus, and on a deploy it is produced by the build.
 backend/.content/
+
+# ── Local developer tooling under tools/ ─────────────────────────────────────────────────────────
+# The SOURCE of these tools is worth keeping (tools/change-pipeline generates the change-detection
+# manifests the app ingests). Their environments and outputs are not: change-pipeline's .venv alone
+# is 183 MB, which is larger than every shipped asset in the repository combined.
+tools/*/.venv/
+tools/*/.pytest_cache/
+tools/**/__pycache__/
+# Pipeline working directories: intake photography, intermediate frames and generated manifests.
+# Intake is unreleased source imagery and the output is private content — neither belongs in public
+# source, and both are reproducible from the tool.
+tools/*/intake/
+tools/*/work/
+tools/*/out/
+tools/*/output/

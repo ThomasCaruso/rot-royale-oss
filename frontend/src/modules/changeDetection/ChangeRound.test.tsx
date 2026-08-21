@@ -4,7 +4,7 @@
  * to run with no on-screen representation at all, so a player could be timed out mid-look with no
  * warning. These pin both halves: the countdown is now visible, and it still fires the auto-miss.
  */
-import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ChangeRound } from "@/modules/changeDetection/ChangeRound";
@@ -61,6 +61,26 @@ describe("ChangeRound — chrome", () => {
 // The round does not start until both frames are decoded. jsdom never loads resources at all, so
 // image loading is stubbed explicitly rather than leaning on the component's timeout — otherwise
 // these tests exercise the dead-asset path by accident and depend on wall-clock ordering.
+/**
+ * Advance fake timers AND flush React, which are not the same thing.
+ *
+ * `ready` flips inside a promise continuation, so the render that follows is scheduled through
+ * React's own scheduler — MessageChannel under jsdom, which fake timers do not control. Advancing
+ * time therefore moves the round's own timers but does NOT guarantee the `ready` commit has landed.
+ * When it has not, `onTap` sees `ready === false` and silently drops the tap, so only the auto-miss
+ * submits and the assertion fails three lines later with a confusing call count. It is
+ * load-sensitive rather than deterministic, which is exactly what made this file flaky in CI.
+ *
+ * `act` flushes React's pending work on exit, so the boundary stops depending on whether a
+ * macrotask happened to land in time. This is the fix; a longer timeout would only widen the
+ * window the race lives in.
+ */
+async function advance(ms: number) {
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(ms);
+  });
+}
+
 function stubImages({ loads }: { loads: boolean }) {
   class FakeImage {
     onload: (() => void) | null = null;
@@ -82,7 +102,7 @@ describe("ChangeRound — the clock does not start until the images do", () => {
     // Most of the time limit has passed in wall-clock terms, but the round has not started, so
     // nothing resolves. Previously the limit ran from mount, so a cold cache silently ate the
     // opening seconds of the round.
-    await vi.advanceTimersByTimeAsync(3000);
+    await advance(3000);
     expect(cogChangeSubmit).not.toHaveBeenCalled();
     vi.useRealTimers();
   });
@@ -114,14 +134,17 @@ describe("ChangeRound — a tap in the dying seconds still counts", () => {
     } as DOMRect);
     cogChangeSubmit.mockResolvedValue({});
     const { container } = render(<ChangeRound spec={spec} onComplete={vi.fn()} />);
-    await vi.advanceTimersByTimeAsync(100); // let the frames "load" and the round's timers commit
-    const surface = container.querySelector('[style*="crosshair"]')!;
+    await advance(100); // let the frames "load" and the round's timers commit
+    const surface = container.querySelector('[style*="crosshair"]');
+    // Loud precondition. Without it, a round that never became ready surfaces as a mismatched call
+    // count further down, which reads like a scoring bug rather than a harness one.
+    expect(surface, "the round never became ready — frames did not resolve").not.toBeNull();
 
     // Tap 100ms before expiry. The submit is deferred ~260ms for the mark, so the auto-miss fires
     // FIRST — and before this fix it resolved the round as (-1, -1) and threw the tap away.
-    await vi.advanceTimersByTimeAsync(spec.time_limit_ms - 100);
-    fireEvent.pointerDown(surface, { clientX: 150, clientY: 100 });
-    await vi.advanceTimersByTimeAsync(500);
+    await advance(spec.time_limit_ms - 100);
+    fireEvent.pointerDown(surface!, { clientX: 150, clientY: 100 });
+    await advance(500);
 
     expect(cogChangeSubmit).toHaveBeenCalledTimes(1);
     expect(cogChangeSubmit).toHaveBeenCalledWith("inst-c1", 0.5, 0.5, expect.any(Number));

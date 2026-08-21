@@ -44,12 +44,16 @@ body spanning 425x310 at bbox x53..477 / y96..405 — i.e. 83.0% of the canvas w
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageFilter
 
-SRC = Path(r"C:\Users\Tommy\Downloads\ChatGPT Image Jul 31, 2026, 09_17_22 PM.png")
+# Taken from argv. Hardcoding one machine's Downloads folder made this script unusable by anyone
+# else, put a local path (and a username) into the repository, and leaked how the source art was
+# produced through the filename itself.
+SRC = Path(sys.argv[1]) if len(sys.argv) > 1 else None
 OUT = Path(__file__).resolve().parent.parent / "public" / "assets" / "themes" / "starter" / "brain-dark.png"
 REF = Path(__file__).resolve().parent.parent / "public" / "assets" / "themes" / "starter" / "brain.png"
 
@@ -107,6 +111,8 @@ def _ref_framing() -> tuple[float, float, float]:
 
 
 def main() -> None:
+    if SRC is None or not SRC.is_file():
+        raise SystemExit(f"usage: python {Path(__file__).name} <source-image.png>")
     src = np.asarray(Image.open(SRC).convert("RGB")).astype(np.float32)
 
     # The flat background, measured from the border rather than assumed.

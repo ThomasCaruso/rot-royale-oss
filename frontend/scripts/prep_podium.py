@@ -5,16 +5,16 @@ background inward from the border (keeping the podium + its soft light halo inta
 content so it drops cleanly onto the ivory Leaderboard.
 """
 
-import sys
 from collections import deque
+import sys
 from pathlib import Path
 
 import numpy as np
 from PIL import Image
 
-# Taken from argv: the source render lives wherever the artist put it, and hardcoding one
-# machine's Downloads folder made this script unusable by anyone else (and leaked a local path
-# into the repository).
+# Taken from argv. Hardcoding one machine's Downloads folder made this script unusable by anyone
+# else, put a local path (and a username) into the repository, and leaked how the source art was
+# produced through the filename itself.
 SRC = Path(sys.argv[1]) if len(sys.argv) > 1 else None
 OUT = Path(__file__).resolve().parent.parent / "src" / "assets" / "leaderboard" / "podium.png"
 TOL = 82  # colour distance from the sampled corner that still counts as background
@@ -22,7 +22,7 @@ TOL = 82  # colour distance from the sampled corner that still counts as backgro
 
 def main() -> None:
     if SRC is None or not SRC.is_file():
-        raise SystemExit(f"usage: python {Path(__file__).name} <source-podium-render.png>")
+        raise SystemExit(f"usage: python {Path(__file__).name} <source-image.png>")
     im = Image.open(SRC).convert("RGBA")
     arr = np.asarray(im).astype(np.int16)
     h, w = arr.shape[:2]

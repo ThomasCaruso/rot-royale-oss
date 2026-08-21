@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import html
 import io
+import json
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse, Response
@@ -128,6 +129,10 @@ async def share_page(
     play_url = f"{settings.web_base_url}/?c={challenge.id}"
 
     e = html.escape
+    # json.dumps, not !r: Python's repr is not a JavaScript escaper and would emit
+    # a literal </script> straight out of the tag. Not reachable today (play_url is
+    # config + a base62 id) — but the safety of !r here depends on that staying true.
+    play_url_js = json.dumps(play_url)
     title = f"{challenge.username} scored {challenge.score} in Rot Royale #{challenge.contest_no}"
     description = "Beat me 👇 Play today's Daily Royale — free, no signup."
     top_line = f" · Top {pct}% today" if pct is not None else ""
@@ -149,7 +154,7 @@ async def share_page(
 <meta name="twitter:description" content="{e(description)}">
 <meta name="twitter:image" content="{e(image_url)}">
 <meta http-equiv="refresh" content="0; url={e(play_url)}">
-<script>window.location.replace({play_url!r});</script>
+<script>window.location.replace({play_url_js});</script>
 <style>body{{font-family:system-ui;background:#14101f;color:#f4efe6;display:flex;
 align-items:center;justify-content:center;height:100vh;margin:0}}a{{color:#e7c15a}}</style>
 </head>
