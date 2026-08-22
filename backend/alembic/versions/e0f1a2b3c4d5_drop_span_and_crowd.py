@@ -1,4 +1,4 @@
-"""Drop the span and crowd cognitive round types (pre-launch removal, CLAUDE.md §5d).
+"""Drop the span and crowd cognitive round types (pre-launch removal, docs/architecture.md §4).
 
 `crowd` cannot score honestly below a few hundred responses per prompt, so at launch scale every
 round would have been graded against a seeded distribution rather than a real crowd — the one thing

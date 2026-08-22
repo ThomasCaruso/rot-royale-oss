@@ -1,4 +1,4 @@
-"""Rot Rating difficulty-convergence exactly-once marker (CLAUDE.md §5e).
+"""Rot Rating difficulty-convergence exactly-once marker (docs/architecture.md §9).
 
 One row per converged ET date. The daily difficulty batch is NOT idempotent (per-difficulty game
 counts accumulate), so it claims the day via INSERT ... ON CONFLICT DO NOTHING on this table's PK —

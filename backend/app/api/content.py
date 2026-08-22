@@ -31,8 +31,8 @@ from app.core.config import settings
 router = APIRouter(prefix="/content", tags=["content"])
 
 # The files are immutable per name (a replacement gets a new name, same as the `?v=` rule for
-# frontend art in CLAUDE.md §7), and a change round fetches two of them under a 30s timer, so a long
-# cache is both safe and worth having on a replay.
+# frontend art in docs/architecture.md §13), and a change round fetches two of them under a 30s
+# timer, so a long cache is both safe and worth having on a replay.
 _CACHE_CONTROL = "public, max-age=86400"
 
 

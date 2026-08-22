@@ -1,4 +1,4 @@
-"""Canonical scoring (PLAN.md §5). The points formula lives ONLY here.
+"""Canonical scoring (docs/architecture.md). The points formula lives ONLY here.
 
 points = correct ? round((100 + time_frac*60) * (1 + min(streak,5)*0.12)) : 0
 where `streak` is the count of consecutive correct rounds WITHIN the contest, incremented before the

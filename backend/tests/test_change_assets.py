@@ -87,8 +87,8 @@ def test_hostile_names_never_resolve(hostile):
 @pytest.mark.parametrize("name", ["manifest.json", "notes.txt", "x.svg", "x.webp", "x.gif"])
 def test_unsupported_extensions_never_resolve(name):
     """The type allowlist is content policy, not just safety: WebP is excluded because iOS 13's
-    WKWebView cannot render it (CLAUDE.md §7), and a frame that fails to load in a change round is
-    an unfindable change, not a visible error."""
+    WKWebView cannot render it (docs/architecture.md §13), and a frame that fails to load in a
+    change round is an unfindable change, not a visible error."""
     assert change_assets.resolve(SAMPLE_CONTENT_DIR, name) is None
 
 

@@ -1,4 +1,4 @@
-"""Contest play service (PLAN.md §7): enter a window and submit results.
+"""Contest play service (docs/architecture.md): enter a window and submit results.
 
 Server-authoritative throughout: the round set is generated + stored server-side, answers never
 leave the server, and scores are recomputed from stored answers (client-sent scores are ignored).

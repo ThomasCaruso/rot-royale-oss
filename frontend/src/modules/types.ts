@@ -2,7 +2,7 @@ import type React from "react";
 
 /**
  * A round module plays one round and calls onComplete with the result to submit.
- * The contest engine looks modules up by `type` and renders/plays them (PLAN.md §5).
+ * The contest engine looks modules up by `type` and renders/plays them (docs/architecture.md).
  * The client never receives answers — only `spec` (client_spec); scoring is server-authoritative.
  */
 export interface RoundModule<Spec = unknown, Result = unknown> {

@@ -1,4 +1,4 @@
-"""Friends + live friend-duel schemas (the social layer — PLAN.md §13, now in scope).
+"""Friends + live friend-duel schemas (the social layer, now in scope).
 
 The friend-duel round/outcome strings are RAW server codes (challenger_win|opponent_win|no_point,
 correct_vs_wrong|speed_gap|…); the frontend maps them to copy-safe labels via i18n, matching the bot

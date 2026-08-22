@@ -1,4 +1,4 @@
-"""Eastern-Time / DST-correct window helpers (PLAN.md §4).
+"""Eastern-Time / DST-correct window helpers (docs/architecture.md).
 
 CRITICAL: contest windows are defined in America/New_York wall-clock time. ET shifts between
 -05:00 (EST) and -04:00 (EDT) across the year, so a hardcoded UTC offset silently moves every

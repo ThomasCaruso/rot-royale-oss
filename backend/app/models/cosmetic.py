@@ -1,4 +1,4 @@
-"""Non-theme cosmetic ownership (PLAN.md §11 / identity v1). Frames and future kinds land here;
+"""Non-theme cosmetic ownership (identity v1). Frames and future kinds land here;
 themes continue to use user_themes (see app/models/theme.py)."""
 
 from __future__ import annotations

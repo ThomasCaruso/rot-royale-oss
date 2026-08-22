@@ -1,4 +1,4 @@
-"""Contest endpoints: current window + enter (PLAN.md §8)."""
+"""Contest endpoints: current window + enter (docs/architecture.md)."""
 
 from __future__ import annotations
 

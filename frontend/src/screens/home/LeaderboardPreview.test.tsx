@@ -42,7 +42,7 @@ describe("LeaderboardPreview", () => {
     const rows = [{ username: "T_Sniffs", score: 920, isMe: true, avatar_preset: "crescent" }];
     const html = renderToStaticMarkup(<LeaderboardPreview rows={rows} fieldCount={1} />);
     // Version-agnostic: `?v=N` is a cache-buster that changes whenever the art is re-exported
-    // (CLAUDE.md §7), so pinning the number makes this test fail on unrelated asset work.
+    // (docs/architecture.md §13), so pinning the number makes this test fail on unrelated asset work.
     expect(html).toMatch(/\/avatars\/portraits\/crescent\.png(\?v=\d+)?/);
     expect(html).toContain("2px solid var(--amber)");
   });

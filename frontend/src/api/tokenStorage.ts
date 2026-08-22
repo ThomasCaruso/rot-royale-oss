@@ -1,7 +1,7 @@
 import { Preferences } from "@capacitor/preferences";
 
 /**
- * Refresh-token persistence via Capacitor Preferences (PLAN.md M1 token handling).
+ * Refresh-token persistence via Capacitor Preferences (docs/architecture.md token handling).
  * On native iOS/Android this is Keychain/Keystore-adjacent device storage and survives app
  * restarts; on web it is backed by localStorage. The access token is NEVER persisted — it lives
  * only in memory (see store/session.ts). We use the Preferences API rather than touching

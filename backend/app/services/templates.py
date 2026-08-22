@@ -1,4 +1,4 @@
-"""Contest templates (PLAN.md §5): a window's round composition, tunable without code changes.
+"""Contest templates: a window's round composition, tunable without code changes.
 
 Ranked is the Daily Royale: one `dr_8_trivia` template of 8 trivia rounds per ET date (the
 frontend frames it as 4 presentation blocks — Opening/Pressure/Crown Climb/Final Crown — with no

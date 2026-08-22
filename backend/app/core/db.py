@@ -1,6 +1,7 @@
 """Async SQLAlchemy engine, session factory, and declarative base.
 
-All schema changes go through Alembic migrations (see CLAUDE.md §2) — never create_all in app code.
+All schema changes go through Alembic migrations (see docs/architecture.md §3) — never
+create_all in app code.
 """
 
 from __future__ import annotations

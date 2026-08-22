@@ -1,4 +1,4 @@
-"""Window scheduling + state transitions (PLAN.md §4, §9).
+"""Window scheduling + state transitions (docs/architecture.md).
 
 All window times are computed in America/New_York via app.core.timezone (DST-correct) and stored
 UTC. `transition_windows` is also invoked lazily on read (GET /contests/current, enter) so the app

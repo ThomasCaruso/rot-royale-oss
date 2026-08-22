@@ -1,0 +1,23 @@
+# Ruff configuration for Python that lives OUTSIDE backend/.
+#
+# `scripts/export_public.py` and `scripts/verify_public_tree.py` are the leak-prevention boundary:
+# they decide what reaches the public repository and then check their own answer. They had no lint
+# coverage at all, because CI runs `ruff check .` with `working-directory: backend`, and ruff
+# resolves configuration by walking UP from each file — from `scripts/` that walk reached the repo
+# root, found nothing, and silently fell back to ruff's defaults (88 columns, a narrower rule set).
+#
+# So the gap was two-sided: CI never looked at these files, and anyone who did look locally got a
+# different answer than the rest of the codebase would give. This file closes the second half, which
+# is what makes closing the first half meaningful — a check that disagrees with the local tool
+# teaches people to ignore it.
+#
+# Deliberately mirrors backend/pyproject.toml rather than inventing a second house style. The two
+# are kept in step by tests/test_public_docs_allowlist.py, so a change to one that is not made to
+# the other fails in review.
+line-length = 100
+target-version = "py312"
+
+[lint]
+# pycodestyle, pyflakes, isort, pyupgrade, bugbear — the same set the backend selects.
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["B008"]

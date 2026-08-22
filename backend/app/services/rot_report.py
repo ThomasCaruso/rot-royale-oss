@@ -1,4 +1,4 @@
-"""Server-side reconstruction of a finished entry's Rot Report (CLAUDE.md §5, §9).
+"""Server-side reconstruction of a finished entry's Rot Report (docs/architecture.md §4, §5).
 
 WHY THIS EXISTS: the Rot Report was originally built only on the client, from a per-round log that
 lives in the Contest screen's memory, and stashed in `localStorage` so Home could re-open it. That

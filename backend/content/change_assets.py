@@ -31,9 +31,10 @@ from pathlib import Path
 ASSETS_SUBDIR = "assets"
 
 # Supported image types. WebP is deliberately ABSENT: ios/App pins IPHONEOS_DEPLOYMENT_TARGET 13.0
-# and WKWebView only gained WebP in iOS 14 (CLAUDE.md §7), so a .webp pair would render as a blank
-# frame — an unfindable change and a guaranteed miss — on those devices. Serving is where that rule
-# has to be enforced, because the manifest is private content that no public test can inspect.
+# and WKWebView only gained WebP in iOS 14 (docs/architecture.md §13), so a .webp pair would
+# render as a blank frame — an unfindable change and a guaranteed miss — on those devices.
+# Serving is where that rule has to be enforced, because the manifest is private content that no
+# public test can inspect.
 MEDIA_TYPES: dict[str, str] = {
     ".jpg": "image/jpeg",
     ".jpeg": "image/jpeg",

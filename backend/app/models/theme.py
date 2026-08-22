@@ -1,4 +1,4 @@
-"""Theme ownership (PLAN.md §6, §11). Theme definitions live in code; ownership lives here."""
+"""Theme ownership (docs/architecture.md). Theme definitions live in code; ownership lives here."""
 
 from __future__ import annotations
 

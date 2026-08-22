@@ -3,7 +3,7 @@
  *
  * The share card (`GET /c/{id}/og.png`) is drawn by Pillow on the backend, in the sender's equipped
  * theme. That needs the theme colours in Python — but `frontend/src/theme/tokens.ts` is the ONE
- * source of truth for them (CLAUDE.md §4: don't encode the same truth twice). So instead of
+ * source of truth for them — the same truth must not be encoded twice. So instead of
  * hand-copying a palette into the backend, this script transpiles `tokens.ts`, reads the real
  * THEMES array, and writes a flat JSON the backend loads at render time.
  *

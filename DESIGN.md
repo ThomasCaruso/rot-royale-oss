@@ -1,7 +1,7 @@
 # Rot Royale — Visual Design Spec
 
-> **Purpose.** This is the look-and-feel brief for the app's UI. It is the visual counterpart to
-> PLAN.md. Every screen must feel like a **live game show / arcade trivia game** — energetic,
+> **Purpose.** This is the look-and-feel brief for the app's UI — the visual counterpart to
+> `docs/architecture.md`. Every screen must feel like a **live game show / arcade trivia game** — energetic,
 > glossy, celebratory — **never** a dull SaaS form. Source of truth for the identity is the
 > Rot Royale promo art: deep purple-black, royal violet, gold, with green=correct and red=live.
 > When in doubt, push it more game, more glow, more motion — not flatter.

@@ -1,4 +1,4 @@
-"""Auth request/response schemas (PLAN.md §8)."""
+"""Auth request/response schemas (docs/architecture.md)."""
 
 from __future__ import annotations
 

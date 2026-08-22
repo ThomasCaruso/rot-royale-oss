@@ -1,4 +1,4 @@
-"""Pure Glicko-2 rating math — the core of Rot Rating (CLAUDE.md §5e).
+"""Pure Glicko-2 rating math — the core of Rot Rating (docs/architecture.md §9).
 
 Glicko-2 (Glickman 2013) rates a player from a batch of games in one *rating
 period* and returns an updated rating, rating deviation (RD) and volatility.

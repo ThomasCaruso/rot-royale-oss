@@ -1,12 +1,12 @@
 """Cognition round runner — the server-side driver for the cognitive round types.
 
-Modules stay stateless plugins in the round-module registry (CLAUDE.md §5); this service owns the
-turn-by-turn state that trivia-style one-shot rounds don't need, persisted in the
+Modules stay stateless plugins in the round-module registry (docs/architecture.md §4); this
+service owns the turn-by-turn state that trivia-style one-shot rounds don't need, persisted in the
 cognition.round_instance / cognition.attempt tables. Server-authoritative throughout: sequences
 derive from the instance seed on demand, the client only ever sees what a player would see on
 screen, and every submission is judged here.
 
-Services never commit — the request boundary commits once (CLAUDE.md §8).
+Services never commit — the request boundary commits once (docs/architecture.md §8).
 """
 
 from __future__ import annotations
@@ -340,7 +340,7 @@ def _asset_url(asset: str) -> str:
     build from disk — so a relative "/assets/change/x.jpg" resolves against the APP BUNDLE, not the
     server. Any pair added after a binary shipped simply 404s there: a blank box, nothing to find,
     and a guaranteed miss. An absolute URL loads on every client, including binaries already in the
-    wild (CLAUDE.md §7c).
+    wild (docs/architecture.md §11).
 
     What changed in Phase 2Q is the ORIGIN, not the contract. The images now live in the private
     content package and are served by this API (`/content/change/<asset>`), instead of sitting in

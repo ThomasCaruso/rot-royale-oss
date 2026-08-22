@@ -1,4 +1,4 @@
-"""Achievement catalog: badges + titles (Identity V2; PLAN.md §11, DESIGN.md §6).
+"""Achievement catalog: badges + titles (Identity V2; DESIGN.md §6).
 
 Badges and titles are NEVER purchasable — they are proof, not merchandise. No coins, no vault,
 no catalog cost. Earned status is computed on read from durable progress (campaign progress +

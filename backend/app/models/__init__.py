@@ -1,4 +1,4 @@
-"""SQLAlchemy ORM models (PLAN.md §6).
+"""SQLAlchemy ORM models (docs/architecture.md).
 
 Every model module must be imported here so its table registers on Base.metadata — Alembic
 autogenerate and create-all rely on this. Add new models to __all__ as they land per milestone.

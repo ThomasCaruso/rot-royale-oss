@@ -9,9 +9,10 @@ It writes ONLY ownership rows:
   themes -> user_themes        (see app/models/theme.py)
   frames -> user_cosmetics     (see app/models/cosmetic.py)
 
-It does NOT touch coins or Gems, so the append-only ledger invariant (CLAUDE.md §8) is untouched —
-nothing is "bought", the balances and the ledger stay exactly as they were. It also leaves
-`equipped_theme` / `equipped_frame` alone: what you are wearing is your choice, not this script's.
+It does NOT touch coins or Gems, so the append-only ledger invariant (docs/architecture.md §8) is
+untouched — nothing is "bought", the balances and the ledger stay exactly as they were. It
+also leaves `equipped_theme` / `equipped_frame` alone: what you are wearing is your choice,
+not this script's.
 
 Idempotent: an account that already owns something is skipped, so re-running adds only what is new.
 

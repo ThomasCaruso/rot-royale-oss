@@ -1,4 +1,4 @@
-"""Entry endpoints: batched submit (PLAN.md §7, §8)."""
+"""Entry endpoints: batched submit (docs/architecture.md)."""
 
 from __future__ import annotations
 

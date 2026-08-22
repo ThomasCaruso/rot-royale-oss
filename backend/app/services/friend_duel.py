@@ -1,4 +1,4 @@
-"""Live friend-duel service (the social layer — PLAN.md §13, now in scope).
+"""Live friend-duel service (the social layer, now in scope).
 
 A friend duel is a LIVE best-of-7 trivia match between two real humans who are friends: challenger
 vs opponent, same shared seeded question set, played in real time over a WebSocket

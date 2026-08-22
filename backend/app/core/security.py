@@ -1,4 +1,4 @@
-"""Password hashing (argon2) and JWT issue/verify (PLAN.md §2).
+"""Password hashing (argon2) and JWT issue/verify (docs/architecture.md).
 
 argon2 is used over bcrypt: no 72-byte input truncation, strong memory-hard defaults, no passlib
 version-detection issues. JWTs are stateless HS256 with a `type` claim separating access/refresh.

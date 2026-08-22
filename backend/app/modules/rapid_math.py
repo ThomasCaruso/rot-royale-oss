@@ -1,4 +1,4 @@
-"""Rapid-math round module (PLAN.md §5). Generated arithmetic MC — no content bank needed.
+"""Rapid-math round module (docs/architecture.md). Generated arithmetic MC — no content bank needed.
 
 client_spec = {prompt, options, category, icon, time_limit_ms} (no answer).
 server_answer = {correctIndex, value}.

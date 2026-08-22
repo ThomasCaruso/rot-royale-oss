@@ -3,7 +3,7 @@
 The cognitive round modules (estimate, change_detection) run on these tables. They deliberately do
 NOT touch the trivia/contest tables: a cognition round is played through its own instance/attempt
 rows, while the modules themselves register in the same round-module registry as trivia
-(CLAUDE.md §5) so the plugin seam stays single.
+(docs/architecture.md §4) so the plugin seam stays single.
 
 The `span` and `crowd` types were removed pre-launch (see app/modules/__init__.py for why); their
 `span_result` and `crowd_response` tables were dropped in the same change.
@@ -57,7 +57,8 @@ class CognitionRoundType(Base):
 
 class CognitionRoundInstance(Base):
     """One played (or in-play) cognitive round. The seed is fixed at creation and the round content
-    is a pure function of it — same reproducibility contract as entries.seed (CLAUDE.md §9)."""
+    is a pure function of it — the same reproducibility contract as entries.seed
+    (docs/architecture.md §5)."""
 
     __tablename__ = "round_instance"
     __table_args__ = (

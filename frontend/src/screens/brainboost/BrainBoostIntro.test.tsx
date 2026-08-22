@@ -33,7 +33,7 @@ describe("BrainBoostIntro — the front door has no signup wall", () => {
       i.getAttribute("src")
     );
     // Version-agnostic on `?v=N`: it is a cache-buster that changes whenever the art is re-exported
-    // (CLAUDE.md §7), so pinning the number breaks this test on unrelated asset work.
+    // (docs/architecture.md §13), so pinning the number breaks this test on unrelated asset work.
     const hasArt = (path: string) =>
       srcs.some((s) => s != null && s.replace(/\?v=\d+$/, "") === path);
     expect(hasArt("/assets/themes/starter/starter-podium.png")).toBe(true);

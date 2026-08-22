@@ -14,11 +14,13 @@ Apache-2.0 grants copyright and patent rights. It explicitly does not grant trad
   - `frontend/ios/App/App/Assets.xcassets/AppIcon.appiconset/` — iOS app icon
   - `frontend/ios/App/App/Assets.xcassets/Splash.imageset/` — iOS splash
   - `frontend/public/icons/` — PWA and web icons
-- The visual identity: the Starter theme's palette and typography as a combined get-up, the
-  Rot Champion styling, and the score-ladder wording.
-
 These files are in the repository because the native builds cannot produce a launchable app without
 them. Their presence is a build requirement, not a licence.
+
+Nothing beyond the name and those marks is claimed here. In particular, the themes' colours, fonts
+and player-facing wording ship under Apache-2.0 with the rest of the code, and this document does
+not carve them back out — a licence that granted you the code and then reserved the strings in it
+would not be a grant you could rely on.
 
 ## What you may do
 
@@ -27,11 +29,14 @@ them. Their presence is a build requirement, not a licence.
   endorsement or affiliation.
 - Keep the icons in a private fork you build for yourself.
 
-## What you may not do
+## What you may not do without permission
 
 - Publish an app called Rot Royale, or a name likely to be confused with it.
 - Ship the logo, icon or splash in anything you distribute.
 - Present a derivative as the official Rot Royale, or imply it is endorsed.
+
+The last one is the one that is actually about harm, and it is the one least likely to be granted.
+The first two are usually a conversation.
 
 If you are distributing a fork, replace the icon assets listed above with your own. They are the
 only files you need to change for the app to build under a different identity.
@@ -44,5 +49,5 @@ and carry no rights worth claiming.
 
 ## Questions
 
-Ask: **thomas@novasolutions-ai.com**. Permission for a specific use is usually easy to grant and
+Ask: **thomas@webhorizondigital.com**. Permission for a specific use is usually easy to grant and
 impossible to assume.

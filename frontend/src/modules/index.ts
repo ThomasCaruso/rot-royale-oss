@@ -1,5 +1,5 @@
 // Activates the client-side round-module registry: importing this registers every module type so
-// the contest screen can look modules up by type (mirrors the server registry; PLAN.md §5).
+// the contest screen can look modules up by type (mirrors the server registry; docs/architecture.md).
 import { ChangeReveal } from "@/modules/changeDetection/ChangeReveal";
 import { ChangeRound } from "@/modules/changeDetection/ChangeRound";
 import { EstimateReveal } from "@/modules/estimate/EstimateReveal";

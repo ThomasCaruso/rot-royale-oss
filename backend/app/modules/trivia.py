@@ -1,4 +1,4 @@
-"""Trivia round module (PLAN.md §5).
+"""Trivia round module (docs/architecture.md).
 
 client_spec = {prompt, options, category, icon, time_limit_ms} — never the answer.
 server_answer = {correctIndex, question_id} — stored server-side only.

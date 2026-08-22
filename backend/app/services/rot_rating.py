@@ -1,4 +1,4 @@
-"""Rot Rating domain logic (CLAUDE.md §5e) — the sharpness rating built on Glicko-2.
+"""Rot Rating domain logic (docs/architecture.md §9) — the sharpness rating built on Glicko-2.
 
 This module holds the PURE domain layer: verb mapping, difficulty-key resolution
 and seeds, the precision-weighted headline derivation, the per-run period update,

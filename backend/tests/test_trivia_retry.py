@@ -1,4 +1,4 @@
-"""Daily Royale trivia second-chance (CLAUDE.md §5f).
+"""Daily Royale trivia second-chance (docs/architecture.md §11).
 
 A WRONG first pick on a ranked Daily Royale trivia round does NOT end the round: the answer stays
 hidden, the picked option is reported as `eliminated`, and the player gets a fixed retry window to

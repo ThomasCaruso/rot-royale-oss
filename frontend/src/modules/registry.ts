@@ -2,7 +2,7 @@ import type { RoundModule } from "@/modules/types";
 
 /**
  * Client-side round-module registry, keyed by `type`. Adding a game mode = registering a module
- * here; the contest engine is never touched (PLAN.md §5). Empty in M0; modules register from M2.
+ * here; the contest engine is never touched (docs/architecture.md). Empty in M0; modules register from M2.
  */
 const registry = new Map<string, RoundModule>();
 

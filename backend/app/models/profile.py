@@ -1,4 +1,4 @@
-"""Player profile (PLAN.md §6). coins_balance is a cache; coin_ledger is the source of truth."""
+"""Player profile. coins_balance is a cache; coin_ledger is the source of truth."""
 
 from __future__ import annotations
 
@@ -42,7 +42,7 @@ class Profile(Base):
     equipped_theme: Mapped[str] = mapped_column(
         String(64), nullable=False, server_default=text("'starter'")
     )
-    # Avatar identity (PLAN.md §11 / identity v1). avatar_preset is one of the free preset ids
+    # Avatar identity (identity v1). avatar_preset is one of the free preset ids
     # (see app/core/constants.AVATAR_PRESETS); illustrated portrait + gradient live in frontend
     # identity.ts. equipped_frame is NULL = no frame; "frame_none" is the sentinel for unequip.
     avatar_preset: Mapped[str] = mapped_column(

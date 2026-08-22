@@ -1,4 +1,4 @@
-"""Friends endpoints (the social layer — PLAN.md §13, now in scope).
+"""Friends endpoints (the social layer, now in scope).
 
 Friend a player by username, accept/decline incoming requests, list the graph, and remove a friend.
 Detail strings are machine-readable CODES the frontend switches on (repo convention).

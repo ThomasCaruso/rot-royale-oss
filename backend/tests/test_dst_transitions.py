@@ -1,4 +1,4 @@
-"""Forced spring-forward / fall-back tests (PLAN.md §4, §9).
+"""Forced spring-forward / fall-back tests (docs/architecture.md).
 
 The whole point: window open/close instants in UTC shift by an hour across a DST change, and the
 timer-driven transitioner must fire at the DST-correct UTC moment. We pin both the computed bounds

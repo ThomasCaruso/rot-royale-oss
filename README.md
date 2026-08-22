@@ -13,8 +13,8 @@ FastAPI + PostgreSQL behind a Vite/React SPA, wrapped for iOS and Android with C
 — contest windows, scoring, settlement, campaign, cognition rounds, duels, the lot — running on a
 synthetic sample corpus authored for this purpose.
 
-**What it does not contain is the production content.** The real question banks, the campaign
-topology, the change-detection imagery and the artwork are not here. That is deliberate:
+**What it does not contain is the production content.** The production question corpus, campaign
+data, change-detection imagery, and most production artwork are not included. That is deliberate:
 
 - Publishing the questions would spoil live answers for people playing today.
 - The artwork is the game's visual identity, and it is not being given away.
@@ -25,6 +25,10 @@ this repository; what is missing is the specific game rather than the machinery.
 
 Artwork ships here as dimension-accurate placeholders — flat panels at the exact sizes of the real
 assets. The app builds and lays out correctly; it just wears different clothes.
+
+Minimal brand assets required for native builds — the app icon, its generated platform variants and
+the splash image — remain present, because the iOS and Android projects cannot produce a launchable
+app without them. **They are not licensed under Apache-2.0**; see [TRADEMARKS.md](TRADEMARKS.md).
 
 ---
 
@@ -93,8 +97,9 @@ months of the year, so it is computed with `zoneinfo` and never with a fixed off
 Balances are caches that must always equal their ledger sum; nothing mutates a balance without
 writing a row.
 
-`CLAUDE.md` is the working reference for all of it — conventions, invariants, and the reasoning
-behind decisions that look arbitrary until you know what broke.
+[`docs/architecture.md`](docs/architecture.md) is the working reference for all of it — how the
+pieces fit, the invariants they rest on, and the reasoning behind decisions that look arbitrary
+until you know what broke.
 
 ---
 

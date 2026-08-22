@@ -1,7 +1,7 @@
 """Round modules. Importing this package activates the server-side registry: each module type
-registers itself here so the contest engine can look it up by type (PLAN.md §5).
+registers itself here so the contest engine can look it up by type (docs/architecture.md).
 
-REMOVED — do not reintroduce without a product reason (CLAUDE.md §5d):
+REMOVED — do not reintroduce without a product reason (docs/architecture.md §4):
   - `crowd` (crowd prediction): it cannot score honestly below a few hundred responses per prompt,
     so at launch scale every round would have been graded against a seeded distribution rather than
     a real crowd. That is the one thing Invariant 6 forbids.

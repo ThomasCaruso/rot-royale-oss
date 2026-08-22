@@ -72,8 +72,21 @@ def _is_number(v: Any) -> bool:
     return isinstance(v, int | float) and not isinstance(v, bool)
 
 
+def _positive_finite_value(v: Any) -> float | None:
+    """The value as a float when it is a positive finite number, else None.
+
+    Returning the VALUE rather than a bool is what lets a caller compare two of these directly.
+    A bool tells the reader the value is usable but tells a type checker nothing, so comparing two
+    of them meant re-converting an `Any` that was only known-good via a separate flag.
+    """
+    if not _is_number(v):
+        return None
+    f = float(v)
+    return f if math.isfinite(f) and f > 0 else None
+
+
 def _positive_finite(v: Any) -> bool:
-    return _is_number(v) and math.isfinite(float(v)) and float(v) > 0
+    return _positive_finite_value(v) is not None
 
 
 def _item_errors(item: Any) -> list[str]:
@@ -93,13 +106,13 @@ def _item_errors(item: Any) -> list[str]:
     if item.get("difficulty") not in _DIFFICULTIES:
         errors.append(f"difficulty must be one of {sorted(_DIFFICULTIES)}")
 
-    ap, cp = item.get("acceptable_pct"), item.get("close_pct")
-    ap_ok, cp_ok = _positive_finite(ap), _positive_finite(cp)
-    if not ap_ok:
+    ap = _positive_finite_value(item.get("acceptable_pct"))
+    cp = _positive_finite_value(item.get("close_pct"))
+    if ap is None:
         errors.append("acceptable_pct must be a positive number")
-    if not cp_ok:
+    if cp is None:
         errors.append("close_pct must be a positive number")
-    if ap_ok and cp_ok and not float(cp) > float(ap):
+    if ap is not None and cp is not None and not cp > ap:
         errors.append("close_pct must be greater than acceptable_pct")
 
     if not isinstance(item.get("components"), list):

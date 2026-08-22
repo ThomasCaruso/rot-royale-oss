@@ -30,6 +30,9 @@ MANIFEST = REPO / "assets-manifest.json"
 PRIVATE_DISPOSITIONS = {"private", "public-replacement-required", "deleted"}
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico"}
 
+# assets-manifest.json stores truncated digests; every comparison must truncate the same way.
+DIGEST_PREFIX_LEN = 16
+
 SECRET_PATTERNS = {
     "private key": re.compile(rb"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY"),
     "aws key": re.compile(rb"AKIA[0-9A-Z]{16}"),
@@ -50,19 +53,60 @@ FORBIDDEN_PREFIXES = (
     "backend/content/campaign/levels.json",
     "backend/content/trivia.json",
     "frontend/public/assets/change/",
-    "docs/PRODUCTION-CUTOVER.md",
     "oss/",
     "tools/",
+    # Agent-facing working documents, not product documentation.
+    "CLAUDE.md",
+    "PLAN.md",
+    ".claude/",
+    # Internal deployment topology for a torn-down private environment.
+    "render.staging.yaml",
     ".github/workflows/sync-public.yml",
 )
 
+# docs/ is deny-by-default here too. Stated independently of the exporter's DOCS_ALLOW rather than
+# imported from it: a checker that shares the exporter's list agrees with the exporter by
+# construction, and would not catch the exporter allowlisting something it should not have.
+PUBLISHED_DOCS = ("docs/architecture.md",)
 
-def load_hashes() -> tuple[set[str], set[str]]:
-    data = json.loads(MANIFEST.read_text(encoding="utf-8"))
-    private = {a["sha256"] for a in data["assets"] if a["disposition"] in PRIVATE_DISPOSITIONS}
-    keep = {a["sha256"] for a in data["assets"] if a["disposition"] in ("public", "public-brand")}
-    # A blob that is both (icon.png is byte-identical to a deleted duplicate) is legitimate.
-    return private - keep, keep
+# Written by the exporter in place of assets-manifest.json — digests only, no paths.
+PUBLIC_MANIFEST_NAME = "public-verification-manifest.json"
+
+
+def load_hashes(tree: pathlib.Path) -> tuple[set[str], str]:
+    """The digests that must not appear in `tree`, and where that list came from.
+
+    Two sources, and the order matters. The AUTHORITATIVE one is the full asset manifest, which
+    exists only in the private repository — and that is what the sync workflow uses, because it runs
+    this script from the private checkout against the public clone. Deriving the ban list from
+    outside the tree being checked is the whole point: a manifest read from inside that tree could
+    be emptied by the same bad export that put the artwork there, and would then approve it.
+
+    The SANITIZED manifest is the fallback, for someone who cloned the public repository and has no
+    access to the real one. It carries digests and nothing else, so it cannot map the private
+    artwork, and it is a derived artifact rewritten on every export so it cannot drift.
+    """
+    if MANIFEST.is_file():
+        data = json.loads(MANIFEST.read_text(encoding="utf-8"))
+        private = {a["sha256"] for a in data["assets"] if a["disposition"] in PRIVATE_DISPOSITIONS}
+        keep = {
+            a["sha256"] for a in data["assets"] if a["disposition"] in ("public", "public-brand")
+        }
+        # A blob that is both (icon.png is byte-identical to a deleted duplicate) is legitimate.
+        return private - keep, "assets-manifest.json (authoritative)"
+
+    pub = tree / PUBLIC_MANIFEST_NAME
+    if not pub.is_file():
+        raise SystemExit(
+            f"no manifest to verify against: neither {MANIFEST} nor {pub} exists. Refusing to "
+            f"report a tree as clean when nothing was actually checked."
+        )
+    banned = set(json.loads(pub.read_text(encoding="utf-8")).get("withheld_sha256") or [])
+    if not banned:
+        # An empty ban list passes every tree, including a leaking one. That is indistinguishable
+        # from success in the output, so it has to be an error here.
+        raise SystemExit(f"{pub} lists no withheld digests — it cannot verify anything.")
+    return banned, f"{PUBLIC_MANIFEST_NAME} (sanitized)"
 
 
 def check_tree(root: pathlib.Path, banned: set[str]) -> list[str]:
@@ -73,8 +117,10 @@ def check_tree(root: pathlib.Path, banned: set[str]) -> list[str]:
         rel = p.relative_to(root).as_posix()
         if rel.startswith(FORBIDDEN_PREFIXES):
             problems.append(f"FORBIDDEN PATH: {rel}")
+        if rel.startswith("docs/") and rel not in PUBLISHED_DOCS:
+            problems.append(f"UNPUBLISHED DOC: {rel}")
         if p.suffix.lower() in IMAGE_SUFFIXES:
-            if hashlib.sha256(p.read_bytes()).hexdigest()[:16] in banned:
+            if hashlib.sha256(p.read_bytes()).hexdigest()[:DIGEST_PREFIX_LEN] in banned:
                 problems.append(f"PRIVATE ART: {rel}")
             continue
         if p.suffix.lower() in {".ttf", ".otf", ".woff2"}:
@@ -109,7 +155,7 @@ def check_history(repo: pathlib.Path, banned: set[str]) -> list[str]:
         blob = subprocess.run(
             ["git", "cat-file", "blob", sha], cwd=repo, capture_output=True, check=True
         ).stdout
-        if hashlib.sha256(blob).hexdigest()[:16] in banned:
+        if hashlib.sha256(blob).hexdigest()[:DIGEST_PREFIX_LEN] in banned:
             problems.append(f"PRIVATE ART IN HISTORY: {name} ({sha[:10]})")
     return problems
 
@@ -123,7 +169,7 @@ def main() -> int:
     args = ap.parse_args()
 
     root = args.tree.resolve()
-    banned, _ = load_hashes()
+    banned, source = load_hashes(root)
 
     problems = check_tree(root, banned)
     if args.git:
@@ -136,7 +182,10 @@ def main() -> int:
         return 1
 
     scanned = sum(1 for p in root.rglob("*") if p.is_file() and ".git" not in p.parts)
-    print(f"public tree OK — {scanned} files, no private art, no secrets, no forbidden paths")
+    print(
+        f"public tree OK — {scanned} files, no private art, no secrets, no forbidden paths\n"
+        f"  checked {len(banned)} withheld digests from {source}"
+    )
     return 0
 
 

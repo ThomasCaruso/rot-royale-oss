@@ -121,11 +121,20 @@ async def ingest_bank(session: AsyncSession, rows: list[Any]) -> IngestReport:
 
     # Existing trivia questions keyed by (question text, category) so we can refresh in place.
     # `seen` grows with each row so a repeat within this run is caught without flushing per row.
-    existing_by_key: dict[tuple[str, str], Question] = {
-        (q.payload.get("prompt"), q.category): q
-        for q in (await session.execute(select(Question).where(Question.module_type == "trivia")))
+    #
+    # A row with no prompt is skipped rather than keyed by None: the key type says (str, str), and
+    # `payload.get("prompt")` can return None. Such a row is unreachable by this upsert either way —
+    # skipping means a re-ingest INSERTS a fresh row instead of matching the broken one, which is
+    # the recoverable direction.
+    existing_rows = (
+        (await session.execute(select(Question).where(Question.module_type == "trivia")))
         .scalars()
         .all()
+    )
+    existing_by_key: dict[tuple[str, str], Question] = {
+        (str(q.payload["prompt"]), q.category): q
+        for q in existing_rows
+        if q.payload.get("prompt") is not None
     }
     seen: set[tuple[str, str]] = set()
 

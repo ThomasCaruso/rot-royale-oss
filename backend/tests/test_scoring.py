@@ -1,4 +1,4 @@
-"""Canonical scoring formula + per-entry streak scoring (PLAN.md §5)."""
+"""Canonical scoring formula + per-entry streak scoring (docs/architecture.md)."""
 
 from __future__ import annotations
 

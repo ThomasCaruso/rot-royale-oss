@@ -1,4 +1,4 @@
-// Typed API client (PLAN.md §8). Base URL is env-driven (VITE_API_BASE).
+// Typed API client (docs/architecture.md). Base URL is env-driven (VITE_API_BASE).
 // Access token comes from the in-memory session store; the refresh token is read from secure
 // storage only inside the single-flight refresh path.
 

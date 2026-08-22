@@ -13,7 +13,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 # identical across every deploy — so they are ALWAYS allowed. A native build then works without a
 # per-deploy CORS_ORIGINS edit and can't silently break from a forgotten env var. Specific origins
 # only, never a wildcard. iOS (Capacitor 6) serves from capacitor://localhost; Android's default is
-# http://localhost (add when the Android wrapper ships — PLAN.md M7).
+# http://localhost (add when the Android wrapper ships).
 _config_log = logging.getLogger(__name__)
 
 NATIVE_APP_ORIGINS: tuple[str, ...] = ("capacitor://localhost",)

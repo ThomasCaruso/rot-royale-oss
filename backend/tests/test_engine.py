@@ -1,4 +1,4 @@
-"""Seeded round-set generation (PLAN.md §4, §5, §7)."""
+"""Seeded round-set generation (docs/architecture.md)."""
 
 from __future__ import annotations
 

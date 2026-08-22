@@ -1,4 +1,4 @@
-"""Live friend-duel endpoints (the social layer — PLAN.md §13, now in scope).
+"""Live friend-duel endpoints (the social layer, now in scope).
 
 REST covers the challenge lifecycle (create / list / respond / cancel / state); the WebSocket at
 `/ws/friend-duel/{duel_id}` is the live transport for play. The WS handler is THIN — every bit of

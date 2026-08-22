@@ -1,4 +1,4 @@
-"""Auth router: register / login / refresh (PLAN.md §8)."""
+"""Auth router: register / login / refresh (docs/architecture.md)."""
 
 from __future__ import annotations
 

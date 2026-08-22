@@ -1,4 +1,4 @@
-"""Daily Royale trivia second-chance: round_answers.retry (CLAUDE.md §5f).
+"""Daily Royale trivia second-chance: round_answers.retry (docs/architecture.md §11).
 
 Pending retry state for a trivia round whose first pick was wrong — {choice, at}. NULL for a normal
 one-shot round. Set when the retry is offered, cleared when the second pick resolves the round.

@@ -1,4 +1,4 @@
-"""Contest scheduling + play tables (PLAN.md §4, §6).
+"""Contest scheduling + play tables (docs/architecture.md).
 
 Window lifecycle: SCHEDULED → OPEN → CLOSED → SETTLED (settlement is M4).
 round_set is a denormalized audit copy of the client_specs; round_answers holds the server-side

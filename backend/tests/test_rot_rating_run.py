@@ -1,4 +1,4 @@
-"""Rot Rating updates at RUN COMPLETION (CLAUDE.md §5e) — end-to-end through the API.
+"""Rot Rating updates at RUN COMPLETION (docs/architecture.md §9) — end-to-end through the API.
 
 A trivia-only Daily Royale is eight `know` games, so it exercises the whole path
 without cognition content: enter -> answer 8 rounds -> the finish updates the three

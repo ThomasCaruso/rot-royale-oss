@@ -1,4 +1,4 @@
-"""Contest engine: build a seeded round set (PLAN.md §4, §5, §7).
+"""Contest engine: build a seeded round set (docs/architecture.md).
 
 build_round_set is a PURE function of (seed, template, ctx): same inputs → same output. This is what
 makes an entry reproducible from its stored seed; entries.round_set JSONB is just an audit copy.

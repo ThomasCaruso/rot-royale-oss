@@ -1,4 +1,4 @@
-"""Settlement (PLAN.md §7): ranking, coins, rating, streak, standings — exactly-once."""
+"""Settlement (docs/architecture.md): ranking, coins, rating, streak, standings — exactly-once."""
 
 from __future__ import annotations
 

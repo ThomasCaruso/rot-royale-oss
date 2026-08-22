@@ -1,4 +1,4 @@
-"""Tunable game/economy constants kept in one place (PLAN.md §6, §7)."""
+"""Tunable game/economy constants kept in one place (docs/architecture.md)."""
 
 from __future__ import annotations
 
@@ -55,7 +55,7 @@ STARTING_RATING: int = 1000
 # test.
 TRIVIA_RETRY_MS: int = 8000
 
-# Free default theme every account owns and equips on creation (PLAN.md §11, DESIGN.md §6).
+# Free default theme every account owns and equips on creation (DESIGN.md §6).
 # "Starter" is the app's main visual identity (premium ivory / royal purple / gold); the Blank
 # pair stays free as the minimalist alternative. The original arcade skin lives on as
 # "Rot Champion" (id `royale`), reserved for the first 200 accounts via the founder:200
@@ -76,7 +76,7 @@ AVATAR_PRESETS: tuple[str, ...] = (
 )
 DEFAULT_AVATAR_PRESET: str = "knight"
 
-# --- Settlement & rating (PLAN.md §7). Ranked pays NO coins — it grants rating/division/streak
+# --- Settlement & rating. Ranked pays NO coins — it grants rating/division/streak
 # (status); coins are earned in campaign/practice and spent in the Vault. The constants stay as the
 # documented tuning seam; settlement skips the ledger write entirely when an amount is 0, so the
 # append-only ledger never carries zero-value rows. ---
@@ -278,7 +278,7 @@ MASTERY_MIN_ATTEMPTS: int = 5
 # theta boundaries between levels 1..5
 MASTERY_LEVEL_CUTS: tuple[float, ...] = (-0.8, -0.2, 0.5, 1.3)
 
-# --- Rot Rating (Glicko-2 sharpness rating, CLAUDE.md §5e) --------------------------------------
+# --- Rot Rating (Glicko-2 sharpness rating, docs/architecture.md §9) ---------------------------
 # The headline profile "sharpness" number, PARALLEL to the placement Elo (STARTING_RATING above),
 # never merged with it. Each Daily Royale round is one Glicko-2 game (pass/fail, round-as-opponent);
 # one run is one rating period. Three sub-ratings (notice/estimate/know) each update from their

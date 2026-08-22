@@ -1,4 +1,4 @@
-"""Round-module interface (PLAN.md §5). The contest engine depends only on this Protocol.
+"""Round-module interface (docs/architecture.md). The contest engine depends only on this Protocol.
 
 The anti-cheat split is enforced here: generate() returns (client_spec, server_answer). client_spec
 goes to the client and MUST NOT contain answers; server_answer is stored server-side only and used

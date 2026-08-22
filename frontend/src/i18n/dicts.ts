@@ -6,7 +6,7 @@ import type { Locale } from "@/i18n";
 
 /**
  * Every dictionary in one map — for tests that must sweep ALL locales at once (the i18n structural
- * check and the copy-honesty guard, CLAUDE.md §7).
+ * check and the copy-honesty guard, docs/architecture.md §13).
  *
  * **Do not import this from app code.** The running app loads exactly one non-English dict on
  * demand via `loadDict()` (i18n/index.ts); a static import here would pull all four back into the

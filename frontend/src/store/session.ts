@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-/** Profile shape returned by GET /me (PLAN.md §8). */
+/** Profile shape returned by GET /me (docs/architecture.md). */
 export interface Me {
   user_id: string;
   email: string;

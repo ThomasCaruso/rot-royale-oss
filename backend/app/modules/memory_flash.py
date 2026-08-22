@@ -1,4 +1,4 @@
-"""Memory-flash round module (PLAN.md §5). Simon-style sequence — generated, no content bank.
+"""Memory-flash round module. Simon-style sequence — generated, no content bank.
 
 The sequence is the stimulus the player watches, so it legitimately appears in client_spec; it is
 also stored server-side and the submitted taps are validated against it (the anti-cheat property is

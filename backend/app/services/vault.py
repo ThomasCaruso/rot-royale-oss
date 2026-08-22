@@ -1,4 +1,4 @@
-"""Vault service (PLAN.md §6, §11): buy/equip/list cosmetics. Coins are cosmetic-only.
+"""Vault service (docs/architecture.md): buy/equip/list cosmetics. Coins are cosmetic-only.
 
 A purchase is ONE transaction (the request boundary commits, this service never does):
 debit through the append-only ledger (reason='<kind>_purchase', ref_type=<kind>, ref_key=<id>)

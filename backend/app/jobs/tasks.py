@@ -1,4 +1,4 @@
-"""Scheduler task bodies (PLAN.md §9). Pure-ish: take a session + optional now, no scheduling here.
+"""Scheduler task bodies. Pure-ish: take a session + optional now, no scheduling here.
 
 These wrap the ET/DST-correct services so the daemon and tests share identical logic.
 """

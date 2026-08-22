@@ -1,4 +1,4 @@
-"""Padding the LIVE Daily Royale board so a thin day doesn't look broken (CLAUDE.md §7b).
+"""Padding the LIVE Daily Royale board so a thin day doesn't look broken (docs/architecture.md §7).
 
 A two-person day renders as a podium with an empty third step and no rows beneath it, which reads as
 a broken screen rather than a quiet one. This module tops the live board up to `MIN_LIVE_FIELD_SIZE`

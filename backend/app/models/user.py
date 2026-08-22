@@ -1,4 +1,4 @@
-"""User identity (PLAN.md §6)."""
+"""User identity (docs/architecture.md)."""
 
 from __future__ import annotations
 

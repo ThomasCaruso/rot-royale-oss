@@ -10,7 +10,7 @@ generations (rather than one image edited in place) differs EVERYWHERE, which sh
 as a diff spanning the whole frame.
 
 Rejections are reported per pair and exit non-zero, so a bad delivery is loud rather than silently
-ingested — same contract as the trivia and estimate ingests (CLAUDE.md §5a, §5d).
+ingested — same contract as the trivia and estimate ingests (docs/architecture.md §12, §4).
 """
 
 from __future__ import annotations

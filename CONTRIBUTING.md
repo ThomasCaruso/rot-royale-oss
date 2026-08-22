@@ -11,7 +11,8 @@ repository, so some things cannot be reviewed here at all:
   Feel free to open an issue suggesting something, but there is no file here to edit.
 - **Anything that changes what a shipped mobile client receives.** Installed App Store binaries
   cannot be updated on demand, so the API can widen what it accepts but must never narrow or reshape
-  what it returns. `CLAUDE.md` §7c explains why, with the outage that taught it.
+  what it returns. [`docs/architecture.md`](docs/architecture.md) §11 explains why, with the
+  outage that taught it.
 
 Everything else is fair game: bugs, performance, accessibility, tests, documentation, tooling.
 
@@ -29,10 +30,12 @@ These are not style preferences. Breaking one is a correctness bug:
 2. **Currency moves only through the ledgers.** Balances are caches of an append-only ledger sum.
 3. **Window times are computed in ET via `zoneinfo`.** Never a hardcoded UTC offset.
 4. **Schema changes only via Alembic.** Never `create_all`, never a hand-edited migration.
-5. **The Daily Royale field is real entries only.** No synthetic entrants, ever.
+5. **Placement, rating, gems and share links describe real entries only.** The live in-progress
+   board of a thin day is the single padded surface, and it is provisional by construction —
+   see [`docs/architecture.md`](docs/architecture.md) §7 for the exact boundary.
 6. **No money or gambling framing in player-facing copy**, and never an invented count.
 
-`CLAUDE.md` documents each of these with the reasoning.
+[`docs/architecture.md`](docs/architecture.md) documents each of these with the reasoning.
 
 ## Verification
 

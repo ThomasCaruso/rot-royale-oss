@@ -1,6 +1,6 @@
 # Local Postgres for Rot Royale.
-# NOTE: this dev machine runs a native PostgreSQL 16 service instead of Docker (see CLAUDE.md §4).
-# This file is committed per PLAN.md §3 for environments that have Docker. Same creds either way,
+# A native PostgreSQL 16 service works just as well — this file is here for environments that
+# prefer Docker. Both paths use the same credentials,
 # so a single DATABASE_URL works against both: postgresql+asyncpg://rot_royale:rot_royale@localhost:5432/rot_royale
 services:
   postgres:

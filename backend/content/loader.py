@@ -1,4 +1,4 @@
-"""Seed content banks into the questions table + read them back for generation (PLAN.md §6).
+"""Seed content banks into the questions table + read them back for generation.
 
 `load_trivia` is idempotent (keyed on prompt text), so re-running it is safe. `fetch_bank` returns
 the bank ordered by id — a STABLE order is required for seeded generation to be reproducible.
@@ -12,10 +12,12 @@ from pathlib import Path
 from typing import Any
 
 from app.models import Question, QuestionTranslation
-from app.models.question import QUESTION_DIFFICULTIES, SERVABLE_STATUSES
+from app.models.question import SERVABLE_STATUSES
 from app.models.question_translation import SERVABLE_TRANSLATION_STATUSES
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from content.difficulties import QUESTION_DIFFICULTIES
 
 
 def _content_root() -> Path:
@@ -158,7 +160,16 @@ async def fetch_bank(
         tr = translations.get(q.id)
         # A translation whose option count drifted from the source can never be served: the shuffle
         # would remap correctIndex onto a different-length list. Fall back to English instead.
-        usable = tr is not None and len(tr.options or []) == len(q.payload.get("options", []))
+        #
+        # Bound to the ROW rather than to a bool: the three uses below are then provably non-None.
+        # A separate `usable` flag reads the same to a human and not at all to a type checker, and
+        # the property being relied on — tr is not None whenever usable is True — is exactly the
+        # kind a later edit can break silently.
+        usable_tr = (
+            tr
+            if tr is not None and len(tr.options or []) == len(q.payload.get("options", []))
+            else None
+        )
         bank.append(
             {
                 "id": str(q.id),
@@ -168,9 +179,13 @@ async def fetch_bank(
                 "explanation": q.explanation,
                 "payload": q.payload,
                 "display": {
-                    "prompt": tr.prompt if usable else q.payload["prompt"],
-                    "options": list(tr.options) if usable else list(q.payload["options"]),
-                    "explanation": (tr.explanation or q.explanation) if usable else q.explanation,
+                    "prompt": usable_tr.prompt if usable_tr else q.payload["prompt"],
+                    "options": (
+                        list(usable_tr.options) if usable_tr else list(q.payload["options"])
+                    ),
+                    "explanation": (
+                        (usable_tr.explanation or q.explanation) if usable_tr else q.explanation
+                    ),
                 },
             }
         )

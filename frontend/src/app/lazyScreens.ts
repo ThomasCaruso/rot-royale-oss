@@ -2,7 +2,7 @@ import { lazy } from "react";
 import { HOME_OVERLAY_LOADERS } from "@/screens/home/lazyOverlays";
 
 /**
- * Code-split screen entry points (CLAUDE.md §3 — `src/app` owns shell/routing).
+ * Code-split screen entry points (docs/architecture.md §3 — `src/app` owns shell/routing).
  *
  * Every screen below is reached from a flag in `App.tsx`, never on the cold-start path: the shell
  * boots into Home (or the first-run intro), and everything else is a tap away. Importing them

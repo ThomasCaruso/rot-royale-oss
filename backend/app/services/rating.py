@@ -1,4 +1,4 @@
-"""Rating → division mapping (PLAN.md §7).
+"""Rating → division mapping (docs/architecture.md).
 
 Divisions are derived from rating and stored on the profile (updated when rating changes, M4).
 Thresholds are tunable in one place. A new player at rating 1000 is Bronze.

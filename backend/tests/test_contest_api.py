@@ -1,4 +1,4 @@
-"""Contest play API: enter / submit (PLAN.md §7, §8). Covers the M2 anti-cheat requirements."""
+"""Contest play API: enter / submit. Covers the M2 anti-cheat requirements."""
 
 from __future__ import annotations
 

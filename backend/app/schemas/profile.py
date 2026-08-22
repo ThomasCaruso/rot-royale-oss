@@ -1,4 +1,4 @@
-"""Profile response schema (PLAN.md §8 GET /me)."""
+"""Profile response schema (GET /me)."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ class RotSubExposure(BaseModel):
 
 
 class RotRatingResponse(BaseModel):
-    """The Rot Rating exposure (CLAUDE.md §5e) — the headline sharpness number + its three
+    """The Rot Rating exposure (docs/architecture.md §9) — the headline sharpness number + its three
     derived-from parts. Deliberately NOT labeled or described as IQ anywhere."""
 
     rating: int

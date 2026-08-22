@@ -12,6 +12,7 @@ import hashlib
 import json
 import re
 from pathlib import Path
+from typing import Any
 
 from app.models.question import Question
 from sqlalchemy import select
@@ -54,14 +55,14 @@ def fingerprint(
     return hashlib.sha1(payload.encode()).hexdigest()
 
 
-def _fp_from_ingest_row(row: dict) -> str:
+def _fp_from_ingest_row(row: dict[str, Any]) -> str:
     """Fingerprint from an ingest-format row (question / options / correct_index)."""
     options: list[str] = row["options"]
     correct_text = options[row["correct_index"]]
     return fingerprint(row["category"], row["question"], options, correct_text)
 
 
-def _fp_from_loader_row(row: dict) -> str:
+def _fp_from_loader_row(row: dict[str, Any]) -> str:
     """Fingerprint from a trivia.json loader-format row (prompt / options / correctIndex)."""
     options: list[str] = row["options"]
     correct_text = options[row["correctIndex"]]
@@ -134,7 +135,7 @@ def db_fingerprint(q: Question) -> str:
 # ---------------------------------------------------------------------------
 
 
-async def drift_report(session: AsyncSession, content_dir: Path) -> dict:
+async def drift_report(session: AsyncSession, content_dir: Path) -> dict[str, Any]:
     """Compare DB questions to tracked repo files.
 
     Returns::
@@ -153,7 +154,7 @@ async def drift_report(session: AsyncSession, content_dir: Path) -> dict:
     questions = await db_questions(session)
 
     db_fps: set[str] = set()
-    missing_from_repo: list[dict] = []
+    missing_from_repo: list[dict[str, Any]] = []
     for q in questions:
         fp = db_fingerprint(q)
         db_fps.add(fp)
@@ -192,7 +193,7 @@ def _category_slug(category: str) -> str:
     return slug.strip("_")
 
 
-async def recover_db_only(session: AsyncSession, content_dir: Path) -> dict:
+async def recover_db_only(session: AsyncSession, content_dir: Path) -> dict[str, Any]:
     """Write DB-only questions (that have explanations) into ``bank/recovered_<slug>.json``.
 
     Questions already covered by a tracked repo file are skipped.  Questions with a NULL/empty
@@ -213,7 +214,7 @@ async def recover_db_only(session: AsyncSession, content_dir: Path) -> dict:
     tracked = tracked_fingerprints(content_dir)
     questions = await db_questions(session)
 
-    by_category: dict[str, list[dict]] = {}
+    by_category: dict[str, list[dict[str, Any]]] = {}
     skipped_no_explanation = 0
 
     for q in questions:

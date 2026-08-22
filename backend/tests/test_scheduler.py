@@ -1,4 +1,4 @@
-"""Window scheduler + state transitioner (PLAN.md §4, §9). ET/DST correctness is critical."""
+"""Window scheduler + state transitioner (docs/architecture.md). ET/DST correctness is critical."""
 
 from __future__ import annotations
 

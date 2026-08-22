@@ -1,4 +1,4 @@
-"""Rot Rating tables (CLAUDE.md §5e) — the Glicko-2 "sharpness" rating.
+"""Rot Rating tables (docs/architecture.md §9) — the Glicko-2 "sharpness" rating.
 
 PARALLEL to the placement Elo on `profiles.rating` (never merged). Per user: three
 per-verb sub-ratings (notice/estimate/know) plus a DERIVED headline snapshot; and a

@@ -36,7 +36,7 @@ Usage
 
 Files under `public/` are NOT content-hashed by Vite, so replacing one leaves every browser that
 already fetched it serving the old bytes forever. After a real run, bump the `?v=` on each changed
-public/ asset (CLAUDE.md section 7). The script prints exactly which ones need it.
+public/ asset (docs/architecture.md section 13). The script prints exactly which ones need it.
 """
 
 from __future__ import annotations
@@ -78,7 +78,7 @@ SKIP_PREFIXES = ("public/icons/", "public/favicon.png")
 #
 # The four Blank-theme line-art marks each carry an image editor's transparency checkerboard
 # FLATTENED INTO OPAQUE PIXELS --- alternating 246-252 grey squares across the whole canvas, with
-# alpha 255 everywhere (this is the defect CLAUDE.md section 7 warns about, and which already shipped
+# alpha 255 everywhere (this is the defect docs/architecture.md section 13 warns about, and which already shipped
 # once on starter-logo-r-mark). Two things follow. It is why crescent.png will not compress: the
 # periodic near-white noise defeats a palette. And quantising the other three MERGES the squares, so
 # the optimiser would quietly repaint the artwork --- a low-contrast periodic pattern costs almost
@@ -307,7 +307,7 @@ def main() -> int:
     pct = (100 * saved / before_total) if before_total else 0
     print(f"saved {saved:,} bytes ({pct:.1f}%){'  [DRY RUN - nothing written]' if args.dry_run else ''}")
     if changed_public:
-        print(f"\n{len(changed_public)} public/ files changed -> bump their ?v= (CLAUDE.md section 7)")
+        print(f"\n{len(changed_public)} public/ files changed -> bump their ?v= (docs/architecture.md section 13)")
     return 0
 
 

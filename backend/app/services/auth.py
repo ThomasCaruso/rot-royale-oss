@@ -1,4 +1,4 @@
-"""Authentication service (PLAN.md §8): verify credentials and issue tokens."""
+"""Authentication service (docs/architecture.md): verify credentials and issue tokens."""
 
 from __future__ import annotations
 

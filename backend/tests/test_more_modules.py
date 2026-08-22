@@ -1,4 +1,4 @@
-"""rapid_math + memory_flash round modules (PLAN.md §5)."""
+"""rapid_math + memory_flash round modules (docs/architecture.md)."""
 
 from __future__ import annotations
 

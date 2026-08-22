@@ -1,6 +1,6 @@
 """Round-module registry (server side). Maps module type -> module instance.
 
-Adding a game mode = registering a module here; the contest engine is never touched (PLAN.md §5).
+Adding a game mode = registering a module here; the contest engine is never touched.
 Empty in M0; modules register starting in M2.
 """
 

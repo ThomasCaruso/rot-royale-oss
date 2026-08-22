@@ -5,7 +5,7 @@
 Please report privately, not in a public issue.
 
 Use GitHub's **[Report a vulnerability](../../security/advisories/new)** form, or email
-**thomas@novasolutions-ai.com** with `SECURITY` in the subject.
+**thomas@webhorizondigital.com** with `SECURITY` in the subject.
 
 Include what you did, what happened, and what you expected. A proof of concept helps but is not
 required to report something.
@@ -47,7 +47,8 @@ The classes of bug that matter most here, because the game's integrity depends o
 ## A note on the seeded Daily Royale
 
 Every player in a window receives the same questions in the same order. This is intentional (see
-`CLAUDE.md` §9): it makes scores comparable and shares meaningful. It also means the day's questions
+[`docs/architecture.md`](docs/architecture.md) §5): it makes scores comparable and shares
+meaningful. It also means the day's questions
 are learnable within the 24-hour window by someone who plays early and tells someone else.
 
 That is an accepted trade-off in a game with no money attached, not an oversight. Answers still

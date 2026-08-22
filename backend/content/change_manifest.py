@@ -60,7 +60,11 @@ class ChangeIngestReport:
 
 
 def read_manifest(path: str | Path) -> dict[str, Any]:
-    return json.loads(Path(path).read_text(encoding="utf-8"))
+    # json.loads returns Any; the annotation records that a manifest is expected to be an
+    # object. The SHAPE is not assumed here — validate_manifest checks it, and reports a
+    # non-object as a manifest-level error rather than crashing on attribute access.
+    data: dict[str, Any] = json.loads(Path(path).read_text(encoding="utf-8"))
+    return data
 
 
 def _item_errors(item: dict[str, Any], content_root: Path | None) -> list[str]:

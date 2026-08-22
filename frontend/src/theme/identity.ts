@@ -68,7 +68,7 @@ export const AVATAR_PRESETS: AvatarPreset[] = [
   // left a band of bare disc that no other avatar had, and she read smaller than everyone else. The
   // art was re-framed: scaled to the cohort's median content height and sat flush on the bottom
   // edge. The bump is what makes anyone who already cached her actually see it — /avatars is served
-  // from public/, which Vite copies WITHOUT content-hashing (CLAUDE.md §7).
+  // from public/, which Vite copies WITHOUT content-hashing (docs/architecture.md §13).
   { id: "crescent", emoji: "🌙", bg: disc("var(--brand-2)"), img: "/avatars/crescent.png?v=2", portrait: "/avatars/portraits/crescent.png?v=3" },
   { id: "rook", emoji: "♜", bg: disc("var(--amber)"), img: "/avatars/rook.png?v=2", portrait: "/avatars/portraits/rook.png?v=2" },
   { id: "bishop", emoji: "♝", bg: disc("color-mix(in srgb, var(--brand) 50%, var(--pink))"), img: "/avatars/bishop.png?v=2", portrait: "/avatars/portraits/bishop.png?v=2" },

@@ -35,7 +35,7 @@ describe("avatar presets", () => {
       // The path is pinned to the convention, but an OPTIONAL `?v=N` is allowed: /avatars is served
       // from public/, which Vite does not content-hash, so re-exporting art under the same URL has
       // to carry a cache-buster or every browser that already fetched it keeps the old bytes
-      // (CLAUDE.md §7). Forbidding the suffix here would forbid ever re-cutting a portrait.
+      // (docs/architecture.md §13). Forbidding the suffix here would forbid ever re-cutting a portrait.
       expect(p.portrait, `${p.id} portrait`).toMatch(
         new RegExp(`^/avatars/portraits/${p.id}\\.png(\\?v=\\d+)?$`),
       );

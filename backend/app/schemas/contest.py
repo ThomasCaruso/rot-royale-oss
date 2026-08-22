@@ -1,4 +1,4 @@
-"""Contest play schemas (PLAN.md §8)."""
+"""Contest play schemas (docs/architecture.md)."""
 
 from __future__ import annotations
 

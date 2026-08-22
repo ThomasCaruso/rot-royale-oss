@@ -1,10 +1,10 @@
-"""Cosmetic catalog (server-authoritative; PLAN.md §6, §11, DESIGN.md §6).
+"""Cosmetic catalog (server-authoritative; DESIGN.md §6).
 
 The SERVER owns prices and unlock gating — the frontend's theme list (tokens.ts) and frame styles
 (identity.ts) are visuals only and never send a price. Catalog is code, not DB (same pattern as
 services/templates.py): versioned, reviewable, no admin tooling.
 
-Coins are cosmetic-only (CLAUDE.md §8): items never grant any competitive advantage.
+Coins are cosmetic-only (docs/architecture.md §8): items never grant any competitive advantage.
 
 Requirement strings (grammar evaluated in services/unlocks.py against a player-progress snapshot;
 one requirement per item — no combinators). Verbs:

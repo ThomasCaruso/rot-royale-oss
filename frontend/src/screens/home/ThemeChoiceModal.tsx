@@ -63,7 +63,7 @@ export function ThemeChoiceModal({ onDone }: { onDone: () => void }) {
               >
                 <img
                   // ?v=3 — these live in public/, which Vite does not content-hash, so a re-exported
-                  // file keeps serving stale bytes to anyone who already fetched it (CLAUDE.md §7).
+                  // file keeps serving stale bytes to anyone who already fetched it (docs/architecture.md §13).
                   // Bumped when the previews were resized to 3× their render size.
                   src={`/assets/theme-previews/${id}.png?v=3`}
                   alt=""

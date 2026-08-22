@@ -1,0 +1,324 @@
+# What may be published, declared per subsystem.
+#
+# ── Why this file exists ──────────────────────────────────────────────────────────────────────
+#
+# The exporter used to answer "is this file private?" with a list of the private things anyone had
+# thought of so far. Everything else was published by default. That is a blocklist, and it has one
+# failure mode, which is not a bug you can find by reading the list: a file nobody classified is
+# published, silently, on the next merge to main.
+#
+# It has already happened twice in this repository. A `git add -A` during a merge swept in a
+# developer tooling directory that had never been reviewed. A documentation blocklist naming one
+# runbook published the other 45 files beside it, including generated reports that quoted 134
+# verbatim production questions.
+#
+# Both were caught by the export's own content checks rather than by the path list — which is luck,
+# not design. The content checks look for artwork and secrets. They cannot recognise a proprietary
+# scoring algorithm, an anti-cheat heuristic or an unreleased game mode, because those look exactly
+# like the rest of the codebase.
+#
+# So the default is inverted here. Every tracked path must match a rule. A path that matches none is
+# not published — the export FAILS, and CI fails with it, at the moment the file is introduced and
+# in front of the person who knows what it is.
+#
+#     new file on main
+#         ├── matches a rule ──► classified, exported or withheld accordingly
+#         └── matches nothing ─► export refuses, CI red
+#
+# ── Classifications ───────────────────────────────────────────────────────────────────────────
+#
+#   public       exported verbatim.
+#   withheld     never exported.
+#   placeholder  exported as a dimension-accurate stand-in. Only meaningful for images; which
+#                specific blobs are replaced is decided by assets-manifest.json, so a NEW image in
+#                a placeholder directory that nobody added to the manifest is a mismatch and fails.
+#
+# ── Matching ──────────────────────────────────────────────────────────────────────────────────
+#
+# A rule whose `path` ends in "/" matches a subtree; anything else matches one exact path. Exact
+# beats subtree; between subtrees the LONGEST prefix wins. So `frontend/` can be public while
+# `frontend/src/assets/` is placeholder and one barrel file inside it is public again.
+#
+# ── Maintaining it ────────────────────────────────────────────────────────────────────────────
+#
+# `reason` is not decoration. A rule with no stated reason is a rule nobody can safely change
+# later, and the whole point of this file is that the next person inherits the decision rather than
+# re-deriving it. Write why the classification is what it is, not what the directory contains.
+#
+# This file is itself published. A rule NAMES a path, so do not let a rule name disclose something
+# that should not be disclosed — classify a parent directory instead of a revealing filename.
+#
+# ── The standing rule ─────────────────────────────────────────────────────────────────────────
+#
+# Any feature intended to stay proprietary must either live in a `withheld` subtree, or have its
+# classification reviewed before it is merged.
+#
+# Never regenerate export-classification.lock mechanically and approve the diff without reading the
+# new `public` entries. The regenerate command prints them for exactly this reason.
+#
+# This is the part no automation can do. The machinery can prove that nothing UNCLASSIFIED ships,
+# and that the rules and the exporter agree — it cannot tell that a new file is commercially
+# sensitive, because sensitivity is not a property of the code. A human reading one added line is
+# the last control, and it is the only one that understands what was just built.
+
+version = 1
+
+# ── The application ───────────────────────────────────────────────────────────────────────────
+
+[[rule]]
+path = "backend/"
+classification = "public"
+reason = """
+The server, and the reason the repository exists. Content DATA is not here — it is fetched at build
+time from a private package (see docs/architecture.md §12) — so the whole tree is publishable. If
+proprietary server logic is ever added, give it its own withheld rule BEFORE the code lands; this
+broad rule would otherwise publish it.
+"""
+
+[[rule]]
+path = "frontend/"
+classification = "public"
+reason = """
+The client, including the native iOS and Android wrappers. Same caveat as backend/: this rule is
+broad on purpose, and a future proprietary subsystem needs its own rule rather than trusting that
+someone notices.
+"""
+
+[[rule]]
+path = "scripts/"
+classification = "public"
+reason = """
+The exporter and the independent verifier. Publishing them is the point: they are how a third party
+checks that the tree they cloned is what it claims to be. They disclose the export POLICY, which is
+already visible from the result.
+"""
+
+# ── Artwork ───────────────────────────────────────────────────────────────────────────────────
+
+[[rule]]
+path = "frontend/public/"
+classification = "placeholder"
+reason = """
+Served artwork. Replaced by flat panels at the original dimensions, because several components
+measure the image rather than assuming a size, and Vite resolves `frontend/src` imports statically —
+a missing file is a build failure, not a blank image.
+"""
+
+[[rule]]
+path = "frontend/src/assets/"
+classification = "placeholder"
+reason = "Bundled artwork. Same treatment and same reason as frontend/public/."
+
+[[rule]]
+path = "frontend/public/push-sw.js"
+classification = "public"
+reason = "The push service worker. Code that happens to live in the asset directory."
+
+[[rule]]
+path = "frontend/src/assets/campaign/index.ts"
+classification = "public"
+reason = "A barrel re-export. Code, not art — and the build needs it."
+
+[[rule]]
+path = "frontend/src/assets/campaign/starter/index.ts"
+classification = "public"
+reason = "A barrel re-export. Code, not art — and the build needs it."
+
+[[rule]]
+path = "frontend/src/assets/lobby/index.ts"
+classification = "public"
+reason = "A barrel re-export. Code, not art — and the build needs it."
+
+# ── Documentation ─────────────────────────────────────────────────────────────────────────────
+
+[[rule]]
+path = "docs/"
+classification = "withheld"
+reason = """
+Deny-by-default. These are working documents — agent-directed implementation plans, growth and
+analytics notes, runbooks naming production services, and generated reports derived from the
+production question corpus. Publish an individual document by giving it its own rule, never by
+loosening this one.
+"""
+
+[[rule]]
+path = "docs/architecture.md"
+classification = "public"
+reason = """
+Written to be public: the documentation a contributor needs, and the file the public README points
+at in place of the agent-facing CLAUDE.md.
+"""
+
+[[rule]]
+path = "oss/"
+classification = "withheld"
+reason = "Staging area for public-facing copy. The sources live here; the rendered results ship."
+
+[[rule]]
+path = "oss/README.public.md"
+classification = "public"
+reason = """
+Becomes README.md in the exported tree. Published under a different name, which is why it is public
+despite sitting inside a withheld directory.
+"""
+
+# ── Private working material ──────────────────────────────────────────────────────────────────
+
+[[rule]]
+path = "tools/"
+classification = "withheld"
+reason = """
+Developer tooling that has not had its own provenance and security review. It generates the
+change-detection manifests, so it is genuine tooling worth keeping — but tooling carries model
+prompts, API assumptions and proprietary process, and publishing it is a separate decision from
+publishing the application. It reached the tracked tree via a `git add -A` during a merge.
+"""
+
+[[rule]]
+path = ".claude/"
+classification = "withheld"
+reason = "Agent skills and working instructions. Process, not product."
+
+[[rule]]
+path = "CLAUDE.md"
+classification = "withheld"
+reason = "The repository's internal operating instructions. docs/architecture.md replaces it."
+
+[[rule]]
+path = "PLAN.md"
+classification = "withheld"
+reason = "Internal product spec and milestone plan."
+
+[[rule]]
+path = "assets-manifest.json"
+classification = "withheld"
+reason = """
+A directory map of proprietary work: every private asset's path, size, provenance and licence. The
+export writes public-verification-manifest.json in its place — the withheld digests and nothing
+else — so third-party verification survives without publishing an inventory of the artwork.
+"""
+
+[[rule]]
+path = "render.staging.yaml"
+classification = "withheld"
+reason = """
+Internal deployment topology for an environment that existed only to rehearse the content split and
+has since been torn down. No secrets in it, but no use to a contributor either.
+"""
+
+[[rule]]
+path = ".github/workflows/sync-public.yml"
+classification = "withheld"
+reason = """
+The publication machinery itself. The public repo cannot sync itself, the workflow references a
+secret that does not exist there, and GitHub refuses to let a token create a workflow file without
+workflow scope — so exporting it also broke the push.
+"""
+
+# ── Repository root ───────────────────────────────────────────────────────────────────────────
+#
+# Listed one by one rather than by a catch-all. The root is exactly where a stray file lands when
+# someone is in a hurry, so it is the last place a broad rule belongs.
+
+[[rule]]
+path = ".github/workflows/ci.yml"
+classification = "public"
+reason = "The CI a contributor should be able to read and run."
+
+[[rule]]
+path = ".gitattributes"
+classification = "public"
+reason = "Line-ending and diff configuration."
+
+[[rule]]
+path = ".gitignore"
+classification = "public"
+reason = "Ignore rules. Useful to a contributor and disclose nothing."
+
+[[rule]]
+path = "CONTRIBUTING.md"
+classification = "public"
+reason = "Written for contributors."
+
+[[rule]]
+path = "DESIGN.md"
+classification = "public"
+reason = "The visual specification. Design intent, not proprietary process."
+
+[[rule]]
+path = "LICENSE"
+classification = "public"
+reason = "Apache-2.0. Publishing it is the licence taking effect."
+
+[[rule]]
+path = "README.md"
+classification = "public"
+reason = "The private README. Overwritten in the export by oss/README.public.md."
+
+[[rule]]
+path = "RotRoyale.jsx"
+classification = "public"
+reason = "The original single-file prototype, kept as the frontend feel reference."
+
+[[rule]]
+path = "SECURITY.md"
+classification = "public"
+reason = "The vulnerability reporting policy. Useless if not published."
+
+[[rule]]
+path = "THIRD_PARTY_NOTICES.md"
+classification = "public"
+reason = "Attribution for bundled third-party components and fonts. Required."
+
+[[rule]]
+path = "TRADEMARKS.md"
+classification = "public"
+reason = "What the code licence does not grant. Useless if not published."
+
+[[rule]]
+path = "codemagic.yaml"
+classification = "public"
+reason = "Mobile build configuration. No credentials — they are environment references."
+
+[[rule]]
+path = "docker-compose.yml"
+classification = "public"
+reason = "Local Postgres for development. Development credentials only."
+
+[[rule]]
+path = "render.yaml"
+classification = "public"
+reason = """
+The production deploy contract, and worth reading. Carries no secret values: every sensitive key is
+`sync: false` or drawn from an environment group, which is asserted by test_render_contract.py.
+"""
+
+[[rule]]
+path = "ruff.toml"
+classification = "public"
+reason = "Lint configuration for Python outside backend/, so a contributor lints as CI does."
+
+[[rule]]
+path = "export-classification.lock"
+classification = "public"
+reason = """
+The generated consequence of this file: every tracked path and what happens to it. Published for
+the same reason as the rules — it lets a reader confirm the tree they cloned is the tree the
+project intended to publish, without needing anything private.
+
+It exists because subtree rules alone cannot catch a new file inside an already-public directory.
+This records each one as a line a reviewer has to read.
+"""
+
+[[rule]]
+path = "export-classification.toml"
+classification = "public"
+reason = """
+This file. Published because the honest version of "some things are withheld" is a readable
+statement of WHICH things and why — a contributor who finds a placeholder image or a missing
+document can see that it was a decision rather than an accident.
+
+It was also the first path this gate ever refused: the registry did not classify itself, the export
+stopped, and that is the behaviour working. Note the constraint in the header — a rule name is
+public, so classify a parent directory rather than naming a revealing filename.
+"""

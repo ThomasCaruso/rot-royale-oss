@@ -1,4 +1,4 @@
-"""Per-slot contest templates (PLAN.md §5). Different slots → different mixed round compositions."""
+"""Per-slot contest templates. Different slots → different mixed round compositions."""
 
 from __future__ import annotations
 

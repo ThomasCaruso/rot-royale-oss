@@ -1,4 +1,4 @@
-"""Daily difficulty-convergence batch + the ANCHOR (CLAUDE.md §5e).
+"""Daily difficulty-convergence batch + the ANCHOR (docs/architecture.md §9).
 
 Estimate/notice difficulties FLOAT: they converge on observed pass rate each day,
 then the pool is re-centred to its seed mean so a strong-player cohort attacking

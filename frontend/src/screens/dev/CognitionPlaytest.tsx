@@ -3,7 +3,7 @@
  * theming. The point is to answer one question fast: is a non-trivia cognitive round fun enough
  * that you reach for it unprompted? (see the cognition context doc §7.)
  *
- * Estimate and change detection. `span` and `crowd` were removed pre-launch (CLAUDE.md §5d).
+ * Estimate and change detection. `span` and `crowd` were removed pre-launch (docs/architecture.md §4).
  * Change plays through the REAL round component so this exercises what ships.
  *
  * Everything is server-authoritative — this file only renders specs and submits inputs.

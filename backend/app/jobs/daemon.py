@@ -1,4 +1,4 @@
-"""APScheduler daemon that drives window lifecycle on a timer (PLAN.md §9).
+"""APScheduler daemon that drives window lifecycle on a timer (docs/architecture.md).
 
 Two jobs:
   - transition tick (every `scheduler_tick_seconds`): SCHEDULED→OPEN→CLOSED by time.

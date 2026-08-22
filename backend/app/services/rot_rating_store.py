@@ -1,4 +1,4 @@
-"""Rot Rating persistence + run-completion application (CLAUDE.md §5e).
+"""Rot Rating persistence + run-completion application (docs/architecture.md §9).
 
 The pure math lives in services/rot_rating.py; this is the DB seam. `apply_run` is
 called once, when a Daily Royale entry finishes (its last round is answered), and

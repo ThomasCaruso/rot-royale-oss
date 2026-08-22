@@ -1,4 +1,4 @@
-"""Append-only coin ledger (PLAN.md §6, §8). The source of truth for coin balances.
+"""Append-only coin ledger (docs/architecture.md). The source of truth for coin balances.
 
 Every coin in/out is one immutable row with a reason + optional reference. profiles.coins_balance
 is a cache that must always equal SUM(delta) for the user. Never mutate; only insert.

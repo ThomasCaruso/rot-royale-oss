@@ -22,7 +22,7 @@ timed out on most captures).
 
 ## Steps
 
-1. Backend on :8001 and frontend on :5173 (see CLAUDE.md §4).
+1. Backend and frontend both running locally (see the README for the commands).
 2. Playwright: `browser_navigate` to `http://localhost:5173/`, then `browser_resize` to **390 x 844**.
 3. Register a throwaway account from the page and seed the session — this avoids moving a real
    token between browsers, and the fresh account keeps personal data out of the shots:
@@ -101,7 +101,7 @@ timed out on most captures).
    ```
 
 8. Bump `V` in `ThemeShot.tsx` — `public/` is not content-hashed, so without it everyone keeps the
-   cached old shots (CLAUDE.md §7).
+   cached old shots (`docs/architecture.md` §13).
 
 ## Invariants worth re-checking after a capture run
 

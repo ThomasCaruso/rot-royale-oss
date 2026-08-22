@@ -1,4 +1,4 @@
-"""Content bank for content-backed round modules (PLAN.md §6).
+"""Content bank for content-backed round modules (docs/architecture.md).
 
 A trivia question row: module_type='trivia', category, icon, difficulty, status, explanation, and
 payload={prompt, options, correctIndex}. Generated modules (rapid_math, memory_flash) need no rows.

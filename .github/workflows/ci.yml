@@ -79,6 +79,18 @@ jobs:
         run: |
           uv run ruff check .
           uv run ruff format --check .
+      - name: Ruff (repo-root scripts)
+        # This job runs with working-directory: backend, so `ruff check .` above never saw
+        # scripts/ — and those two files decide what reaches the PUBLIC repository. The
+        # leak-prevention boundary was the least-linted code in the tree.
+        #
+        # Checked as a separate step, not by widening the path above, so a failure names the
+        # scripts rather than hiding inside a backend result. Configuration comes from the repo-root
+        # ruff.toml, which mirrors backend/pyproject.toml — without it ruff falls back to its
+        # defaults for these files and disagrees with every other check in the repo.
+        run: |
+          uv run ruff check ../scripts
+          uv run ruff format --check ../scripts
       - name: Mypy
         run: uv run mypy app
       - name: Tests

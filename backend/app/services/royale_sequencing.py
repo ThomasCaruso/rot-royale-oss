@@ -1,4 +1,4 @@
-"""Daily Royale round-type sequencing (PLAN.md §5 / cognition integration).
+"""Daily Royale round-type sequencing (docs/architecture.md §4 — cognition integration).
 
 A Royale is 8 rounds whose TYPES are a constrained shuffle, one order per ET date derived from the
 date seed, varying day to day — the same Wordle-style shared-seed property as the questions

@@ -1,4 +1,4 @@
-"""Rot Rating tables (Glicko-2 sharpness rating, CLAUDE.md §5e).
+"""Rot Rating tables (Glicko-2 sharpness rating, docs/architecture.md §9).
 
 Parallel to the placement Elo on profiles (never merged). Per-verb sub-ratings +
 a derived headline snapshot per user, and a shared difficulty-rating pool keyed by

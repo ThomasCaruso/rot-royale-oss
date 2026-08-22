@@ -1,4 +1,4 @@
-"""Current-user profile endpoint (PLAN.md §8 GET /me)."""
+"""Current-user profile endpoint (GET /me)."""
 
 from __future__ import annotations
 

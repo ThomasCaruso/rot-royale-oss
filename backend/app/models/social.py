@@ -1,6 +1,6 @@
 """Friends graph + live friend-duel state.
 
-This is the social layer (added past the original v1 non-goal list — see PLAN.md §13, now in
+This is the social layer (added past the original v1 non-goal list, now in
 scope): a player can friend another player by username, and once friends, challenge them to a
 **live** best-of-7 trivia duel played in real time over a WebSocket.
 

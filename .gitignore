@@ -105,7 +105,7 @@ npm-debug.log*
 #
 # NB the leading `backend/`: a pattern containing a slash is anchored to THIS file's directory, so a
 # bare `content/translate_export/*-flagged-review.md` would look for a repo-ROOT content/ tree, which
-# does not exist (the canonical tree is backend/content/ — CLAUDE.md §5a). Anchored, as with every
+# does not exist (the canonical tree is backend/content/). Anchored, as with every
 # other path in this file.
 /backend/content/translate_export/*-flagged-review.md
 

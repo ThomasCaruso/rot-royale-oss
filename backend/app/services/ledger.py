@@ -1,4 +1,4 @@
-"""Coin ledger service (PLAN.md §6, §8).
+"""Coin ledger service (docs/architecture.md).
 
 The single chokepoint for every coin movement. Appends an immutable ledger row and keeps the
 profiles.coins_balance cache equal to SUM(delta). All coin changes — signup, payouts, purchases —

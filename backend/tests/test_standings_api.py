@@ -1,4 +1,4 @@
-"""Standings + history API (PLAN.md §8) — results visible after settlement."""
+"""Standings + history API (docs/architecture.md) — results visible after settlement."""
 
 from __future__ import annotations
 

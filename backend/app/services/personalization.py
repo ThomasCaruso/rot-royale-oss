@@ -2,7 +2,7 @@
 
 Given a fetched question bank and a user's taste profile, produce a personalized POOL (a subset of
 the bank) for the round generator to draw from. The engine/modules never learn about
-personalization — this is the same pre-filter seam category scoping uses (CLAUDE.md §5a).
+personalization — this is the same pre-filter seam category scoping uses (docs/architecture.md §12).
 
 Fairness gates (checked in should_personalize):
 - PERSONALIZATION_ENABLED=false → everything passes through untouched.

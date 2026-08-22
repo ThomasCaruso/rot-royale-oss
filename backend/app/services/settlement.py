@@ -1,4 +1,4 @@
-"""Settlement (PLAN.md §7). Runs once per window at/after close: rank the field, apply Elo rating +
+"""Settlement. Runs once per window at/after close: rank the field, apply Elo rating +
 division, advance the daily streak, write standings, mark SETTLED. Pays NO coins — ranked contests
 grant rating/division/streak (status); coins are earned in campaign/practice and spent in the Vault.
 The COINS_*/STREAK_BONUS constants are the tuning seam; zero-value ledger writes are skipped so the

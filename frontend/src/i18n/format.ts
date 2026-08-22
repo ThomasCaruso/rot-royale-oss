@@ -6,7 +6,7 @@
  * player on an en-US browser saw "1,448" and "JUL 29, 2026" with the app fully in French. Switching
  * language has to change the numerals and dates too, not just the words.
  *
- * Times specifically stay VIEWER-LOCAL by design (app convention, CLAUDE.md §6): the contest is
+ * Times specifically stay VIEWER-LOCAL by design (app convention, docs/architecture.md §6): the contest is
  * defined in ET wall-clock, and the client renders that instant in the viewer's own zone. Only the
  * LANGUAGE of the formatting is taken from the app locale — never the time zone.
  */

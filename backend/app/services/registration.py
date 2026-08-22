@@ -1,4 +1,4 @@
-"""Registration service (PLAN.md §6, §7, M1).
+"""Registration service (docs/architecture.md, M1).
 
 Seeds a new account atomically: user (argon2 hash) + profile (rating/division/streak/sharpness/
 coins/equipped theme) + ownership of the free default theme. Any starting coins flow through the

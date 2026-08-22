@@ -1,4 +1,4 @@
-"""One-shot cron entrypoint (PLAN.md §9) — the Render-cron alternative to the in-process daemon.
+"""One-shot cron entrypoint — the Render-cron alternative to the in-process daemon.
 
 Usage:  python -m app.jobs.run [transition|create|settle|both|seed]   (default: both)
         python -m app.jobs.run ingest <file.json | dir>

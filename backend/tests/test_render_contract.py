@@ -26,7 +26,13 @@ STAGING_YAML = REPO / "render.staging.yaml"
 
 # Both blueprints must satisfy the same content contract. Staging is the one that deploys FIRST, so
 # leaving it untested would put the least-verified file on the critical path.
-BLUEPRINTS = (RENDER_YAML, STAGING_YAML)
+#
+# The staging blueprint is PRIVATE — it describes internal deployment topology for an environment
+# that only ever existed to rehearse the content split, so it is not exported to the open-source
+# repository. Every staging assertion below is therefore conditional on the file being present:
+# present in this repo, absent in a public clone. Filtering the list rather than skipping inside
+# each test means a public run reports honestly on what it checked instead of listing phantom skips.
+BLUEPRINTS = tuple(p for p in (RENDER_YAML, STAGING_YAML) if p.is_file())
 
 CONTENT_REPO = "ThomasCaruso/rot-royale-content"
 FETCH_COMMAND = "scripts.fetch_private_content"
@@ -273,6 +279,8 @@ def prod() -> dict:
 
 @pytest.fixture(scope="module")
 def staging() -> dict:
+    if not STAGING_YAML.is_file():
+        pytest.skip("the staging blueprint is private and is not exported")
     return yaml.safe_load(STAGING_YAML.read_text(encoding="utf-8"))
 
 

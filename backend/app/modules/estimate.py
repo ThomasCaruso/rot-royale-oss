@@ -124,8 +124,8 @@ class EstimateModule:
         return 0
 
     def score(self, server_answer: dict[str, Any], submission: dict[str, Any]) -> RoundJudgement:
-        """Judge a full guess transcript (validated, not trusted — CLAUDE.md §5): honest play
-        stops at the first correct guess and never exceeds the guess budget."""
+        """Judge a full guess transcript (validated, not trusted — docs/architecture.md §4):
+        honest play stops at the first correct guess and never exceeds the guess budget."""
         answer = float(server_answer["answer"])
         pct = float(server_answer["acceptable_pct"])
         close = float(server_answer.get("close_pct", 2 * pct))

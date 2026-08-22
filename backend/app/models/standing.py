@@ -1,4 +1,4 @@
-"""Settled standings (PLAN.md §6, §7). Written once per real user when a window settles.
+"""Settled standings (docs/architecture.md). Written once per real user when a window settles.
 
 `field_size` is the size of the field the placement was computed against, stored here so results can
 say "place X of N". That field is REAL ENTRIES ONLY — the cold-start bots that once padded a thin

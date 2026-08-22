@@ -1,7 +1,7 @@
 """FastAPI application entrypoint.
 
 Boots, connects to Postgres, serves the API, and (when scheduler_enabled) runs the window
-scheduler daemon in-process via the app lifespan (PLAN.md §9).
+scheduler daemon in-process via the app lifespan (docs/architecture.md).
 """
 
 from __future__ import annotations
@@ -150,7 +150,7 @@ async def limit_body_size(request: Request, call_next):  # type: ignore[no-untyp
 # In dev, the frontend origin is whatever port Vite landed on (it hops 5173 → 5174 → … when a port
 # is taken), so allow any localhost/127.0.0.1 origin — otherwise login fails with a 400 on the CORS
 # preflight whenever Vite isn't on the one hardcoded port. Production stays LOCKED to the explicit
-# cors_origins (the deployed web origin); the regex is disabled there (PLAN.md M7 / CLAUDE.md).
+# cors_origins (the deployed web origin); the regex is disabled there (docs/architecture.md).
 # PRODUCTION_ENVS, not `== "production"`. The docs gate above already uses the full set, and the
 # two disagreeing meant APP_ENV=staging or APP_ENV=prod hid the API schema while still allowing
 # any localhost origin to make CREDENTIALED requests. Same question, same answer, one constant.

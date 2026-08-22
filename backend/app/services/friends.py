@@ -1,4 +1,4 @@
-"""Friends graph service (the social layer — PLAN.md §13, now in scope).
+"""Friends graph service (the social layer, now in scope).
 
 A player friends another by USERNAME. The request walks pending → accepted (or declined). The graph
 is symmetric once accepted, so membership checks both (requester, addressee) orderings. All
