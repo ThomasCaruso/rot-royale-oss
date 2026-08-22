@@ -150,7 +150,14 @@ def test_stem_too_short_detected():
 
 # ── Duplicate rules (batch) ───────────────────────────────────────────────────────────────────
 def test_exact_duplicate_stems_detected():
-    rows = [from_bank_row(_q(question="Who painted the Mona Lisa?"), f"d#{i}") for i in range(2)]
+    # A synthetic stem, not a real one. This file is published, and a fixture borrowed from the
+    # production bank puts that question — and the fact that it IS a production question — in a
+    # public repository. Nothing here needs a plausible stem; the rule under test only compares
+    # them to each other.
+    rows = [
+        from_bank_row(_q(question="Repeated fixture stem for the duplicate rule?"), f"d#{i}")
+        for i in range(2)
+    ]
     result = lint_questions(rows, mode=MODE_STRICT, is_new_import=True)
     assert "Q027" in _rule_ids(result)
     assert result.error_count >= 2  # both copies flagged
