@@ -1,0 +1,8 @@
+{
+	"appId": "live.rotroyale.app",
+	"appName": "Rot Royale",
+	"webDir": "dist",
+	"packageClassList": [
+		"PreferencesPlugin"
+	]
+}

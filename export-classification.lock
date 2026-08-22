@@ -347,6 +347,7 @@ public	backend/tests/test_error_codes.py
 public	backend/tests/test_estimate_ingest.py
 public	backend/tests/test_estimate_verdict.py
 public	backend/tests/test_export_classification.py
+public	backend/tests/test_export_completeness.py
 public	backend/tests/test_fetch_private_content.py
 public	backend/tests/test_field_bounded.py
 public	backend/tests/test_field_identity.py
@@ -1108,6 +1109,7 @@ public	render.yaml
 public	ruff.toml
 public	scripts/export_classification.py
 public	scripts/export_public.py
+public	scripts/verify_export_complete.py
 public	scripts/verify_public_tree.py
 withheld	tools/change-pipeline/README.md
 withheld	tools/change-pipeline/mapping.json
