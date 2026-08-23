@@ -981,6 +981,8 @@ export const en = {
   // Changing the public handle from the profile menu. First change free, then coins.
   changeName: {
     title: "Change your username",
+    pickTitle: "Pick your name",
+    pickSub: "This is the name on the leaderboard. You can change it later.",
     sub: "This is the name others see on the leaderboard and on anything you share.",
     label: "New username",
     rules: "3-32 letters, numbers or underscores.",

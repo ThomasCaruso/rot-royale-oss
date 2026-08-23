@@ -169,11 +169,15 @@ async def social_providers() -> dict[str, object]:
     tokens minted for the iOS and Android clients also verify, but a browser can only start a flow
     with the web one.
     """
-    providers = settings.social_sign_in_providers
-    ids = settings.google_client_id_list
+    google_ids = settings.google_client_id_list
+    apple_ids = settings.apple_client_id_list
     return {
-        "providers": providers,
-        "google_client_id": ids[0] if ids else None,
+        "providers": settings.social_sign_in_providers,
+        "google_client_id": google_ids[0] if google_ids else None,
+        # Apple's WEB audience is a Services identifier, distinct from the native bundle id. Both
+        # are valid audiences for the same product, which is why the setting is a list; the browser
+        # is handed the first, which is the one a web flow can actually start with.
+        "apple_client_id": apple_ids[0] if apple_ids else None,
     }
 
 

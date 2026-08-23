@@ -934,6 +934,8 @@ export const tr: Dict = {
   },
   changeName: {
     title: "Kullanıcı adını değiştir",
+    pickTitle: "Adını seç",
+    pickSub: "Bu, sıralamada görünen ad. Daha sonra değiştirebilirsin.",
     sub: "Bu, sıralamada ve paylaştığın her şeyde başkalarının gördüğü isimdir.",
     label: "Yeni kullanıcı adı",
     rules: "3-32 harf, rakam veya alt çizgi.",

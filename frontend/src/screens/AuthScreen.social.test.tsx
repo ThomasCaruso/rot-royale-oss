@@ -17,8 +17,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const socialProviders = vi.fn();
 const socialSignInApi = vi.fn();
-const signInWith = vi.fn();  // Apple path; unused until Apple ships
-
 /** Shaped like a real one, obviously not one. The production id lives in an env var, never here. */
 const CLIENT_ID = "000000000000-testclientid.apps.googleusercontent.com";
 
@@ -30,11 +28,6 @@ vi.mock("@/api/session", () => ({
   registerAndLogin: vi.fn(),
   socialSignIn: (...a: unknown[]) => socialSignInApi(...a),
 }));
-vi.mock("@/lib/socialAuth", async () => {
-  const actual = await vi.importActual<typeof import("@/lib/socialAuth")>("@/lib/socialAuth");
-  return { ...actual, signInWith: (p: string) => signInWith(p) };
-});
-
 // GIS is the real dependency for Google on the web. Stubbed so the tests never touch the network,
 // and so the credential callback can be driven directly.
 const renderGoogleButton = vi.fn();
@@ -53,7 +46,6 @@ describe("AuthScreen social sign-in", () => {
     vi.clearAllMocks();
     socialProviders.mockResolvedValue({ providers: [], google_client_id: null });
     renderGoogleButton.mockResolvedValue(undefined);
-    signInWith.mockResolvedValue({ provider: "google", idToken: "tok", nonce: "n" });
     socialSignInApi.mockResolvedValue({ created: false, passwordRetired: false });
   });
 

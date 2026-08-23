@@ -137,12 +137,17 @@ export async function renderGoogleButton(options: {
     cancel_on_tap_outside: true,
   });
   options.parent.replaceChildren();
+  // GIS owns these pixels — the colourway and mark are Google's to dictate. What it DOES expose is
+  // shape, and the app's own CTA is a fully rounded pill, so `pill` makes the button read as part
+  // of the stack instead of a rectangle pasted above it. `logo_alignment: left` matches the way
+  // every other provider button in the wild sets the mark against the label rather than centring
+  // the pair, which stops the row shifting as the text length changes between languages.
   google.accounts.id.renderButton(options.parent, {
     type: "standard",
     theme: "outline",
     size: "large",
-    shape: "rectangular",
-    logo_alignment: "center",
+    shape: "pill",
+    logo_alignment: "left",
     text: options.text ?? "continue_with",
     width: options.width,
   });

@@ -3,7 +3,7 @@ import { api } from "@/api/client";
 import { login, registerAndLogin, socialSignIn } from "@/api/session";
 import { SocialButton, type SocialProvider } from "@/ui/SocialButton";
 import { GoogleSignInButton } from "@/ui/GoogleSignInButton";
-import { SocialSignInCancelled, signInWith } from "@/lib/socialAuth";
+import { AppleSignInCancelled, signInWithApple } from "@/lib/appleIdentity";
 import { Display } from "@/ui/Display";
 import { EyeIcon, EyeOffIcon, LockIcon, MailIcon, UserIcon } from "@/ui/icons";
 import { useT } from "@/i18n/useT";
@@ -75,6 +75,7 @@ export function AuthScreen({ onBack }: { onBack?: () => void } = {}) {
   // which is why this never blocks the screen from rendering.
   const [providers, setProviders] = useState<SocialProvider[]>([]);
   const [googleClientId, setGoogleClientId] = useState<string | null>(null);
+  const [appleClientId, setAppleClientId] = useState<string | null>(null);
   const [socialBusy, setSocialBusy] = useState<SocialProvider | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -86,6 +87,7 @@ export function AuthScreen({ onBack }: { onBack?: () => void } = {}) {
         if (cancelled) return;
         setProviders(r.providers.filter((p): p is SocialProvider => p === "apple" || p === "google"));
         setGoogleClientId(r.google_client_id ?? null);
+        setAppleClientId(r.apple_client_id ?? null);
       })
       .catch(() => {
         /* Offline or an older server: fall back to email-only rather than an error screen. */
@@ -109,25 +111,25 @@ export function AuthScreen({ onBack }: { onBack?: () => void } = {}) {
     }
   }
 
-  async function onSocial(provider: SocialProvider) {
+  /** Apple's popup returns the token directly; there is no rendered-button handoff. */
+  async function onApple(clientId: string) {
     setError(null);
     setNotice(null);
-    setSocialBusy(provider);
+    setSocialBusy("apple");
     try {
-      const cred = await signInWith(provider);
-      const res = await socialSignIn(cred.provider, cred.idToken, cred.nonce);
+      const { idToken, nonce } = await signInWithApple({ clientId });
+      const res = await socialSignIn("apple", idToken, nonce);
       if (res.passwordRetired) setNotice(t.auth.passwordRetired);
-      // On success the session store swaps the screen out; nothing to do here.
     } catch (err) {
-      // Closing the sheet is a choice, not a failure — say so quietly and leave the form usable.
       setError(
-        err instanceof SocialSignInCancelled
+        err instanceof AppleSignInCancelled
           ? t.auth.socialCancelled
           : errorMessage(err, t, t.auth.somethingWentWrong)
       );
       setSocialBusy(null);
     }
   }
+
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -178,16 +180,16 @@ export function AuthScreen({ onBack }: { onBack?: () => void } = {}) {
                     onUnavailable={() => setProviders((prev) => prev.filter((x) => x !== "google"))}
                   />
                 ) : null
-              ) : (
+              ) : appleClientId ? (
                 <SocialButton
                   key={p}
                   provider={p}
                   label={t.auth.continueWithApple}
                   busy={socialBusy === p}
                   disabled={busy || (socialBusy !== null && socialBusy !== p)}
-                  onClick={() => void onSocial(p)}
+                  onClick={() => void onApple(appleClientId)}
                 />
-              )
+              ) : null
             )}
           </div>
 

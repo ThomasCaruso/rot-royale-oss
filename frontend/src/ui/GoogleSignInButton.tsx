@@ -39,7 +39,9 @@ export function GoogleSignInButton({
     if (!parent || !clientId) return;
     let cancelled = false;
 
-    const width = Math.round(parent.getBoundingClientRect().width) || 360;
+    // GIS clamps to 400px. Measuring and capping means the button matches the CTA below it
+    // rather than rendering narrower than its container and floating in the middle.
+    const width = Math.min(400, Math.round(parent.getBoundingClientRect().width) || 360);
     void renderGoogleButton({
       parent,
       clientId,

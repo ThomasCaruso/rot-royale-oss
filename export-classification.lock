@@ -780,6 +780,7 @@ public	frontend/src/i18n/useT.ts
 public	frontend/src/lib/analytics.test.ts
 public	frontend/src/lib/analytics.ts
 public	frontend/src/lib/appLinks.ts
+public	frontend/src/lib/appleIdentity.ts
 public	frontend/src/lib/campaign.test.ts
 public	frontend/src/lib/campaign.ts
 public	frontend/src/lib/celebrate.test.ts
@@ -815,7 +816,6 @@ public	frontend/src/lib/seenResults.test.ts
 public	frontend/src/lib/seenResults.ts
 public	frontend/src/lib/sfx.test.ts
 public	frontend/src/lib/sfx.ts
-public	frontend/src/lib/socialAuth.ts
 public	frontend/src/lib/time.test.ts
 public	frontend/src/lib/time.ts
 public	frontend/src/lib/titleCase.ts

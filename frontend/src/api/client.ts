@@ -923,7 +923,11 @@ export const api = {
   /** Which provider buttons the server can actually verify. Unauthenticated — the sign-in screen
    * asks before anyone is signed in, and a button for an unconfigured provider is a dead end. */
   socialProviders: () =>
-    request<{ providers: string[]; google_client_id?: string | null }>("/auth/providers"),
+    request<{
+      providers: string[];
+      google_client_id?: string | null;
+      apple_client_id?: string | null;
+    }>("/auth/providers"),
 
   /** Sign in (or up) with a verified Apple/Google identity.
    *

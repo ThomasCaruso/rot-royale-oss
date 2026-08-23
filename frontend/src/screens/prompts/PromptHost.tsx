@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/api/client";
 import { useT } from "@/i18n/useT";
+import { useSessionStore } from "@/store/session";
 import { enablePush } from "@/lib/push";
 import { openStoreReview } from "@/lib/review";
 import { PromptSheet } from "./PromptSheet";
+import { ChangeUsernameSheet } from "@/screens/home/ChangeUsernameSheet";
 
 /**
  * Asks the SERVER what to ask the player, then asks it.
@@ -19,6 +21,7 @@ import { PromptSheet } from "./PromptSheet";
 const PROMPT_GOODWILL = "goodwill_aug14";
 const PROMPT_NOTIFICATIONS = "enable_notifications";
 const PROMPT_RATE = "rate_app";
+const PROMPT_PICK_USERNAME = "pick_username";
 
 /** The public support page (publicRoutes.ts) — where an unhappy player is heard instead of
  *  being pushed at the App Store. */
@@ -26,6 +29,7 @@ const SUPPORT_URL = "/support";
 
 export function PromptHost({ active }: { active: boolean }) {
   const t = useT();
+  const username = useSessionStore((st) => st.me?.username);
   const [prompt, setPrompt] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [rateStep, setRateStep] = useState<"ask" | "feedback">("ask");
@@ -75,6 +79,23 @@ export function PromptHost({ active }: { active: boolean }) {
   );
 
   if (!active || !prompt) return null;
+
+  if (prompt === PROMPT_PICK_USERNAME) {
+    // Reuses the sheet from the profile menu rather than a lookalike: the handle rules, the price
+    // line and every error string already live there, in four languages. A second copy would drift.
+    //
+    // Cancelling ACKS. Declining is an answer, and re-asking every session for a name they chose
+    // not to change is how a prompt becomes nagging (docs/architecture.md §7b2).
+    return (
+      <ChangeUsernameSheet
+        currentUsername={username ?? ""}
+        title={t.changeName.pickTitle}
+        sub={t.changeName.pickSub}
+        onChanged={() => void close(true)}
+        onClose={() => void close(false)}
+      />
+    );
+  }
 
   if (prompt === PROMPT_GOODWILL) {
     return (

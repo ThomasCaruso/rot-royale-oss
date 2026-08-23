@@ -940,6 +940,8 @@ export const fr: Dict = {
   },
   changeName: {
     title: "Change ton pseudo",
+    pickTitle: "Choisis ton nom",
+    pickSub: "C'est le nom affiché au classement. Tu pourras le changer plus tard.",
     sub: "C'est le nom que les autres voient au classement et sur ce que tu partages.",
     label: "Nouveau pseudo",
     rules: "3 à 32 lettres, chiffres ou tirets bas.",

@@ -22,10 +22,17 @@ export function ChangeUsernameSheet({
   currentUsername,
   onClose,
   onChanged,
+  title,
+  sub,
 }: {
   currentUsername: string;
   onClose: () => void;
   onChanged: (username: string) => void;
+  /** Override the heading. The same sheet is reached two ways and they are not the same moment:
+   *  from the profile menu it is "change your username"; as a first-run prompt the player has
+   *  never had one, and calling that a CHANGE describes something they did not do. */
+  title?: string;
+  sub?: string;
 }) {
   const t = useT();
   const [quote, setQuote] = useState<UsernameQuote | null>(null);
@@ -73,13 +80,13 @@ export function ChangeUsernameSheet({
         className="rr-menu rr-sheet-in"
         style={sheet}
         role="dialog"
-        aria-label={t.changeName.title}
+        aria-label={title ?? t.changeName.title}
       >
         <div style={{ fontWeight: 800, fontSize: 17, color: "var(--text)" }}>
-          {t.changeName.title}
+          {title ?? t.changeName.title}
         </div>
         <div style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.5 }}>
-          {t.changeName.sub}
+          {sub ?? t.changeName.sub}
         </div>
 
         <input

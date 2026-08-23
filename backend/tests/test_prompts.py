@@ -9,12 +9,13 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime, timedelta
 
-from app.models import ContestWindow, Entry, PushSubscription
+from app.models import ContestWindow, Entry, Profile, PushSubscription
 from app.models.contest import IN_PROGRESS, OPEN, SUBMITTED
 from app.models.prompt import (
     ACCEPTED,
     PROMPT_GOODWILL,
     PROMPT_NOTIFICATIONS,
+    PROMPT_PICK_USERNAME,
     PROMPT_RATE,
 )
 from app.services.prompts import ack_prompt, next_prompt, royales_completed
@@ -263,3 +264,78 @@ def test_the_rollout_cohort_is_stable_and_only_ever_grows():
     small = {i for i in ids if in_provisional_cohort(i, 10)}
     bigger = {i for i in ids if in_provisional_cohort(i, 50)}
     assert small <= bigger
+
+
+# ── Pick a handle ──────────────────────────────────────────────────────────────────────────────
+#
+# Every account starts on a machine-made `rot_xxxxxx`: guests get one so they can play without a
+# form, and third-party sign-in gets one because Apple and Google supply a name we have no right to
+# put on a leaderboard. Neither is a choice, and the handle is the one thing about a player that
+# everyone else sees.
+
+
+async def _social_account(session: AsyncSession):
+    """An account created by "Continue with Google" — saved, no password, generated handle."""
+    from app.core.socialid import SocialIdentity
+    from app.services.social_auth import sign_in_with_identity
+
+    res = await sign_in_with_identity(
+        session,
+        SocialIdentity(
+            provider="google",
+            subject=f"sub-{uuid.uuid4().hex[:10]}",
+            email=f"{uuid.uuid4().hex[:8]}@example.com",
+            email_verified=True,
+        ),
+    )
+    return res.user
+
+
+async def test_a_guest_is_never_asked_to_pick_a_handle(client, db_session: AsyncSession):
+    """A guest is not on the permanent leaderboard, so their handle is not public yet. Asking would
+    spend the one prompt slot on a decision that does not matter, ahead of one that does."""
+    user_id = await _user(db_session)
+    await _play_royales(db_session, user_id, 1)
+    assert (await next_prompt(db_session, user_id)) == PROMPT_NOTIFICATIONS
+
+
+async def test_a_social_account_is_asked_after_its_first_run(client, db_session: AsyncSession):
+    user = await _social_account(db_session)
+    profile = await db_session.get(Profile, user.id)
+    assert profile is not None and profile.username.startswith("rot_")
+    await _play_royales(db_session, user.id, 1)
+    assert (await next_prompt(db_session, user.id)) == PROMPT_PICK_USERNAME
+
+
+async def test_it_comes_before_the_notification_ask(client, db_session: AsyncSession):
+    """Deliberate ordering: the handle is about THEM, notifications are a favour to us."""
+    user = await _social_account(db_session)
+    await _play_royales(db_session, user.id, 1)
+    assert (await next_prompt(db_session, user.id)) == PROMPT_PICK_USERNAME
+    await ack_prompt(db_session, user.id, PROMPT_PICK_USERNAME)
+    assert (await next_prompt(db_session, user.id)) == PROMPT_NOTIFICATIONS
+
+
+async def test_nothing_is_asked_before_a_run_even_with_a_generated_handle(
+    client, db_session: AsyncSession
+):
+    user = await _social_account(db_session)
+    assert await next_prompt(db_session, user.id) is None
+
+
+async def test_a_player_who_chose_their_handle_is_never_asked(client, db_session: AsyncSession):
+    """Changing the handle is the answer. Asking afterwards would be asking a settled question."""
+    from app.services.username import change_username
+
+    user = await _social_account(db_session)
+    await change_username(db_session, user.id, "brainrot_king")
+    await _play_royales(db_session, user.id, 1)
+    assert (await next_prompt(db_session, user.id)) == PROMPT_NOTIFICATIONS
+
+
+async def test_declining_retires_it(client, db_session: AsyncSession):
+    """Dismissing is an answer. Re-asking every session is how a prompt becomes nagging."""
+    user = await _social_account(db_session)
+    await _play_royales(db_session, user.id, 1)
+    await ack_prompt(db_session, user.id, PROMPT_PICK_USERNAME)
+    assert (await next_prompt(db_session, user.id)) != PROMPT_PICK_USERNAME

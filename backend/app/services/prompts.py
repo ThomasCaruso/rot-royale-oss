@@ -15,13 +15,14 @@ Two rules shape everything here:
 
 from __future__ import annotations
 
+import re
 import uuid
 
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import ContestWindow, Entry, PushSubscription
+from app.models import ContestWindow, Entry, Profile, PushSubscription, User
 from app.models.contest import SUBMITTED
 from app.models.gem_ledger import GemLedger
 from app.models.prompt import (
@@ -29,9 +30,11 @@ from app.models.prompt import (
     DISMISSED,
     PROMPT_GOODWILL,
     PROMPT_NOTIFICATIONS,
+    PROMPT_PICK_USERNAME,
     PROMPT_RATE,
     UserPromptAck,
 )
+from app.models.user import GUEST_STATUS
 
 # How many COMPLETED Daily Royale runs before each ask. The notification opt-in rides the first
 # finish (the earliest honest moment); the rating ask waits until the player has come back twice
@@ -92,6 +95,31 @@ async def _was_paid_goodwill(session: AsyncSession, user_id: uuid.UUID) -> bool:
     ) is not None
 
 
+# `rot_` + six hex, from secrets.token_hex(3) — the shape registration and social sign-in both
+# generate. Matching the PATTERN alone would misfire on someone who deliberately chose a name of
+# that shape, so it is paired with "they have never changed it": a player who picked their handle
+# either changed it, or chose something that does not look machine-made.
+_AUTO_HANDLE = re.compile(r"^rot_[0-9a-f]{6}$")
+
+
+async def _needs_to_pick_a_handle(session: AsyncSession, user_id: uuid.UUID) -> bool:
+    """A SAVED account still wearing a machine-made handle.
+
+    Guests are excluded deliberately. A guest is not on the permanent leaderboard (settlement skips
+    them), so their handle is not public yet and naming an account they have not saved is asking
+    for a decision that does not matter yet — while displacing the notification ask, which does.
+    The moment they save the profile or sign in with a provider, the handle becomes the name
+    everyone sees, and that is when it is worth a prompt.
+    """
+    user = await session.get(User, user_id)
+    if user is None or user.status == GUEST_STATUS:
+        return False
+    profile = await session.get(Profile, user_id)
+    if profile is None:
+        return False
+    return profile.username_changes == 0 and bool(_AUTO_HANDLE.match(profile.username or ""))
+
+
 async def next_prompt(session: AsyncSession, user_id: uuid.UUID) -> str | None:
     """The single prompt to show now, or None. Priority order is deliberate."""
     answered = await _answered(session, user_id)
@@ -105,12 +133,21 @@ async def next_prompt(session: AsyncSession, user_id: uuid.UUID) -> str | None:
     if runs < NOTIFICATIONS_AFTER_RUNS:
         return None  # nothing is asked before the first finished run
 
-    # 2. Notifications, once they've finished a run — but never to a player who already subscribed
+    # 2. Pick a handle. Before the notification ask on purpose: this one is about THEM — the name
+    #    everyone else sees on the leaderboard — where the others are favours to us. Asking for the
+    #    favour first, while they are still called rot_a3f9b2, is the wrong order.
+    #
+    #    Only for a handle nobody chose. A player who already picked one is never asked again, and
+    #    an ack retires it for good, so declining is respected rather than re-asked every session.
+    if PROMPT_PICK_USERNAME not in answered and await _needs_to_pick_a_handle(session, user_id):
+        return PROMPT_PICK_USERNAME
+
+    # 3. Notifications, once they've finished a run — but never to a player who already subscribed
     #    (on any device), where the ask would be nonsense.
     if PROMPT_NOTIFICATIONS not in answered and not await _has_push(session, user_id):
         return PROMPT_NOTIFICATIONS
 
-    # 3. The rating ask, once they've come back twice more.
+    # 4. The rating ask, once they've come back twice more.
     if PROMPT_RATE not in answered and runs >= RATE_AFTER_RUNS:
         return PROMPT_RATE
     return None

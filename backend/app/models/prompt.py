@@ -29,6 +29,11 @@ from app.core.db import Base
 PROMPT_GOODWILL = "goodwill_aug14"
 PROMPT_NOTIFICATIONS = "enable_notifications"
 PROMPT_RATE = "rate_app"
+# Pick a real handle. Every account starts on an auto-generated `rot_xxxxxx`: guests get one so
+# they can play without a form, and third-party sign-in gets one because Apple and Google supply a
+# name we have no right to publish on a leaderboard. Neither is a CHOICE, and the handle is the one
+# thing about a player everyone else sees.
+PROMPT_PICK_USERNAME = "pick_username"
 
 ACCEPTED = "accepted"
 DISMISSED = "dismissed"

@@ -934,6 +934,8 @@ export const es: Dict = {
   },
   changeName: {
     title: "Cambia tu usuario",
+    pickTitle: "Elige tu nombre",
+    pickSub: "Es el nombre que aparece en la clasificación. Puedes cambiarlo después.",
     sub: "Es el nombre que los demás ven en la clasificación y en lo que compartes.",
     label: "Nuevo usuario",
     rules: "3-32 letras, números o guiones bajos.",
