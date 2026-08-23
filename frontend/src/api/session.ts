@@ -27,6 +27,24 @@ export async function login(email: string, password: string): Promise<void> {
   await establish(await api.login({ email, password }));
 }
 
+/** Sign in (or up) with Apple/Google.
+ *
+ * Returns what the player needs telling. `passwordRetired` means this account previously had a
+ * password and linking a verified identity replaced it — surfaced rather than swallowed, because
+ * otherwise they discover it at some later login with no idea why it stopped working.
+ *
+ * If the caller is currently a GUEST their token rides along on the request, so the identity
+ * attaches to the row they have been playing on and their progress carries over. */
+export async function socialSignIn(
+  provider: string,
+  idToken: string,
+  nonce?: string
+): Promise<{ created: boolean; passwordRetired: boolean }> {
+  const res = await api.socialSignIn({ provider, id_token: idToken, nonce: nonce || undefined });
+  await establish(res);
+  return { created: Boolean(res.created), passwordRetired: Boolean(res.password_retired) };
+}
+
 /** Anonymous-first: create a guest account and enter the app in one tap (Brain Boost onboarding).
  * The session persists via the ordinary refresh token, so the guest survives app restarts. */
 export async function startGuest(): Promise<void> {

@@ -19,6 +19,7 @@ from app.models.cosmetic import UserCosmetic
 from app.models.daily_chest import DailyChestClaim
 from app.models.duel import DuelMatch, DuelRound, DuelUserStats
 from app.models.gem_ledger import GemLedger
+from app.models.identity import UserIdentity
 from app.models.ledger import CoinLedger
 from app.models.personalization import (
     QuestionAIMetadata,
@@ -54,6 +55,7 @@ __all__ = [
     "FunnelEvent",
     "User",
     "Profile",
+    "UserIdentity",
     "UserTheme",
     "UserCosmetic",
     "UserPromptAck",

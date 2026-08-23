@@ -19,7 +19,15 @@ async def authenticate_user(session: AsyncSession, email: str, password: str) ->
 
     email = email.strip().lower()
     user = (await session.execute(select(User).where(User.email == email))).scalar_one_or_none()
-    if user is None or not verify_password(password, user.password_hash):
+
+    # `password_hash is None` means the account has no password: it was created by third-party
+    # sign-in, or had its password retired when a verified provider identity linked to it. Password
+    # login must REFUSE those, and must fail exactly like a wrong password — an account that
+    # answered differently would tell an attacker which addresses are social-only, and which
+    # squatted address just got taken over.
+    if user is None or user.password_hash is None:
+        raise InvalidCredentialsError()
+    if not verify_password(password, user.password_hash):
         raise InvalidCredentialsError()
     return user
 

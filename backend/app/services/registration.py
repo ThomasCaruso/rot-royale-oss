@@ -77,7 +77,16 @@ def _violated_index(exc: IntegrityError) -> str:
     return ""
 
 
-async def register_user(session: AsyncSession, email: str, username: str, password: str) -> User:
+async def register_user(
+    session: AsyncSession, email: str, username: str, password: str | None
+) -> User:
+    """Create a fully-seeded account. `password=None` means third-party sign-in.
+
+    Optional rather than a second creation path, because everything below this line — the profile,
+    the starting rating and division, the default theme, the signup coin ledger entry — is what
+    makes an account playable. A social sign-in that built its own User row would be missing all of
+    it, and the failure would surface much later as a player with no theme and no balance.
+    """
     email = email.strip().lower()
     username = username.strip()
 
@@ -87,7 +96,9 @@ async def register_user(session: AsyncSession, email: str, username: str, passwo
     if await _exists(session, Profile.username, username):
         raise UsernameAlreadyExistsError(username)
 
-    user = User(email=email, password_hash=hash_password(password))
+    user = User(
+        email=email, password_hash=hash_password(password) if password is not None else None
+    )
     try:
         # SAVEPOINT so a concurrent-signup collision (the pre-check is TOCTOU) rolls back just these
         # inserts and surfaces as a clean 409 — without poisoning the request's outer transaction.

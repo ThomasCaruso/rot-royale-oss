@@ -6,7 +6,8 @@ import jwt
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, get_optional_user
+from app.core.config import settings
 from app.core.constants import (
     GUEST_CREATE_MAX_PER_IP_PER_HOUR,
     LOGIN_MAX_PER_ACCOUNT_PER_5MIN,
@@ -18,11 +19,15 @@ from app.core.db import get_session
 from app.core.errors import ApiErrorCode
 from app.core.ratelimit import check_rate_limit, client_ip
 from app.core.security import create_access_token, create_refresh_token, decode_token
+from app.core.socialid import InvalidSocialToken, verify_id_token
 from app.models import User
+from app.models.identity import PROVIDER_APPLE, SOCIAL_PROVIDERS
 from app.schemas.auth import (
     LoginRequest,
     RefreshRequest,
     RegisterRequest,
+    SocialSignInRequest,
+    SocialTokenResponse,
     TokenResponse,
     UpgradeRequest,
 )
@@ -35,6 +40,7 @@ from app.services.registration import (
     register_user,
     upgrade_guest,
 )
+from app.services.social_auth import sign_in_with_identity
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -144,4 +150,76 @@ async def refresh(body: RefreshRequest) -> TokenResponse:
     return TokenResponse(
         access_token=create_access_token(subject),
         refresh_token=create_refresh_token(subject),
+    )
+
+
+@router.get("/providers")
+async def social_providers() -> dict[str, object]:
+    """Which provider buttons to render, and what the browser needs to start the flow.
+
+    Derived from configured audiences, never a separate flag. A button for a provider the server
+    cannot verify is a guaranteed dead end, and the player would blame the app rather than the
+    missing config. An unconfigured deployment shows none and the email form carries the screen.
+
+    `google_client_id` is served rather than baked into the bundle at build time. It is public by
+    nature — it travels in every OAuth flow and is visible in the page source — so this is not a
+    secret being exposed. It is served because it means ONE source of truth (the environment
+    variable) instead of two that can disagree, and rotating it takes an env change rather than a
+    frontend rebuild and redeploy. Only the FIRST audience is offered: the extra entries exist so
+    tokens minted for the iOS and Android clients also verify, but a browser can only start a flow
+    with the web one.
+    """
+    providers = settings.social_sign_in_providers
+    ids = settings.google_client_id_list
+    return {
+        "providers": providers,
+        "google_client_id": ids[0] if ids else None,
+    }
+
+
+@router.post("/social", response_model=SocialTokenResponse)
+async def social_sign_in(
+    body: SocialSignInRequest,
+    request: Request,
+    user: User | None = Depends(get_optional_user),
+    session: AsyncSession = Depends(get_session),
+) -> SocialTokenResponse:
+    """Sign in (or up) with a verified Apple/Google identity.
+
+    Auth is OPTIONAL on purpose. An anonymous visitor is signing in; a GUEST is upgrading, and
+    passing their token means the identity attaches to the row they have been playing on, so the
+    streak, coins and rating they already earned carry over instead of being stranded on an account
+    they can no longer reach.
+
+    Rate-limited per IP like the other account-creating routes: this one can mint accounts, and
+    verification does an RSA signature check plus a possible JWKS fetch.
+    """
+    if not check_rate_limit(f"social:{client_ip(request)}", limit=REGISTER_MAX_PER_IP_PER_HOUR):
+        raise ApiErrorCode("rate_limited")
+
+    provider = body.provider.strip().lower()
+    if provider not in SOCIAL_PROVIDERS:
+        raise ApiErrorCode("social_provider_unsupported")
+
+    audiences = (
+        settings.apple_client_id_list
+        if provider == PROVIDER_APPLE
+        else settings.google_client_id_list
+    )
+    try:
+        identity = await verify_id_token(
+            provider, body.id_token, audiences=audiences, nonce=body.nonce
+        )
+    except InvalidSocialToken as exc:
+        # One flat code for every rejection reason. Distinguishing "bad audience" from "bad
+        # signature" tells an attacker which part of our configuration they are probing.
+        raise ApiErrorCode("social_token_invalid") from exc
+
+    result = await sign_in_with_identity(session, identity, guest=user)
+    tokens = issue_tokens(result.user)
+    return SocialTokenResponse(
+        access_token=tokens.access_token,
+        refresh_token=tokens.refresh_token,
+        created=result.created,
+        password_retired=result.password_retired,
     )

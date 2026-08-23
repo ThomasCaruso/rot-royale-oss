@@ -1,5 +1,9 @@
-import { type FormEvent, type ReactNode, useState } from "react";
-import { login, registerAndLogin } from "@/api/session";
+import { type FormEvent, type ReactNode, useEffect, useState } from "react";
+import { api } from "@/api/client";
+import { login, registerAndLogin, socialSignIn } from "@/api/session";
+import { SocialButton, type SocialProvider } from "@/ui/SocialButton";
+import { GoogleSignInButton } from "@/ui/GoogleSignInButton";
+import { SocialSignInCancelled, signInWith } from "@/lib/socialAuth";
 import { Display } from "@/ui/Display";
 import { EyeIcon, EyeOffIcon, LockIcon, MailIcon, UserIcon } from "@/ui/icons";
 import { useT } from "@/i18n/useT";
@@ -65,6 +69,66 @@ export function AuthScreen({ onBack }: { onBack?: () => void } = {}) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // Which provider buttons to show. Asked of the SERVER rather than hardcoded: it is the only
+  // thing that knows which providers it can actually verify, and a button that always fails is
+  // worse than no button. An empty list (or an unreachable call) simply leaves the email form,
+  // which is why this never blocks the screen from rendering.
+  const [providers, setProviders] = useState<SocialProvider[]>([]);
+  const [googleClientId, setGoogleClientId] = useState<string | null>(null);
+  const [socialBusy, setSocialBusy] = useState<SocialProvider | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .socialProviders()
+      .then((r) => {
+        if (cancelled) return;
+        setProviders(r.providers.filter((p): p is SocialProvider => p === "apple" || p === "google"));
+        setGoogleClientId(r.google_client_id ?? null);
+      })
+      .catch(() => {
+        /* Offline or an older server: fall back to email-only rather than an error screen. */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  /** Google's button hands the credential straight to us; there is no sheet to open. */
+  async function onGoogleCredential(idToken: string) {
+    setError(null);
+    setNotice(null);
+    setSocialBusy("google");
+    try {
+      const res = await socialSignIn("google", idToken);
+      if (res.passwordRetired) setNotice(t.auth.passwordRetired);
+    } catch (err) {
+      setError(errorMessage(err, t, t.auth.somethingWentWrong));
+      setSocialBusy(null);
+    }
+  }
+
+  async function onSocial(provider: SocialProvider) {
+    setError(null);
+    setNotice(null);
+    setSocialBusy(provider);
+    try {
+      const cred = await signInWith(provider);
+      const res = await socialSignIn(cred.provider, cred.idToken, cred.nonce);
+      if (res.passwordRetired) setNotice(t.auth.passwordRetired);
+      // On success the session store swaps the screen out; nothing to do here.
+    } catch (err) {
+      // Closing the sheet is a choice, not a failure — say so quietly and leave the form usable.
+      setError(
+        err instanceof SocialSignInCancelled
+          ? t.auth.socialCancelled
+          : errorMessage(err, t, t.auth.somethingWentWrong)
+      );
+      setSocialBusy(null);
+    }
+  }
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
@@ -97,6 +161,56 @@ export function AuthScreen({ onBack }: { onBack?: () => void } = {}) {
           {t.auth.tagline}
         </div>
       </header>
+
+      {providers.length > 0 && (
+        <>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 18 }}>
+            {providers.map((p) =>
+              // Google supplies its own button (see ui/GoogleSignInButton): a custom one can only
+              // reach an ID token through One Tap, which Google suppresses for a real share of
+              // players. Apple keeps the styled button — its native sheet takes a plain click.
+              p === "google" ? (
+                googleClientId ? (
+                  <GoogleSignInButton
+                    key={p}
+                    clientId={googleClientId}
+                    onCredential={(idToken) => void onGoogleCredential(idToken)}
+                    onUnavailable={() => setProviders((prev) => prev.filter((x) => x !== "google"))}
+                  />
+                ) : null
+              ) : (
+                <SocialButton
+                  key={p}
+                  provider={p}
+                  label={t.auth.continueWithApple}
+                  busy={socialBusy === p}
+                  disabled={busy || (socialBusy !== null && socialBusy !== p)}
+                  onClick={() => void onSocial(p)}
+                />
+              )
+            )}
+          </div>
+
+          {/* Divider. The email form stays available — there are live accounts that use it, and
+              removing it would lock those players out. It just no longer leads. */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              margin: "0 0 18px",
+              color: "var(--faint)",
+              fontSize: 12.5,
+              fontWeight: 600,
+              letterSpacing: "0.02em",
+            }}
+          >
+            <span style={{ flex: 1, height: 1, background: "var(--line)" }} />
+            {t.auth.orUseEmail}
+            <span style={{ flex: 1, height: 1, background: "var(--line)" }} />
+          </div>
+        </>
+      )}
 
       {/* Segmented control — a recessed hairline track with a single raised active segment. Minimal
           weight: one soft shadow + the specular edge, not a heavy pill. NOT className="display" (the
@@ -217,6 +331,18 @@ export function AuthScreen({ onBack }: { onBack?: () => void } = {}) {
             style={{ color: "var(--pink)", fontSize: 13.5, fontWeight: 600, paddingLeft: 2, marginTop: 1 }}
           >
             {error}
+          </div>
+        )}
+
+        {/* Not an error: the account was linked and its old password no longer applies. `status`
+            rather than `alert` — it is information, and an assertive announcement would talk over
+            the sign-in that just succeeded. */}
+        {notice && (
+          <div
+            role="status"
+            style={{ color: "var(--muted)", fontSize: 13, fontWeight: 600, paddingLeft: 2, marginTop: 1 }}
+          >
+            {notice}
           </div>
         )}
 

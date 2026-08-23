@@ -55,6 +55,7 @@ public	backend/alembic/versions/a7b8c9d0e1f2_user_unlock_acks.py
 public	backend/alembic/versions/a82f7d37047f_user_skill_state.py
 public	backend/alembic/versions/aa11bb22cc33_personalization_ai_metadata_taste_.py
 public	backend/alembic/versions/b1c2d3e4f5a6_gauntlet_day_crowd_prompt_nullable.py
+public	backend/alembic/versions/b2c3d4e5f6a7_social_sign_in_identities.py
 public	backend/alembic/versions/b3c4d5e6f7a8_canonical_categories.py
 public	backend/alembic/versions/b41c9e07d3aa_drop_orphaned_growth_tables.py
 public	backend/alembic/versions/b4c5d6e7f8a9_standings_gems_awarded.py
@@ -138,6 +139,7 @@ public	backend/app/core/errors.py
 public	backend/app/core/pushurl.py
 public	backend/app/core/ratelimit.py
 public	backend/app/core/security.py
+public	backend/app/core/socialid.py
 public	backend/app/core/timezone.py
 public	backend/app/jobs/__init__.py
 public	backend/app/jobs/daemon.py
@@ -154,6 +156,7 @@ public	backend/app/models/cosmetic.py
 public	backend/app/models/daily_chest.py
 public	backend/app/models/duel.py
 public	backend/app/models/gem_ledger.py
+public	backend/app/models/identity.py
 public	backend/app/models/ledger.py
 public	backend/app/models/personalization.py
 public	backend/app/models/profile.py
@@ -248,6 +251,7 @@ public	backend/app/services/seasons.py
 public	backend/app/services/settlement.py
 public	backend/app/services/skill_model.py
 public	backend/app/services/skill_state.py
+public	backend/app/services/social_auth.py
 public	backend/app/services/taste_profile.py
 public	backend/app/services/templates.py
 public	backend/app/services/theme_palette.py
@@ -412,6 +416,7 @@ public	backend/tests/test_settlement_gems.py
 public	backend/tests/test_share_link_purge_wiring.py
 public	backend/tests/test_skill_model.py
 public	backend/tests/test_skill_state.py
+public	backend/tests/test_social_auth.py
 public	backend/tests/test_standings_api.py
 public	backend/tests/test_standings_bound_and_privacy.py
 public	backend/tests/test_streak_grace.py
@@ -783,6 +788,7 @@ public	frontend/src/lib/downloadBrowser.test.ts
 public	frontend/src/lib/downloadBrowser.ts
 public	frontend/src/lib/firstRun.test.ts
 public	frontend/src/lib/firstRun.ts
+public	frontend/src/lib/googleIdentity.ts
 public	frontend/src/lib/haptics.ts
 public	frontend/src/lib/home.test.ts
 public	frontend/src/lib/home.ts
@@ -809,6 +815,7 @@ public	frontend/src/lib/seenResults.test.ts
 public	frontend/src/lib/seenResults.ts
 public	frontend/src/lib/sfx.test.ts
 public	frontend/src/lib/sfx.ts
+public	frontend/src/lib/socialAuth.ts
 public	frontend/src/lib/time.test.ts
 public	frontend/src/lib/time.ts
 public	frontend/src/lib/titleCase.ts
@@ -850,6 +857,7 @@ public	frontend/src/offline/sync.test.ts
 public	frontend/src/offline/sync.ts
 public	frontend/src/offline/types.ts
 public	frontend/src/preview.tsx
+public	frontend/src/screens/AuthScreen.social.test.tsx
 public	frontend/src/screens/AuthScreen.tsx
 public	frontend/src/screens/CategorySelect.test.tsx
 public	frontend/src/screens/CategorySelect.tsx
@@ -1087,10 +1095,12 @@ public	frontend/src/ui/FitText.tsx
 public	frontend/src/ui/GemIcon.tsx
 public	frontend/src/ui/GlassCard.tsx
 public	frontend/src/ui/GoldButton.tsx
+public	frontend/src/ui/GoogleSignInButton.tsx
 public	frontend/src/ui/PromptText.tsx
 public	frontend/src/ui/RoundHeader.tsx
 public	frontend/src/ui/Skeleton.tsx
 public	frontend/src/ui/SkullCrownIcon.tsx
+public	frontend/src/ui/SocialButton.tsx
 public	frontend/src/ui/Starfield.tsx
 public	frontend/src/ui/Stat.test.tsx
 public	frontend/src/ui/Stat.tsx

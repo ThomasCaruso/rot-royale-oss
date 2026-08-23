@@ -26,6 +26,16 @@ export interface TokenResponse {
   token_type: string;
 }
 
+/** TokenResponse plus what only the server knows about this particular sign-in. */
+export interface SocialTokenResponse extends TokenResponse {
+  /** First sign-in for this identity — route into onboarding rather than the daily. */
+  created?: boolean;
+  /** The account had a password and linking a verified identity retired it. Told to the player so
+   * they are not left to discover it at a later login. */
+  password_retired?: boolean;
+}
+
+
 export interface RoundSpec {
   idx: number;
   type: string;
@@ -909,6 +919,20 @@ export const api = {
 
   upgrade: (body: { email: string; username?: string; password: string }) =>
     authedRequest<TokenResponse>("/auth/upgrade", jsonInit("POST", body)),
+
+  /** Which provider buttons the server can actually verify. Unauthenticated — the sign-in screen
+   * asks before anyone is signed in, and a button for an unconfigured provider is a dead end. */
+  socialProviders: () =>
+    request<{ providers: string[]; google_client_id?: string | null }>("/auth/providers"),
+
+  /** Sign in (or up) with a verified Apple/Google identity.
+   *
+   * Sent through the AUTHED request path on purpose: when the caller is already a guest, their
+   * token rides along and the identity attaches to the row they have been playing on, so their
+   * streak, coins and rating carry over. With no session it is an ordinary anonymous sign-in —
+   * the endpoint's auth is optional. */
+  socialSignIn: (body: { provider: string; id_token: string; nonce?: string }) =>
+    authedRequest<SocialTokenResponse>("/auth/social", jsonInit("POST", body)),
 
   refresh: refreshAccessToken,
 

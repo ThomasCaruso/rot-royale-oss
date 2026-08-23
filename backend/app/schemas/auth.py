@@ -37,6 +37,33 @@ class UpgradeRequest(BaseModel):
     password: str = Field(min_length=8, max_length=128)
 
 
+class SocialSignInRequest(BaseModel):
+    """A provider ID token, for "Continue with Apple/Google".
+
+    `provider` is validated against the registry rather than trusted, so an unknown string cannot
+    reach the verifier. `nonce` is optional only because the web flow does not always set one; when
+    the client DID commit to a nonce it must be echoed here, and the server enforces the match — a
+    token captured from one sign-in is otherwise replayable into another.
+    """
+
+    provider: str = Field(min_length=1, max_length=32)
+    id_token: str = Field(min_length=1, max_length=8192)
+    nonce: str | None = Field(default=None, max_length=256)
+
+
+class SocialTokenResponse(BaseModel):
+    """Tokens, plus the two things the client cannot work out for itself."""
+
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    #: First sign-in for this identity — route into onboarding rather than the daily.
+    created: bool = False
+    #: The account had a password and it was retired by linking a verified provider identity. The
+    #: client tells the player, so they are not left to discover it at a later login.
+    password_retired: bool = False
+
+
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str

@@ -110,6 +110,21 @@ class Settings(BaseSettings):
     # cannot be chosen, so there is nothing to claim.
     admin_user_ids: str = Field(default="")
 
+    # ── Third-party sign-in audiences (Sign in with Apple / Google).
+    #
+    # These are CLIENT IDS, not secrets. Verifying an ID token needs the provider's public keys and
+    # the audience we expect — no provider credential is involved, which is why this feature adds no
+    # secret to leak. They are still configured per-environment because they differ per platform:
+    # Google issues a separate client id for iOS, Android and Web, and Apple's audience is the
+    # bundle id natively but the Service ID on the web. All of them are valid audiences for the same
+    # account, so each is a comma-separated list.
+    #
+    # EMPTY MEANS DISABLED, and that is load-bearing: app/core/socialid.py refuses to verify against
+    # an empty audience list rather than accepting a token minted for anybody. A half-configured
+    # deployment rejects sign-ins instead of accepting every one.
+    google_client_ids: str = Field(default="")
+    apple_client_ids: str = Field(default="")
+
     # ── Viral share loop hosts (host-agnostic: works local/staging/prod without code changes).
     # web_base_url = the SPA origin a shared challenge redirects a human into (`/?c=<id>`).
     # challenge_base_url = where the public share pages live (`/c/<id>` + `/c/<id>/og.png`) — the
@@ -367,6 +382,25 @@ class Settings(BaseSettings):
         """True when running on a key that must never reach production. Drives the startup warning
         so a dev-secret deployment does not look identical to a real one in the logs."""
         return self.secret_key == DEV_SECRET_KEY or len(self.secret_key) < MIN_SECRET_KEY_LENGTH
+
+    @property
+    def google_client_id_list(self) -> list[str]:
+        return [c.strip() for c in self.google_client_ids.split(",") if c.strip()]
+
+    @property
+    def apple_client_id_list(self) -> list[str]:
+        return [c.strip() for c in self.apple_client_ids.split(",") if c.strip()]
+
+    @property
+    def social_sign_in_providers(self) -> list[str]:
+        """Which provider buttons the client should show. Derived, never configured separately —
+        a button for a provider the server cannot verify is a guaranteed dead end."""
+        out = []
+        if self.apple_client_id_list:
+            out.append("apple")
+        if self.google_client_id_list:
+            out.append("google")
+        return out
 
     @property
     def cors_origins_list(self) -> list[str]:

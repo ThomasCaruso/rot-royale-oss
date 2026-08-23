@@ -136,6 +136,23 @@ services:
         value: https://rotroyale.live
       - key: CHALLENGE_BASE_URL
         value: https://rot-royale-api.onrender.com
+      # Third-party sign-in audiences (Sign in with Apple / Google). NOT secrets — a client id is
+      # public by design, and verifying an ID token needs only the provider's public keys plus the
+      # audience we expect, so this feature adds no credential to leak.
+      #
+      # `sync: false` anyway, for two reasons that are not secrecy: they differ per platform and per
+      # environment (Google issues separate ids for iOS, Android and Web; Apple's audience is the
+      # bundle id natively but the Service ID on the web), and they tie a blueprint to one Apple/
+      # Google account, which a published blueprint should not do.
+      #
+      # EMPTY MEANS DISABLED, and that is deliberate: app/core/socialid.py refuses to verify against
+      # an empty audience list rather than accepting a token minted for anybody, and /auth/providers
+      # then reports the provider as unavailable so the client shows no dead button. A deployment
+      # with these unset is a working app with email sign-in, not a broken one.
+      - key: APPLE_CLIENT_IDS
+        sync: false
+      - key: GOOGLE_CLIENT_IDS
+        sync: false
       - key: VAPID_PUBLIC_KEY
         sync: false # Web Push (M9): the API serves this to the browser. Same value as the cron's.
       - key: PYTHON_VERSION

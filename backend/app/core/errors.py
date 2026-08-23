@@ -79,6 +79,17 @@ ERROR_CODES: dict[str, tuple[int, str]] = {
     "username_taken": (status.HTTP_409_CONFLICT, "That username is taken"),
     "invalid_credentials": (status.HTTP_401_UNAUTHORIZED, "Email or password is incorrect"),
     "rate_limited": (status.HTTP_429_TOO_MANY_REQUESTS, "Too many attempts — try again later"),
+    # Third-party sign-in. ONE code for every rejection reason (bad signature, wrong audience,
+    # wrong issuer, expired, replayed nonce): naming which check failed would let a caller probe
+    # our configuration one request at a time.
+    "social_token_invalid": (
+        status.HTTP_401_UNAUTHORIZED,
+        "That sign-in could not be verified — please try again",
+    ),
+    "social_provider_unsupported": (
+        status.HTTP_400_BAD_REQUEST,
+        "That sign-in method is not available",
+    ),
     # --- duel / social ---
     "duel_not_found": (status.HTTP_404_NOT_FOUND, "No such duel"),
     "insufficient_gems": (status.HTTP_402_PAYMENT_REQUIRED, "Not enough Gems for this tier"),
