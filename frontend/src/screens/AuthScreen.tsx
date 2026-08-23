@@ -76,6 +76,7 @@ export function AuthScreen({ onBack }: { onBack?: () => void } = {}) {
   const [providers, setProviders] = useState<SocialProvider[]>([]);
   const [googleClientId, setGoogleClientId] = useState<string | null>(null);
   const [appleClientId, setAppleClientId] = useState<string | null>(null);
+  const [appleRedirectUri, setAppleRedirectUri] = useState<string | null>(null);
   const [socialBusy, setSocialBusy] = useState<SocialProvider | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -88,6 +89,7 @@ export function AuthScreen({ onBack }: { onBack?: () => void } = {}) {
         setProviders(r.providers.filter((p): p is SocialProvider => p === "apple" || p === "google"));
         setGoogleClientId(r.google_client_id ?? null);
         setAppleClientId(r.apple_client_id ?? null);
+        setAppleRedirectUri(r.apple_redirect_uri ?? null);
       })
       .catch(() => {
         /* Offline or an older server: fall back to email-only rather than an error screen. */
@@ -111,13 +113,24 @@ export function AuthScreen({ onBack }: { onBack?: () => void } = {}) {
     }
   }
 
+  // Apple matches the Return URL EXACTLY against the Service ID registration. This app is also
+  // reachable on the platform's default *.onrender.com hostname, where a sign-in would open the
+  // popup and die on a generic `invalid_request`. Showing the button only on the registered origin
+  // means it never appears somewhere it cannot work.
+  const appleUsable =
+    !appleRedirectUri ||
+    (typeof window !== "undefined" && window.location.origin === appleRedirectUri);
+
   /** Apple's popup returns the token directly; there is no rendered-button handoff. */
-  async function onApple(clientId: string) {
+  async function onApple(clientId: string, redirectURI: string | null) {
     setError(null);
     setNotice(null);
     setSocialBusy("apple");
     try {
-      const { idToken, nonce } = await signInWithApple({ clientId });
+      const { idToken, nonce } = await signInWithApple({
+        clientId,
+        redirectURI: redirectURI ?? undefined,
+      });
       const res = await socialSignIn("apple", idToken, nonce);
       if (res.passwordRetired) setNotice(t.auth.passwordRetired);
     } catch (err) {
@@ -180,14 +193,14 @@ export function AuthScreen({ onBack }: { onBack?: () => void } = {}) {
                     onUnavailable={() => setProviders((prev) => prev.filter((x) => x !== "google"))}
                   />
                 ) : null
-              ) : appleClientId ? (
+              ) : appleClientId && appleUsable ? (
                 <SocialButton
                   key={p}
                   provider={p}
                   label={t.auth.continueWithApple}
                   busy={socialBusy === p}
                   disabled={busy || (socialBusy !== null && socialBusy !== p)}
-                  onClick={() => void onApple(appleClientId)}
+                  onClick={() => void onApple(appleClientId, appleRedirectUri)}
                 />
               ) : null
             )}

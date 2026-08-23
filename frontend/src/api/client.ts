@@ -927,6 +927,7 @@ export const api = {
       providers: string[];
       google_client_id?: string | null;
       apple_client_id?: string | null;
+      apple_redirect_uri?: string | null;
     }>("/auth/providers"),
 
   /** Sign in (or up) with a verified Apple/Google identity.

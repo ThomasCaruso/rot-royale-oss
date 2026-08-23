@@ -107,4 +107,54 @@ describe("AuthScreen social sign-in", () => {
     render(<AuthScreen />);
     expect(await screen.findByPlaceholderText(/email/i)).toBeTruthy();
   });
+
+  // ── Apple ────────────────────────────────────────────────────────────────────────────────────
+
+  it("shows Apple only on the origin its Return URL is registered for", async () => {
+    // jsdom serves http://localhost, so an origin that does not match must hide the button rather
+    // than open a popup that dies on Apple's generic invalid_request.
+    socialProviders.mockResolvedValue({
+      providers: ["apple"],
+      google_client_id: null,
+      apple_client_id: "live.rotroyale.web",
+      apple_redirect_uri: "https://rotroyale.live",
+    });
+    render(<AuthScreen />);
+    expect(await screen.findByPlaceholderText(/email/i)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /continue with apple/i })).toBeNull();
+  });
+
+  it("shows Apple when the origin matches", async () => {
+    socialProviders.mockResolvedValue({
+      providers: ["apple"],
+      google_client_id: null,
+      apple_client_id: "live.rotroyale.web",
+      apple_redirect_uri: window.location.origin,
+    });
+    render(<AuthScreen />);
+    expect(await screen.findByRole("button", { name: /continue with apple/i })).toBeTruthy();
+  });
+
+  it("shows Apple when the server sends no redirect uri (older server)", async () => {
+    // Forward compatibility in reverse: a server that does not publish the field must not silently
+    // hide a provider it says is enabled.
+    socialProviders.mockResolvedValue({
+      providers: ["apple"],
+      google_client_id: null,
+      apple_client_id: "live.rotroyale.web",
+    });
+    render(<AuthScreen />);
+    expect(await screen.findByRole("button", { name: /continue with apple/i })).toBeTruthy();
+  });
+
+  it("hides Apple when configured without a client id", async () => {
+    socialProviders.mockResolvedValue({
+      providers: ["apple"],
+      google_client_id: null,
+      apple_client_id: null,
+    });
+    render(<AuthScreen />);
+    expect(await screen.findByPlaceholderText(/email/i)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /continue with apple/i })).toBeNull();
+  });
 });

@@ -178,6 +178,15 @@ async def social_providers() -> dict[str, object]:
         # are valid audiences for the same product, which is why the setting is a list; the browser
         # is handed the first, which is the one a web flow can actually start with.
         "apple_client_id": apple_ids[0] if apple_ids else None,
+        # The ONE origin Apple will accept a return to.
+        #
+        # Apple matches the Return URL exactly against what is registered on the Service ID, and
+        # this app is reachable on more than one origin: the custom domain, and the platform's
+        # default *.onrender.com hostname. On the second, a sign-in would open the popup and then
+        # fail with a generic `invalid_request` the player cannot act on. Publishing the canonical
+        # origin lets the client show the button only where it can actually succeed, instead of
+        # hardcoding a domain into the bundle.
+        "apple_redirect_uri": settings.web_base_url if apple_ids else None,
     }
 
 
