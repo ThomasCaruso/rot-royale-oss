@@ -89,6 +89,41 @@ describe("BrainBoostIntro — the front door has no signup wall", () => {
     expect(onEmailLogin).toHaveBeenCalledTimes(1);
   });
 
+  // The CTA's glint shipped with no resting state at all: for the whole 1.9s animation delay the
+  // span fell back to its own styles — no transform, full opacity — parking a bright white band
+  // across the left of the button on every cold load. It read as a half-painted, broken control on
+  // the one screen a stranger sees first. jsdom runs no animation, so what this test renders IS the
+  // resting state, which makes it exactly the right check: whatever the keyframes do, the span must
+  // be invisible AND off the pill when nothing is animating it.
+  it("the CTA's shine is invisible and off the button at rest", () => {
+    const { container } = render(
+      <BrainBoostIntro onStart={async () => {}} onEmailLogin={() => {}} />
+    );
+    const shine = container.querySelector<HTMLElement>(".rr-cta-shine");
+    expect(shine).toBeTruthy();
+
+    // Guarantee one: nothing to paint.
+    expect(shine!.style.opacity).toBe("0");
+
+    // Guarantee two: and nothing on the pill to paint it onto, so the two are independent rather
+    // than the same guarantee written twice. Parsed rather than string-matched — the point is that
+    // it is far enough left to clear the surface, not that it is spelled a particular way. The
+    // translate is in the span's OWN width units, so it must be past -100% for the band's trailing
+    // edge to clear the pill's left edge.
+    const shift = Number(/translateX\((-?[\d.]+)%\)/.exec(shine!.style.transform)?.[1] ?? NaN);
+    expect(Number.isNaN(shift)).toBe(false);
+    expect(shift).toBeLessThanOrEqual(-100);
+
+    // And the band itself stays restrained. A CTA that glints occasionally reads as premium; the
+    // old .30/.42 alpha read as a wet gloss sitting on the purple.
+    // jsdom normalizes `.13` to `0.13`, so match the alpha with or without its leading zero.
+    const peaks = [
+      ...shine!.style.background.matchAll(/rgba\(\s*255,\s*255,\s*255,\s*(0?\.\d+)\s*\)/g),
+    ].map((m) => Number(m[1]));
+    expect(peaks.length).toBeGreaterThan(0);
+    expect(Math.max(...peaks)).toBeLessThanOrEqual(0.2);
+  });
+
   it("a failed start surfaces an error and re-enables the CTA (never a dead end)", async () => {
     const onStart = vi.fn().mockRejectedValue(new Error("offline"));
     const { getByText, findByText } = render(

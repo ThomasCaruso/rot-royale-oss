@@ -9,7 +9,7 @@ type Mode = "login" | "register";
 
 /**
  * STEP 2 of the sign-in flow — email / password, reached from the provider-choice screen's
- * "Continue with Email" (see AuthScreen).
+ * the front door's Email tile (see screens/brainboost/ReturningUserRow).
  *
  * This is the SAME form that used to sit under the social buttons on one long screen; only its
  * placement changed. The two-step split exists so the front door is three equally weighted choices

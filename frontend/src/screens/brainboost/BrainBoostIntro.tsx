@@ -322,18 +322,32 @@ function cta(busy: boolean): CSSProperties {
   };
 }
 
-/* The idle sweep. A skewed band of white at low alpha, crossing the pill once every four seconds
- * (see `.rr-cta-shine`). Not a glow and not a pulse — the button is completely still for three of
- * those four seconds, which is what keeps it feeling expensive rather than needy. */
+/* The idle glint. A narrow skewed band of white at low alpha, crossing the pill once every seven
+ * seconds (see `.rr-cta-shine`). Not a glow and not a pulse — the button is completely still for
+ * roughly six of those seven seconds, which is what keeps it feeling expensive rather than needy.
+ *
+ * THE RESTING STATE IS THE WHOLE POINT of the two declarations below, and they are not belt and
+ * braces for the sake of it. This span shipped with neither, and the result was a bright gloss
+ * sitting across the left of the CTA for the entire animation delay on every cold load — the button
+ * looked broken before it had done anything. The animation overrides both while it runs (animated
+ * values outrank inline ones in the cascade), so the effect costs nothing; what they buy is that no
+ * state which stops the animation — the delay, `prefers-reduced-motion`, a stripped or unmatched
+ * keyframe name, `animation: none` inherited from a theme rule — can leave anything on the pill. */
 const ctaShine: CSSProperties = {
   position: "absolute",
   top: 0,
   bottom: 0,
   left: 0,
-  width: "45%",
+  width: "30%",
   pointerEvents: "none",
+  opacity: 0,
+  // Off the left edge, in the span's own width units: -140% × 30% = -42% of the pill, so its right
+  // edge sits at -12%. Not "nearly off" — off.
+  transform: "translateX(-140%) skewX(-18deg)",
+  // Roughly 45% of the alpha it carried before. On a saturated purple pill the old .30/.42 read as
+  // a wet gloss rather than as light; this is a glint you notice only if you are looking at it.
   background:
-    "linear-gradient(100deg, transparent, rgba(255,255,255,.30) 45%, rgba(255,255,255,.42) 55%, transparent)",
+    "linear-gradient(100deg, transparent, rgba(255,255,255,.13) 45%, rgba(255,255,255,.19) 55%, transparent)",
 };
 
 const errorText: CSSProperties = {

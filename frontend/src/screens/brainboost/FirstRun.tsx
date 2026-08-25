@@ -7,7 +7,7 @@
  */
 
 import { useState } from "react";
-import { AuthScreen } from "@/screens/AuthScreen";
+import { EmailAuthForm } from "@/screens/EmailAuthForm";
 import { BrainBoostIntro } from "./BrainBoostIntro";
 
 export function FirstRun({
@@ -16,16 +16,17 @@ export function FirstRun({
   // Launch today's Daily Royale for this visitor (App: guest session if needed → Contest).
   onPlayDaily: () => Promise<void>;
 }) {
-  // `null` = not signing in. Otherwise it is the step the sign-in screen should open on: the front
-  // door's compact Apple/Google tiles run their flow in place, but its Email tile routes here, and
-  // a returning player who has already picked their provider should not be asked to pick again.
-  const [loginStep, setLoginStep] = useState<"choose" | "email" | null>(null);
+  // The only screen behind the front door. There is no provider-CHOICE step: the front door's own
+  // row is the choice, so Apple and Google run their flow in place and Email is the one route that
+  // needs a screen of its own. A separate "pick a provider" page in front of this form would ask
+  // the player to choose something they already chose.
+  const [emailLogin, setEmailLogin] = useState(false);
 
-  if (loginStep) {
+  if (emailLogin) {
     // Returning player path. On success the session flips to a non-guest account and the app shell
     // routes past first-run automatically; this back link covers a change of mind.
-    return <AuthScreen initialStep={loginStep} onBack={() => setLoginStep(null)} />;
+    return <EmailAuthForm onBack={() => setEmailLogin(false)} />;
   }
 
-  return <BrainBoostIntro onStart={onPlayDaily} onEmailLogin={() => setLoginStep("email")} />;
+  return <BrainBoostIntro onStart={onPlayDaily} onEmailLogin={() => setEmailLogin(true)} />;
 }

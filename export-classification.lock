@@ -860,9 +860,6 @@ public	frontend/src/offline/sync.test.ts
 public	frontend/src/offline/sync.ts
 public	frontend/src/offline/types.ts
 public	frontend/src/preview.tsx
-public	frontend/src/screens/AuthScreen.flow.test.tsx
-public	frontend/src/screens/AuthScreen.social.test.tsx
-public	frontend/src/screens/AuthScreen.tsx
 public	frontend/src/screens/CategorySelect.test.tsx
 public	frontend/src/screens/CategorySelect.tsx
 public	frontend/src/screens/Contest.test.tsx
@@ -878,9 +875,11 @@ public	frontend/src/screens/brainboost/BrainBoostIntro.test.tsx
 public	frontend/src/screens/brainboost/BrainBoostIntro.tsx
 public	frontend/src/screens/brainboost/BrainProfileReveal.test.tsx
 public	frontend/src/screens/brainboost/BrainProfileReveal.tsx
+public	frontend/src/screens/brainboost/FirstRun.flow.test.tsx
 public	frontend/src/screens/brainboost/FirstRun.tsx
 public	frontend/src/screens/brainboost/RankedSaveGate.test.tsx
 public	frontend/src/screens/brainboost/RankedSaveGate.tsx
+public	frontend/src/screens/brainboost/ReturningUserRow.social.test.tsx
 public	frontend/src/screens/brainboost/ReturningUserRow.tsx
 public	frontend/src/screens/brainboost/SaveProfileScreen.test.tsx
 public	frontend/src/screens/brainboost/SaveProfileScreen.tsx

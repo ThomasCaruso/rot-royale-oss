@@ -379,6 +379,20 @@ body {
   0% { transform: translateY(12px); opacity: 0; }
   100% { transform: translateY(0); opacity: 1; }
 }
+/* The CTA's idle glint. See `.rr-cta-shine` for why the endpoints are the way they are.
+ *
+ * The translate percentages are relative to the SPAN's own width (30% of the pill), not the pill's,
+ * which is the easy thing to get wrong here: -140% moves it 42% of the pill left, putting its right
+ * edge at -12% — clear of the surface. 360% moves it 108% right, so its LEFT edge clears the far
+ * side. Anything less than ~334% leaves the band sitting on the pill at the end of every cycle,
+ * invisible only because opacity happens to be 0. Both endpoints are off the pill on purpose, so
+ * the two guarantees are independent rather than one guarantee written twice. */
+@keyframes rr-cta-sweep {
+  0% { transform: translateX(-140%) skewX(-18deg); opacity: 0; }
+  4% { opacity: 1; }
+  15% { transform: translateX(360%) skewX(-18deg); opacity: 0; }
+  100% { transform: translateX(360%) skewX(-18deg); opacity: 0; }
+}
 /* Halo breathing — 1.5% is the top of what stays subliminal; at 3% it reads as a pulse. */
 @keyframes rr-halo-breathe {
   0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.92; }
@@ -804,6 +818,24 @@ body {
 .rr-hero-halo { animation: rr-halo-breathe 5.5s ease-in-out infinite; }
 .rr-hero-crown { animation: rr-crown-float 7s ease-in-out 700ms infinite; }
 .rr-cta-in { animation: rr-cta-in 520ms cubic-bezier(0.22, 1.2, 0.36, 1) 600ms both; }
-/* One soft sweep every 4s, not a pulse: rr-card-shine spends ~24% of its cycle crossing and the
- * rest fully transparent, so the button is still for three seconds out of every four. */
-.rr-cta-shine { animation: rr-card-shine 4s ease-in-out 1.9s infinite; }
+/* The CTA's idle sweep gets its OWN keyframes rather than borrowing `rr-card-shine`. It used to
+ * share them, which meant the front door's only animated element could not be made more restrained
+ * without also re-timing the Battle Mode and Daily Royale cards. One caller, one keyframe set.
+ *
+ * THREE INDEPENDENT GUARANTEES that no band is ever visible at rest, because this shipped broken
+ * once and the failure is ugly — a bright gloss parked across the left of the button on every cold
+ * load:
+ *   1. `both`. With a delay and no fill mode the span renders its OWN styles during the delay. The
+ *      backwards fill holds the 0% keyframe instead. `backwards` alone is NOT enough: under the
+ *      global reduced-motion collapse (0.001ms, one iteration) the animation ENDS, the fill would
+ *      revert, and the band would return permanently. `both` also holds the 100% keyframe.
+ *   2. Both the 0% and 100% keyframes are `opacity: 0` AND fully outside the pill, so whichever one
+ *      is being held there is nothing to see.
+ *   3. The span's own resting style (BrainBoostIntro `ctaShine`) is opacity 0 and translated off to
+ *      the left, so even with animations stripped entirely — `animation: none`, an unsupported
+ *      keyframe name, a print stylesheet — it cannot paint.
+ *
+ * Restraint is the point: ~1.05s of travel in a 7s cycle, so the button is completely still for
+ * roughly six seconds out of every seven, and the band itself is a narrow 30% wedge at low alpha.
+ * A CTA that glints occasionally reads as expensive; one that pulses reads as needy. */
+.rr-cta-shine { animation: rr-cta-sweep 7s ease-in-out 1.9s infinite both; }

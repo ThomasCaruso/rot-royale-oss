@@ -5,6 +5,14 @@ import { AUTH_BUTTON_HEIGHT } from "@/ui/SocialButton";
 /**
  * "Continue with Google" — Google's own rendered button.
  *
+ * ⚠️ CURRENTLY RENDERED NOWHERE. Its only caller was the provider-choice screen, deleted when the
+ * front door's returning-player row became the choice (CLAUDE.md §8a). It is kept, rather than
+ * deleted with it, for one concrete reason: the row's Google tile hides GIS's button under our own
+ * mark, which works but is contrary to Google's branding guidance, and the open follow-up is to see
+ * whether an officially rendered button can be made to fit the tile. THIS is the reference for how
+ * to render one properly — the measure-then-scale dance below is the non-obvious part. If that
+ * follow-up is closed as won't-do, delete this file and the unused half of `SocialButton` with it.
+ *
  * Deliberately not our `SocialButton`. A custom button can only produce an ID token via One Tap
  * (`prompt()`), which Google suppresses after a couple of dismissals, in incognito, and for anyone
  * who opted out — so it would silently do nothing for a real share of players. `renderButton` is
@@ -21,8 +29,8 @@ import { AUTH_BUTTON_HEIGHT } from "@/ui/SocialButton";
  * Google ever changes it — see `natural` below.
  *
  * If it cannot load — blocked script, offline, ad blocker — the component renders NOTHING and tells
- * the parent. The email step is one tap away (AuthScreen drops straight to it when no provider is
- * usable), and a broken button is worse than no button.
+ * the parent. The email route is one tap away in the same row (which drops to Email alone when no
+ * provider is usable), and a broken button is worse than no button.
  */
 
 /** GIS `size: "large"`. A starting guess only — replaced by the measured height on first render. */

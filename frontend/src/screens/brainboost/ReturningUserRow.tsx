@@ -29,7 +29,7 @@ export function ReturningUserRow({
   style?: CSSProperties;
 }) {
   const t = useT();
-  const { showApple, showGoogle, appleClientId, appleRedirectUri, googleClientId, socialBusy, error, onApple, onGoogleCredential, dropGoogle } =
+  const { showApple, showGoogle, appleClientId, appleRedirectUri, googleClientId, socialBusy, error, notice, onApple, onGoogleCredential, dropGoogle } =
     useSocialSignIn(t);
 
   const busy = socialBusy !== null;
@@ -95,6 +95,15 @@ export function ReturningUserRow({
       {error && (
         <div role="alert" style={errorLine}>
           {error}
+        </div>
+      )}
+      {/* NOT an error: linking this provider retired the account's old password. It has to be said
+          somewhere, or the player finds out at a later login with no idea why it stopped working.
+          This row is the only place it can be said now — it used to live on the sign-in screen,
+          whose provider step no longer exists. `role="status"`, not `alert`: it is information. */}
+      {notice && (
+        <div role="status" style={noticeLine}>
+          {notice}
         </div>
       )}
     </div>
@@ -327,3 +336,5 @@ const errorLine: CSSProperties = {
   fontSize: 12,
   fontWeight: 600,
 };
+
+const noticeLine: CSSProperties = { ...errorLine, color: "var(--muted)" };

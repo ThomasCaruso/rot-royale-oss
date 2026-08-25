@@ -3,6 +3,12 @@ import type { ReactNode } from "react";
 /**
  * "Continue with Apple / Google" buttons.
  *
+ * ⚠️ SPLIT STATUS. `AppleMark` and `GoogleMark` are live — the front door's provider tiles draw
+ * them. The `SocialButton` COMPONENT and the `AUTH_BUTTON_*` metrics are rendered nowhere: their
+ * caller was the provider-choice screen, deleted when the front door's row became the choice
+ * (CLAUDE.md §8a). Kept alongside `GoogleSignInButton` for the same open follow-up described there;
+ * delete both halves together if it is closed as won't-do.
+ *
  * These are the one place in the app that does NOT re-skin with the equipped theme, and that is
  * deliberate. Apple and Google both publish branding requirements for their sign-in buttons —
  * approved colourways, the unmodified mark, minimum sizing, and their own wording — and Apple
@@ -22,7 +28,7 @@ export type SocialProvider = "apple" | "google";
  * The sign-in stack's shared metrics. Exported because THREE components have to agree on them or
  * the choice screen stops reading as one set: this button (Apple), `GoogleSignInButton` (which
  * scales Google's own rendered button to `AUTH_BUTTON_HEIGHT`), and the email button on
- * `AuthScreen`. One definition, so a change to any of them moves all three.
+ * a future provider stack. One definition, so a change to any of them moves the whole set.
  *
  * A full pill rather than a soft rectangle, because Google's button offers `shape: "pill"` and a
  * 4px `rectangular` — never a 14px radius. Matching Google is the only way all three corners agree,

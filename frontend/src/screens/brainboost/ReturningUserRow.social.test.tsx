@@ -1,6 +1,10 @@
 // @vitest-environment jsdom
 /**
- * The sign-in screen's provider buttons.
+ * The front door's returning-player provider row.
+ *
+ * These tests used to run against the sign-in screen's provider step, which no longer exists — the
+ * front door's own row IS the choice now. The BEHAVIOUR they pin is unchanged and lives in the
+ * shared `useSocialSignIn`, so they moved here rather than being deleted with that screen.
  *
  * Two properties are worth a test rather than a look. A button for a provider the SERVER cannot
  * verify is a guaranteed dead end that the player blames on the app, so the list is asked for
@@ -37,9 +41,12 @@ vi.mock("@/lib/googleIdentity", async () => {
   return { ...actual, renderGoogleButton: (o: unknown) => renderGoogleButton(o) };
 });
 
-import { AuthScreen } from "./AuthScreen";
+import { ReturningUserRow } from "./ReturningUserRow";
 
-describe("AuthScreen social sign-in", () => {
+/** The row always offers Email; only the two social tiles are conditional. */
+const renderRow = () => render(<ReturningUserRow onEmail={() => {}} />);
+
+describe("returning-user row: social sign-in", () => {
   afterEach(() => cleanup());
 
   beforeEach(() => {
@@ -51,29 +58,29 @@ describe("AuthScreen social sign-in", () => {
 
   it("renders Google's button only once the server says Google is configured", async () => {
     socialProviders.mockResolvedValue({ providers: ["google"], google_client_id: CLIENT_ID });
-    render(<AuthScreen />);
+    renderRow();
     await waitFor(() => expect(renderGoogleButton).toHaveBeenCalled());
     expect(renderGoogleButton.mock.calls[0][0].clientId).toBe(CLIENT_ID);
   });
 
   it("renders nothing for Google when the provider is absent", async () => {
     socialProviders.mockResolvedValue({ providers: [], google_client_id: null });
-    render(<AuthScreen />);
-    expect(await screen.findByPlaceholderText(/email/i)).toBeTruthy();
+    renderRow();
+    expect(await screen.findByRole("button", { name: /email/i })).toBeTruthy();
     await waitFor(() => expect(renderGoogleButton).not.toHaveBeenCalled());
   });
 
   it("renders nothing for Google when the server sends no client id", async () => {
     // Half-configured is treated as unconfigured — a button with no client id cannot work.
     socialProviders.mockResolvedValue({ providers: ["google"], google_client_id: null });
-    render(<AuthScreen />);
-    expect(await screen.findByPlaceholderText(/email/i)).toBeTruthy();
+    renderRow();
+    expect(await screen.findByRole("button", { name: /email/i })).toBeTruthy();
     await waitFor(() => expect(renderGoogleButton).not.toHaveBeenCalled());
   });
 
   it("sends the ID token from Google's callback to the backend", async () => {
     socialProviders.mockResolvedValue({ providers: ["google"], google_client_id: CLIENT_ID });
-    render(<AuthScreen />);
+    renderRow();
     await waitFor(() => expect(renderGoogleButton).toHaveBeenCalled());
     // Drive the credential exactly as GIS would.
     renderGoogleButton.mock.calls[0][0].onCredential("google-id-token-xyz");
@@ -85,7 +92,7 @@ describe("AuthScreen social sign-in", () => {
   it("tells the player when linking retired their password", async () => {
     socialProviders.mockResolvedValue({ providers: ["google"], google_client_id: CLIENT_ID });
     socialSignInApi.mockResolvedValue({ created: false, passwordRetired: true });
-    render(<AuthScreen />);
+    renderRow();
     await waitFor(() => expect(renderGoogleButton).toHaveBeenCalled());
     renderGoogleButton.mock.calls[0][0].onCredential("tok");
     expect(await screen.findByRole("status")).toBeTruthy();
@@ -94,18 +101,21 @@ describe("AuthScreen social sign-in", () => {
   it("surfaces a backend rejection rather than failing silently", async () => {
     socialProviders.mockResolvedValue({ providers: ["google"], google_client_id: CLIENT_ID });
     socialSignInApi.mockRejectedValue(new Error("nope"));
-    render(<AuthScreen />);
+    renderRow();
     await waitFor(() => expect(renderGoogleButton).toHaveBeenCalled());
     renderGoogleButton.mock.calls[0][0].onCredential("tok");
     expect(await screen.findByRole("alert")).toBeTruthy();
   });
 
-  it("drops Google and keeps the email form when GIS cannot load", async () => {
+  it("drops Google and keeps the email route when GIS cannot load", async () => {
     // Ad blocker, offline, blocked script. A broken button is worse than no button.
     socialProviders.mockResolvedValue({ providers: ["google"], google_client_id: CLIENT_ID });
     renderGoogleButton.mockRejectedValue(new Error("blocked"));
-    render(<AuthScreen />);
-    expect(await screen.findByPlaceholderText(/email/i)).toBeTruthy();
+    renderRow();
+    expect(await screen.findByRole("button", { name: /email/i })).toBeTruthy();
+    await waitFor(() =>
+      expect(screen.queryByRole("button", { name: /google/i })).toBeNull()
+    );
   });
 
   // ── Apple ────────────────────────────────────────────────────────────────────────────────────
@@ -119,9 +129,9 @@ describe("AuthScreen social sign-in", () => {
       apple_client_id: "live.rotroyale.web",
       apple_redirect_uri: "https://rotroyale.live",
     });
-    render(<AuthScreen />);
-    expect(await screen.findByPlaceholderText(/email/i)).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /continue with apple/i })).toBeNull();
+    renderRow();
+    expect(await screen.findByRole("button", { name: /email/i })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /apple/i })).toBeNull();
   });
 
   it("shows Apple when the origin matches", async () => {
@@ -131,8 +141,8 @@ describe("AuthScreen social sign-in", () => {
       apple_client_id: "live.rotroyale.web",
       apple_redirect_uri: window.location.origin,
     });
-    render(<AuthScreen />);
-    expect(await screen.findByRole("button", { name: /continue with apple/i })).toBeTruthy();
+    renderRow();
+    expect(await screen.findByRole("button", { name: /apple/i })).toBeTruthy();
   });
 
   it("shows Apple when the server sends no redirect uri (older server)", async () => {
@@ -143,8 +153,8 @@ describe("AuthScreen social sign-in", () => {
       google_client_id: null,
       apple_client_id: "live.rotroyale.web",
     });
-    render(<AuthScreen />);
-    expect(await screen.findByRole("button", { name: /continue with apple/i })).toBeTruthy();
+    renderRow();
+    expect(await screen.findByRole("button", { name: /apple/i })).toBeTruthy();
   });
 
   it("hides Apple when configured without a client id", async () => {
@@ -153,8 +163,8 @@ describe("AuthScreen social sign-in", () => {
       google_client_id: null,
       apple_client_id: null,
     });
-    render(<AuthScreen />);
-    expect(await screen.findByPlaceholderText(/email/i)).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /continue with apple/i })).toBeNull();
+    renderRow();
+    expect(await screen.findByRole("button", { name: /email/i })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /apple/i })).toBeNull();
   });
 });
