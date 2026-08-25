@@ -90,6 +90,19 @@ ERROR_CODES: dict[str, tuple[int, str]] = {
         status.HTTP_400_BAD_REQUEST,
         "That sign-in method is not available",
     ),
+    # The Google code flow's own failures, and again ONE code for all of them. A forged state, an
+    # expired one, a replayed one and a state for a different deployment are indistinguishable to
+    # the caller on purpose — telling them which would turn the endpoint into an oracle for probing
+    # how long our handshake lives and whether a given value was ever real.
+    "oauth_state_invalid": (
+        status.HTTP_400_BAD_REQUEST,
+        "That sign-in could not be completed — please try again",
+    ),
+    # Likewise for the handoff: expired, already spent and never-existed all answer the same way.
+    "oauth_handoff_invalid": (
+        status.HTTP_401_UNAUTHORIZED,
+        "That sign-in link has already been used — please sign in again",
+    ),
     # --- duel / social ---
     "duel_not_found": (status.HTTP_404_NOT_FOUND, "No such duel"),
     "insufficient_gems": (status.HTTP_402_PAYMENT_REQUIRED, "Not enough Gems for this tier"),

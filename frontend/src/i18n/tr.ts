@@ -970,6 +970,8 @@ export const tr: Dict = {
     invalid_credentials: "E-posta veya şifre hatalı.",
     social_token_invalid: "Bu giriş doğrulanamadı. Lütfen tekrar dene.",
     social_provider_unsupported: "Bu giriş yöntemi kullanılamıyor.",
+    oauth_state_invalid: "Bu giriş tamamlanamadı. Lütfen tekrar dene.",
+    oauth_handoff_invalid: "Bu giriş bağlantısı zaten kullanıldı. Lütfen tekrar giriş yap.",
     rate_limited: "Çok fazla deneme. Birazdan tekrar dene.",
     duel_not_found: "O düello bulunamadı.",
     insufficient_gems: "Bu seviye için yeterli gemin yok.",

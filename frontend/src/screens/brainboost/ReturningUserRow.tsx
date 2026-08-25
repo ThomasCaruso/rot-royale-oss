@@ -1,5 +1,4 @@
-import { type CSSProperties, useEffect, useRef, useState } from "react";
-import { renderGoogleButton } from "@/lib/googleIdentity";
+import { type CSSProperties } from "react";
 import { useSocialSignIn } from "@/lib/useSocialSignIn";
 import { useT } from "@/i18n/useT";
 import { AppleMark, GoogleMark } from "@/ui/SocialButton";
@@ -19,6 +18,15 @@ import { MailIcon } from "@/ui/icons";
  * No auth logic of its own: providers and both handlers come from `useSocialSignIn`, the same hook
  * the sign-in screen uses, and Email routes to that screen's existing email step rather than
  * growing a second form.
+ *
+ * **All three tiles are now ordinary buttons, and that is the recent, hard-won part.** Google's used
+ * to draw our mark with GOOGLE'S OWN button invisible on top of it, because Google Identity Services
+ * only hands over a credential from a button it rendered itself, inside a cross-origin iframe. The
+ * control the player saw was not the control they pressed, and it behaved accordingly: taps that did
+ * nothing, a scaled overlay that swallowed the neighbouring Apple tile's hit area, and a class of
+ * bug that could only be debugged through an iframe we cannot see into. Google now runs the OIDC
+ * authorization-code flow (`/auth/google/start`), so the tile just navigates. If anyone is ever
+ * tempted to reintroduce a rendered provider widget here, that is the history.
  */
 export function ReturningUserRow({
   onEmail,
@@ -29,8 +37,17 @@ export function ReturningUserRow({
   style?: CSSProperties;
 }) {
   const t = useT();
-  const { showApple, showGoogle, appleClientId, appleRedirectUri, googleClientId, socialBusy, error, notice, onApple, onGoogleCredential, dropGoogle } =
-    useSocialSignIn(t);
+  const {
+    showApple,
+    showGoogle,
+    appleClientId,
+    appleRedirectUri,
+    socialBusy,
+    error,
+    notice,
+    onApple,
+    onGoogle,
+  } = useSocialSignIn(t);
 
   const busy = socialBusy !== null;
   // Email is always offered; the two social tiles only appear where the server can verify them, so
@@ -52,17 +69,14 @@ export function ReturningUserRow({
       ),
     });
   }
-  if (showGoogle && googleClientId) {
+  if (showGoogle) {
     tiles.push({
       key: "google",
       delay: 70,
       node: (
-        <GoogleTile
-          label={t.brainBoost.providerGoogle}
-          clientId={googleClientId}
-          onCredential={(idToken) => void onGoogleCredential(idToken)}
-          onUnavailable={dropGoogle}
-        />
+        <Tile label={t.brainBoost.providerGoogle} busy={busy} onClick={() => void onGoogle()}>
+          <GoogleMark />
+        </Tile>
       ),
     });
   }
@@ -145,110 +159,6 @@ function Tile({
     </button>
   );
 }
-
-/**
- * Google's tile. The face is ours — the official four-colour mark on the same surface as its two
- * neighbours — with GOOGLE'S OWN button invisible on top, filling the tile, taking the tap.
- *
- * Both halves of that are forced. The credential must come from a button GIS rendered: a custom
- * control cannot obtain an ID token except through One Tap, which Google suppresses for a large
- * share of players. But GIS's `type: "icon"` button, scaled into the icon slot, renders its white
- * surface and NO mark — a blank chip nested inside our tile, broken-looking and structurally unlike
- * Apple and Email beside it. (Verified, not assumed: GIS emits a 40x40 button containing its SVG,
- * and at 0.55 scale the surface paints and the mark does not.)
- *
- * So the visible mark is ours and the hit target is Google's. This is the OPPOSITE call to the one
- * on the dedicated sign-in screen, where the full-width button is GIS's own and therefore
- * brand-compliant by construction (see `ui/GoogleSignInButton`, which records why the overlay was
- * rejected there). Here three tiles that match each other matters more, and the mark drawn is still
- * Google's official one.
- *
- * The overlay is scaled UP to cover the tile, so every part of it is tappable and none is dead.
- */
-function GoogleTile({
-  label,
-  clientId,
-  onCredential,
-  onUnavailable,
-}: {
-  label: string;
-  clientId: string;
-  onCredential: (idToken: string) => void;
-  onUnavailable: () => void;
-}) {
-  const host = useRef<HTMLDivElement | null>(null);
-  const [natural, setNatural] = useState(40);
-  const cb = useRef(onCredential);
-  cb.current = onCredential;
-  const un = useRef(onUnavailable);
-  un.current = onUnavailable;
-
-  useEffect(() => {
-    const parent = host.current;
-    if (!parent || !clientId) return;
-    let cancelled = false;
-    void renderGoogleButton({
-      parent,
-      clientId,
-      type: "icon",
-      shape: "square",
-      onCredential: (idToken) => !cancelled && cb.current(idToken),
-      onError: () => !cancelled && un.current(),
-    })
-      .then(() => {
-        if (cancelled || typeof requestAnimationFrame !== "function") return;
-        requestAnimationFrame(() => {
-          if (cancelled) return;
-          // `offsetHeight`, never `getBoundingClientRect` — the rect is the TRANSFORMED box, so
-          // measuring it feeds the scale back into itself (see ui/GoogleSignInButton).
-          const measured = (parent.firstElementChild as HTMLElement | null)?.offsetHeight ?? 0;
-          if (measured > 0) setNatural(measured);
-        });
-      })
-      .catch(() => !cancelled && un.current());
-    return () => {
-      cancelled = true;
-    };
-  }, [clientId]);
-
-  return (
-    // Hover and press ride the tile itself, not GIS's overlay: the overlay is a DESCENDANT, so
-    // hovering or pressing it resolves to this element and Google's tile behaves like the other two.
-    <div style={{ ...tileButton(false, false), position: "relative" }} className="rr-grow" {...pressProps(false)}>
-      <span style={tileIcon} aria-hidden>
-        <GoogleMark />
-      </span>
-      <span style={tileLabel}>{label}</span>
-      {/* TWO elements, and the outer one is load-bearing. The scale has to sit on the INNER node,
-          with the outer clipped to the tile: scaling the positioned element itself grows its hit
-          area past its own bounds, and a 2.4x overlay then swallows the neighbouring tile. Caught
-          by hit-testing — three of four probes on Apple resolved to Google. `overflow: hidden`
-          means anything spilling past the tile is neither painted nor tappable. */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          overflow: "hidden",
-          borderRadius: 16,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          opacity: 0,
-          cursor: "pointer",
-        }}
-      >
-        <div
-          ref={host}
-          aria-label={label}
-          style={{ transform: `scale(${TILE_COVER / natural})`, transformOrigin: "center" }}
-        />
-      </div>
-    </div>
-  );
-}
-
-/** Scale target for the invisible GIS overlay — larger than the tile, so it covers all of it. */
-const TILE_COVER = 96;
 
 /**
  * The press half of `.rr-grow` (global.css): sets the --rr-press custom property so hover and press

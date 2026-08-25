@@ -1,22 +1,20 @@
-import type { ReactNode } from "react";
-
 /**
- * "Continue with Apple / Google" buttons.
+ * The Apple and Google marks, for the front door's provider tiles.
  *
- * ⚠️ SPLIT STATUS. `AppleMark` and `GoogleMark` are live — the front door's provider tiles draw
- * them. The `SocialButton` COMPONENT and the `AUTH_BUTTON_*` metrics are rendered nowhere: their
- * caller was the provider-choice screen, deleted when the front door's row became the choice
- * (CLAUDE.md §8a). Kept alongside `GoogleSignInButton` for the same open follow-up described there;
- * delete both halves together if it is closed as won't-do.
+ * This file used to hold a full "Continue with Apple / Google" BUTTON plus the shared
+ * `AUTH_BUTTON_*` metrics three components had to agree on. All of that is gone: its caller was the
+ * provider-choice screen (deleted when the front door's row became the choice), and the last reason
+ * to keep it — a live question about whether Google's own rendered button could be made to fit a
+ * compact tile — was closed by moving Google to the OIDC authorization-code flow. There is no
+ * rendered provider widget anywhere in this app now, so there is nothing left for those metrics to
+ * keep in step. What remains is two SVGs and the provider union.
  *
- * These are the one place in the app that does NOT re-skin with the equipped theme, and that is
- * deliberate. Apple and Google both publish branding requirements for their sign-in buttons —
- * approved colourways, the unmodified mark, minimum sizing, and their own wording — and Apple
- * reviews against them. A button tinted to match the Starter palette would be a rejection, so the
- * provider colours are fixed and only the SHAPE follows the app (radius, height and type scale are
- * taken from the CTA next to them, so the group still reads as one stack rather than pasted in).
+ * The marks do NOT re-skin with the equipped theme, and that is deliberate. Apple and Google both
+ * publish branding requirements for sign-in surfaces — the unmodified mark, approved colourways,
+ * minimum sizing — and Apple reviews against them. A mark tinted to match the Starter palette would
+ * be a rejection.
  *
- * The marks are inlined as SVG rather than fetched: `public/` assets are not content-hashed
+ * They are inlined as SVG rather than fetched: `public/` assets are not content-hashed
  * (docs/architecture.md §13), a network image would flash on a cold sign-in screen, and these are
  * a dozen paths. They are Apple's and Google's trademarks, reproduced unmodified as their
  * guidelines require for this exact purpose — see THIRD_PARTY_NOTICES.md.
@@ -24,26 +22,6 @@ import type { ReactNode } from "react";
 
 export type SocialProvider = "apple" | "google";
 
-/**
- * The sign-in stack's shared metrics. Exported because THREE components have to agree on them or
- * the choice screen stops reading as one set: this button (Apple), `GoogleSignInButton` (which
- * scales Google's own rendered button to `AUTH_BUTTON_HEIGHT`), and the email button on
- * a future provider stack. One definition, so a change to any of them moves the whole set.
- *
- * A full pill rather than a soft rectangle, because Google's button offers `shape: "pill"` and a
- * 4px `rectangular` — never a 14px radius. Matching Google is the only way all three corners agree,
- * and the pill is the app's own CTA shape anyway (`--radius-pill`, the Daily Royale button).
- */
-export const AUTH_BUTTON_HEIGHT = 52;
-export const AUTH_BUTTON_RADIUS = 999;
-/** Google renders its `size: "large"` label at 14px; scaled to 52px tall that lands near 18. 17
- *  keeps ours within a hair of it — the same typographic weight, not the same number. */
-export const AUTH_BUTTON_FONT = 17;
-
-const HEIGHT = AUTH_BUTTON_HEIGHT;
-const RADIUS = AUTH_BUTTON_RADIUS;
-
-/** Exported so the Daily Royale front door's compact provider tile shows the same mark. */
 export function AppleMark() {
   return (
     <svg width="18" height="22" viewBox="0 0 14 17" aria-hidden focusable="false">
@@ -80,69 +58,3 @@ export function GoogleMark() {
 }
 
 /** Provider-mandated colourways. Not theme tokens — see the note above. */
-const SKIN: Record<SocialProvider, { bg: string; fg: string; border: string; mark: ReactNode }> = {
-  apple: { bg: "#000000", fg: "#ffffff", border: "#000000", mark: <AppleMark /> },
-  google: { bg: "#ffffff", fg: "#1f1f1f", border: "#dadce0", mark: <GoogleMark /> },
-};
-
-export function SocialButton({
-  provider,
-  label,
-  onClick,
-  busy = false,
-  disabled = false,
-}: {
-  provider: SocialProvider;
-  /** Localized, but the provider NAME inside it is never translated — that is a brand requirement. */
-  label: string;
-  onClick: () => void;
-  busy?: boolean;
-  disabled?: boolean;
-}) {
-  const skin = SKIN[provider];
-  const off = disabled || busy;
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={off}
-      aria-busy={busy || undefined}
-      style={{
-        width: "100%",
-        height: HEIGHT,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 10,
-        borderRadius: RADIUS,
-        border: `1px solid ${skin.border}`,
-        background: skin.bg,
-        color: skin.fg,
-        // Inherit the app's face so the stack reads as one family. Apple's guidelines set the
-        // button's colour and mark, not the host app's typeface.
-        fontFamily: "inherit",
-        fontSize: AUTH_BUTTON_FONT,
-        fontWeight: 600,
-        letterSpacing: "-0.01em",
-        cursor: off ? "default" : "pointer",
-        opacity: off ? 0.6 : 1,
-        transition: "opacity 140ms, transform 90ms",
-        WebkitTapHighlightColor: "transparent",
-      }}
-      onPointerDown={(e) => {
-        // Fires on POINTER DOWN so the press lands with the finger rather than after the decision
-        // (docs/architecture.md — the same reason haptics are wired this way).
-        if (!off) e.currentTarget.style.transform = "scale(0.985)";
-      }}
-      onPointerUp={(e) => {
-        e.currentTarget.style.transform = "scale(1)";
-      }}
-      onPointerLeave={(e) => {
-        e.currentTarget.style.transform = "scale(1)";
-      }}
-    >
-      <span style={{ display: "flex", alignItems: "center" }}>{skin.mark}</span>
-      <span>{label}</span>
-    </button>
-  );
-}

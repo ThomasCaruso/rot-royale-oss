@@ -93,6 +93,18 @@ RATING_K: int = 64  # Elo sensitivity
 # scheduler jobs.
 SETTLE_DELAY_MINUTES: int = 15
 
+# --- Sign in with Google, OIDC authorization-code flow (app/services/google_oauth.py) ------------
+# How long a minted `state` stays acceptable. This has to cover a HUMAN: opening Google, picking
+# between accounts, possibly typing a password and a 2FA code. Ten minutes is generous for that and
+# still short enough that an abandoned attempt cannot be revived later. Too tight and a slow sign-in
+# fails with an error the player did nothing to deserve.
+GOOGLE_OAUTH_STATE_TTL_SECONDS: int = 600
+# How long the one-time handoff code in the SPA's URL fragment stays redeemable. It only has to
+# survive a single redirect, so this is deliberately tiny: the code lands in browser history, and
+# the window in which a copied URL is worth anything should be about as long as it takes the page
+# to finish loading. Single-use is the real protection; this is the backstop.
+GOOGLE_OAUTH_HANDOFF_TTL_SECONDS: int = 60
+
 # --- Daily Royale Gem rewards (the scarce currency). Granted at settlement, royale slot only, via
 # the gem ledger (idempotency_key dr:{window_id}:{user_id}). Only the single highest tier is paid
 # (never stacked). Starter +5 is a one-time grant on a player's first settled Daily Royale. ---

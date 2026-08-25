@@ -67,6 +67,7 @@ public	backend/alembic/versions/bb22cc33dd44_entries_mode.py
 public	backend/alembic/versions/bc825787e710_m5_standings_table.py
 public	backend/alembic/versions/c1d2e3f4a5b6_coin_ledger_idempotency_key.py
 public	backend/alembic/versions/c2d3e4f5a6b7_royale_cognition_integration.py
+public	backend/alembic/versions/c3d4e5f6a7b8_oauth_transactions.py
 public	backend/alembic/versions/c4d5e6f7a8b9_campaign_tables.py
 public	backend/alembic/versions/c5d6e7f8a9b0_duel_tables.py
 public	backend/alembic/versions/c6d7e8f9a0b1_change_item_table.py
@@ -159,6 +160,7 @@ public	backend/app/models/duel.py
 public	backend/app/models/gem_ledger.py
 public	backend/app/models/identity.py
 public	backend/app/models/ledger.py
+public	backend/app/models/oauth_transaction.py
 public	backend/app/models/personalization.py
 public	backend/app/models/profile.py
 public	backend/app/models/prompt.py
@@ -226,6 +228,7 @@ public	backend/app/services/friends.py
 public	backend/app/services/gem_ledger.py
 public	backend/app/services/glicko2.py
 public	backend/app/services/goodwill.py
+public	backend/app/services/google_oauth.py
 public	backend/app/services/growth.py
 public	backend/app/services/learning_select.py
 public	backend/app/services/ledger.py
@@ -364,6 +367,7 @@ public	backend/tests/test_funnel_analytics.py
 public	backend/tests/test_gem_ledger.py
 public	backend/tests/test_glicko2.py
 public	backend/tests/test_goodwill.py
+public	backend/tests/test_google_oauth.py
 public	backend/tests/test_growth.py
 public	backend/tests/test_guest_auth.py
 public	backend/tests/test_identity.py
@@ -791,7 +795,8 @@ public	frontend/src/lib/downloadBrowser.test.ts
 public	frontend/src/lib/downloadBrowser.ts
 public	frontend/src/lib/firstRun.test.ts
 public	frontend/src/lib/firstRun.ts
-public	frontend/src/lib/googleIdentity.ts
+public	frontend/src/lib/googleReturn.test.ts
+public	frontend/src/lib/googleReturn.ts
 public	frontend/src/lib/haptics.ts
 public	frontend/src/lib/home.test.ts
 public	frontend/src/lib/home.ts
@@ -1100,7 +1105,6 @@ public	frontend/src/ui/FitText.tsx
 public	frontend/src/ui/GemIcon.tsx
 public	frontend/src/ui/GlassCard.tsx
 public	frontend/src/ui/GoldButton.tsx
-public	frontend/src/ui/GoogleSignInButton.tsx
 public	frontend/src/ui/PromptText.tsx
 public	frontend/src/ui/RoundHeader.tsx
 public	frontend/src/ui/Skeleton.tsx

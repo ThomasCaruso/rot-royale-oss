@@ -125,6 +125,22 @@ class Settings(BaseSettings):
     google_client_ids: str = Field(default="")
     apple_client_ids: str = Field(default="")
 
+    # The FIRST provider secret in this codebase, and the only one. Sign in with Google's
+    # authorization-code flow exchanges the code for tokens server-side, and that exchange is
+    # authenticated with this. Verification still needs no secret (app/core/socialid.py uses public
+    # keys); this buys the code exchange, nothing else.
+    #
+    # EMPTY MEANS GOOGLE IS OFF, like the audience lists above: without it `/auth/google/start`
+    # cannot complete, so the button is not offered at all rather than being offered and dying at
+    # the last step. It must never be logged, echoed in an error, or served from any endpoint.
+    google_client_secret: str = Field(default="")
+    # Where Google sends the browser back. Google matches this against the registered Authorized
+    # redirect URI EXACTLY — scheme, host, port and path — and a mismatch fails with a generic error
+    # that says nothing useful. Left empty it is derived from `challenge_base_url`, which is already
+    # defined as the externally reachable API origin; set it explicitly when the API moves to a
+    # custom domain, and change it in the Google console in the same breath.
+    google_redirect_uri: str = Field(default="")
+
     # ── Viral share loop hosts (host-agnostic: works local/staging/prod without code changes).
     # web_base_url = the SPA origin a shared challenge redirects a human into (`/?c=<id>`).
     # challenge_base_url = where the public share pages live (`/c/<id>` + `/c/<id>/og.png`) — the
@@ -392,13 +408,30 @@ class Settings(BaseSettings):
         return [c.strip() for c in self.apple_client_ids.split(",") if c.strip()]
 
     @property
+    def google_oauth_redirect_uri(self) -> str:
+        """Where Google returns the browser. Explicit setting wins; otherwise derived from the API
+        origin. Whatever this resolves to must be registered verbatim in the Google console."""
+        if self.google_redirect_uri.strip():
+            return self.google_redirect_uri.strip()
+        return f"{self.challenge_base_url.rstrip('/')}/auth/google/callback"
+
+    @property
+    def google_oauth_configured(self) -> bool:
+        """Google needs BOTH halves now: an audience to verify the ID token against, and the secret
+        that buys the code exchange. Either one alone is a button that fails at the last step."""
+        return bool(self.google_client_id_list) and bool(self.google_client_secret.strip())
+
+    @property
     def social_sign_in_providers(self) -> list[str]:
         """Which provider buttons the client should show. Derived, never configured separately —
         a button for a provider the server cannot verify is a guaranteed dead end."""
         out = []
         if self.apple_client_id_list:
             out.append("apple")
-        if self.google_client_id_list:
+        # Not `google_client_id_list`: since the code flow landed, an audience without a client
+        # secret can verify a token it can never obtain. Offering the button then would put the
+        # failure at the very end of the flow, after the player has already chosen an account.
+        if self.google_oauth_configured:
             out.append("google")
         return out
 

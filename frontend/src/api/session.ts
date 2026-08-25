@@ -45,6 +45,22 @@ export async function socialSignIn(
   return { created: Boolean(res.created), passwordRetired: Boolean(res.password_retired) };
 }
 
+/** Redeem the one-time handoff code Google's callback left in the URL fragment.
+ *
+ * The guest upgrade already happened server-side, during the callback — this only collects the
+ * finished session, so there is no token to attach and nothing to merge here. Returns the same two
+ * facts as `socialSignIn` so the caller renders the same things.
+ *
+ * Deliberately NOT authed: by the time this runs the account is resolved, and sending a stale guest
+ * token would be meaningless at best. */
+export async function completeGoogleHandoff(
+  handoffCode: string
+): Promise<{ created: boolean; passwordRetired: boolean }> {
+  const res = await api.googleHandoff(handoffCode);
+  await establish(res);
+  return { created: Boolean(res.created), passwordRetired: Boolean(res.password_retired) };
+}
+
 /** Anonymous-first: create a guest account and enter the app in one tap (Brain Boost onboarding).
  * The session persists via the ordinary refresh token, so the guest survives app restarts. */
 export async function startGuest(): Promise<void> {

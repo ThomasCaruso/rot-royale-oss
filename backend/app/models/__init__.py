@@ -21,6 +21,7 @@ from app.models.duel import DuelMatch, DuelRound, DuelUserStats
 from app.models.gem_ledger import GemLedger
 from app.models.identity import UserIdentity
 from app.models.ledger import CoinLedger
+from app.models.oauth_transaction import OAuthTransaction
 from app.models.personalization import (
     QuestionAIMetadata,
     QuestionInteractionEvent,
@@ -56,6 +57,7 @@ __all__ = [
     "User",
     "Profile",
     "UserIdentity",
+    "OAuthTransaction",
     "UserTheme",
     "UserCosmetic",
     "UserPromptAck",

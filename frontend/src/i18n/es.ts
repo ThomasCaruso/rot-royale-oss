@@ -970,6 +970,8 @@ export const es: Dict = {
     invalid_credentials: "Correo o contraseña incorrectos.",
     social_token_invalid: "No se pudo verificar ese inicio de sesión. Inténtalo de nuevo.",
     social_provider_unsupported: "Ese método de inicio de sesión no está disponible.",
+    oauth_state_invalid: "No se pudo completar ese inicio de sesión. Inténtalo de nuevo.",
+    oauth_handoff_invalid: "Ese enlace de inicio de sesión ya se usó. Vuelve a iniciar sesión.",
     rate_limited: "Demasiados intentos. Prueba en un momento.",
     duel_not_found: "No se encontró ese duelo.",
     insufficient_gems: "No tienes gemas suficientes para este nivel.",

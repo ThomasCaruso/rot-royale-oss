@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import jwt
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_optional_user
@@ -23,6 +24,8 @@ from app.core.socialid import InvalidSocialToken, verify_id_token
 from app.models import User
 from app.models.identity import PROVIDER_APPLE, SOCIAL_PROVIDERS
 from app.schemas.auth import (
+    GoogleHandoffRequest,
+    GoogleStartResponse,
     LoginRequest,
     RefreshRequest,
     RegisterRequest,
@@ -32,6 +35,13 @@ from app.schemas.auth import (
     UpgradeRequest,
 )
 from app.services.auth import InvalidCredentialsError, authenticate_user, issue_tokens
+from app.services.google_oauth import (
+    GoogleOAuthError,
+    complete_callback,
+    google_configured,
+    redeem_handoff,
+    start_transaction,
+)
 from app.services.registration import (
     EmailAlreadyExistsError,
     NotAGuestError,
@@ -229,6 +239,114 @@ async def social_sign_in(
         raise ApiErrorCode("social_token_invalid") from exc
 
     result = await sign_in_with_identity(session, identity, guest=user)
+    tokens = issue_tokens(result.user)
+    return SocialTokenResponse(
+        access_token=tokens.access_token,
+        refresh_token=tokens.refresh_token,
+        created=result.created,
+        password_retired=result.password_retired,
+    )
+
+
+# ── Sign in with Google: OIDC authorization-code flow (app/services/google_oauth.py) ─────────────
+#
+# Three endpoints, and the split is not arbitrary. `/start` needs the caller's bearer token (to
+# preserve a guest's progress) and cannot be a redirect the browser follows blindly, so it is a POST
+# that returns a URL. `/callback` is a GET because Google navigates the browser to it, and it must
+# answer with a redirect rather than JSON — a human is looking at it. `/handoff` is the SPA trading
+# the one-time code for a session.
+
+
+@router.post("/google/start", response_model=GoogleStartResponse)
+async def google_start(
+    request: Request,
+    user: User | None = Depends(get_optional_user),
+    session: AsyncSession = Depends(get_session),
+) -> GoogleStartResponse:
+    """Open a Google sign-in and hand back the URL to navigate to.
+
+    Auth is OPTIONAL and load-bearing when present: a GUEST who has been playing is upgrading, and
+    binding their (server-validated) identity to the transaction is the only reason their streak,
+    coins and rating survive the sign-in. It is taken from the bearer token and never from the
+    request body — a client-supplied user id would let anyone aim a sign-in at any account.
+
+    Rate-limited per IP: this mints rows and, downstream, accounts.
+    """
+    if not check_rate_limit(
+        f"google_start:{client_ip(request)}", limit=REGISTER_MAX_PER_IP_PER_HOUR
+    ):
+        raise ApiErrorCode("rate_limited")
+    if not google_configured():
+        raise ApiErrorCode("social_provider_unsupported")
+
+    try:
+        _txn, authorize_url = await start_transaction(session, guest=user)
+    except GoogleOAuthError as exc:
+        raise ApiErrorCode("social_provider_unsupported") from exc
+    return GoogleStartResponse(authorize_url=authorize_url)
+
+
+@router.get("/google/callback")
+async def google_callback(
+    request: Request,
+    session: AsyncSession = Depends(get_session),
+    code: str | None = None,
+    state: str | None = None,
+    error: str | None = None,
+) -> RedirectResponse:
+    """Where Google returns the browser. Always answers with a redirect into the SPA.
+
+    **No provider error, code, token or raw state is ever echoed into the redirect.** Google's error
+    strings describe our client configuration and mean nothing to a player; the parameters are
+    secrets in their own right. Every failure — the player pressing cancel, a forged state, a dead
+    token endpoint — lands on the same opaque `#auth_error=google`, which the SPA renders as one
+    localized line. The detail stays server-side.
+
+    On success the only thing in the URL is a one-time handoff code with a 60-second life, so no
+    access, refresh or ID token is ever exposed to browser history, a referrer header or a proxy
+    log.
+    """
+    spa = settings.web_base_url.rstrip("/")
+
+    # The player pressed Cancel, or Google refused. Not an error worth alarming anyone about.
+    if error or not code or not state:
+        return RedirectResponse(url=f"{spa}/#auth_error=google", status_code=status.HTTP_302_FOUND)
+
+    try:
+        txn, _result = await complete_callback(session, code=code, state=state)
+    except GoogleOAuthError:
+        # COMMIT, even though this failed. The state was consumed before the step that blew up, and
+        # that consumption is the replay protection — rolling it back here would leave the state
+        # unspent in the database, so anything that fails AFTER the state check (a wrong nonce, a
+        # refused token exchange, a dead endpoint) would hand the same state back for another go.
+        # Nothing else is pending on this session at this point but the burn.
+        await session.commit()
+        # The error itself is deliberately swallowed: `GoogleOAuthError` never carries provider
+        # detail, and even its own message stays out of the redirect.
+        return RedirectResponse(url=f"{spa}/#auth_error=google", status_code=status.HTTP_302_FOUND)
+
+    await session.commit()
+    return RedirectResponse(
+        url=f"{spa}/#handoff={txn.handoff_code}", status_code=status.HTTP_302_FOUND
+    )
+
+
+@router.post("/google/handoff", response_model=SocialTokenResponse)
+async def google_handoff(
+    body: GoogleHandoffRequest,
+    session: AsyncSession = Depends(get_session),
+) -> SocialTokenResponse:
+    """Trade the one-time code for a real session. Single-use, fails closed."""
+    try:
+        result = await redeem_handoff(session, body.handoff_code.strip())
+    except GoogleOAuthError as exc:
+        # Same reason as the callback: the code is burned before the expiry decision, and that burn
+        # has to survive the rejection or an expired code stays redeemable on the next attempt.
+        await session.commit()
+        raise ApiErrorCode("oauth_handoff_invalid") from exc
+
+    await session.commit()
+
     tokens = issue_tokens(result.user)
     return SocialTokenResponse(
         access_token=tokens.access_token,

@@ -345,13 +345,26 @@ async def test_providers_is_empty_when_nothing_is_configured(client: AsyncClient
     assert body["google_client_id"] is None
 
 
-async def test_providers_offers_google_once_an_audience_is_configured(
+async def test_providers_offers_google_only_when_it_can_complete_a_sign_in(
     client: AsyncClient, monkeypatch
 ) -> None:
-    """The env var is the ONLY switch. Setting an audience is what turns the button on."""
+    """Google now needs BOTH halves: an audience AND the client secret.
+
+    This test used to assert that an audience alone turned the button on, which was true while
+    Google ran through Google Identity Services and the browser obtained the ID token itself.
+    Since the move to the authorization-code flow the SERVER exchanges the code, and that exchange
+    is authenticated with the secret — so an audience on its own can verify a token it has no way
+    to obtain. Offering the button then puts the failure at the very end of the flow, after the
+    player has already chosen a Google account, which is the worst possible place for it.
+    """
     from app.core.config import settings
 
     monkeypatch.setattr(settings, "google_client_ids", "123-web.apps.googleusercontent.com")
+    monkeypatch.setattr(settings, "google_client_secret", "")
+    r = await client.get("/auth/providers")
+    assert "google" not in r.json()["providers"], "an audience alone must NOT offer the button"
+
+    monkeypatch.setattr(settings, "google_client_secret", "a-client-secret")
     r = await client.get("/auth/providers")
     body = r.json()
     assert body["providers"] == ["google"]

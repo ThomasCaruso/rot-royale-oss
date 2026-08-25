@@ -939,6 +939,23 @@ export const api = {
   socialSignIn: (body: { provider: string; id_token: string; nonce?: string }) =>
     authedRequest<SocialTokenResponse>("/auth/social", jsonInit("POST", body)),
 
+  /** Begin Sign in with Google, and get back the URL to navigate to.
+   *
+   * AUTHED on purpose, and this is the whole reason a guest keeps their progress. Google's callback
+   * arrives at the server with no Authorization header, so the guest identity has to be captured
+   * HERE — the server reads it from this request's token and binds it to the transaction. Without
+   * it a guest who signs in would land on a brand-new account and lose their streak, coins and
+   * rating. The user id is never sent in the body; the server resolves it from the token itself. */
+  googleStart: () =>
+    authedRequest<{ authorize_url: string }>("/auth/google/start", { method: "POST" }),
+
+  /** Trade the one-time code from the URL fragment for a real session. Single-use, ~60s life. */
+  googleHandoff: (handoffCode: string) =>
+    request<SocialTokenResponse>(
+      "/auth/google/handoff",
+      jsonInit("POST", { handoff_code: handoffCode })
+    ),
+
   refresh: refreshAccessToken,
 
   me: () => authedRequest<Me>("/me"),

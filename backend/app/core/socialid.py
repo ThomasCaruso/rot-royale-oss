@@ -22,8 +22,15 @@ The email is treated as a separate question from identity. `email_verified` is c
 address is used for anything, because the address is what links a provider identity to an existing
 account, and an unverified one would let an attacker link to any account by claiming its email.
 
-No secrets are needed. Verification uses public keys and public client ids; we hold no provider
-credential, which is why there is no provider secret anywhere in this codebase to leak.
+No secrets are needed HERE, and that is still the important property: verification uses Google's and
+Apple's published keys and our public client ids, so nothing in this file can leak a credential.
+
+That sentence used to end "...which is why there is no provider secret anywhere in this codebase",
+and that is no longer true. Sign in with Google moved to the OIDC authorization-code flow
+(app/services/google_oauth.py), which authenticates its code exchange with `google_client_secret`.
+The distinction is worth holding onto: that secret buys the right to SWAP A CODE FOR A TOKEN, and
+nothing in this file consults it. Verification remains secret-free, so a leaked client secret cannot
+be used to forge an identity past these five checks.
 """
 
 from __future__ import annotations

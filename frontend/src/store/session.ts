@@ -37,18 +37,33 @@ interface SessionState {
   /** Access token kept in memory only — never persisted. */
   accessToken: string | null;
   me: Me | null;
+  /**
+   * A redirect-based sign-in came back having failed.
+   *
+   * It lives in the STORE rather than in a module variable because of ordering: the fragment is
+   * read during boot, before React mounts anything, while the component that displays the message
+   * (the front door's returning-user row) mounts later and must react when it arrives. A plain
+   * variable read in an effect loses that race — child effects run before the parent's.
+   *
+   * Deliberately not an error string. The store holds the FACT; `i18n/errors.ts` owns the words,
+   * because a raw server string must never reach a player (CLAUDE.md §7).
+   */
+  authFailed: boolean;
   setSession: (accessToken: string, me: Me) => void;
   setAccessToken: (accessToken: string) => void;
   setMe: (me: Me) => void;
   setAnonymous: () => void;
+  setAuthFailed: (failed: boolean) => void;
 }
 
 export const useSessionStore = create<SessionState>((set) => ({
   status: "bootstrapping",
   accessToken: null,
   me: null,
+  authFailed: false,
   setSession: (accessToken, me) => set({ accessToken, me, status: "authenticated" }),
   setAccessToken: (accessToken) => set({ accessToken }),
   setMe: (me) => set({ me }),
   setAnonymous: () => set({ accessToken: null, me: null, status: "anonymous" }),
+  setAuthFailed: (authFailed) => set({ authFailed }),
 }));

@@ -68,3 +68,21 @@ class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
+
+
+class GoogleStartResponse(BaseModel):
+    """Where to send the browser to begin Sign in with Google.
+
+    The URL is built server-side because only the server holds the pieces that must agree with the
+    Google console — the redirect URI, verbatim — and because the `state` and `nonce` inside it have
+    to be recorded before the browser leaves. A client that assembled this itself could not have
+    either guarantee.
+    """
+
+    authorize_url: str
+
+
+class GoogleHandoffRequest(BaseModel):
+    """The one-time code the callback put in the SPA's URL fragment."""
+
+    handoff_code: str

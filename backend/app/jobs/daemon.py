@@ -35,6 +35,7 @@ from app.jobs.tasks import (
 )
 from app.services.duel import cleanup_expired_duels
 from app.services.friend_duel import expire_stale_friend_duels
+from app.services.google_oauth import purge_expired as purge_expired_oauth_transactions
 
 log = logging.getLogger("rotroyale.scheduler")
 
@@ -73,6 +74,11 @@ async def _tick() -> None:
         # is a privacy promise (services/challenge.get_challenge), so it has to delete, not just
         # 404. Cheap: a bounded DELETE that is a no-op once caught up.
         await purge_expired_share_links(session)
+        # In-flight Google sign-in handshakes. Pure handshake state with a ten-minute life, so
+        # anything older than a day is unusable by definition — but rows nothing deletes still
+        # accumulate forever, which is the exact shape of the share-link bug immediately above.
+        # Wired in run.py too: Render runs the cron entrypoint, not this daemon.
+        await purge_expired_oauth_transactions(session)
         await session.commit()
         # Monthly ladder soft-reset — exactly-once per season; a cheap no-op the rest of the month.
         await run_season_reset(session)

@@ -1017,6 +1017,8 @@ export const en = {
     invalid_credentials: "Email or password is incorrect.",
     social_token_invalid: "That sign-in could not be verified. Please try again.",
     social_provider_unsupported: "That sign-in method is not available.",
+    oauth_state_invalid: "That sign-in could not be completed. Please try again.",
+    oauth_handoff_invalid: "That sign-in link has already been used. Please sign in again.",
     rate_limited: "Too many attempts. Try again in a moment.",
     duel_not_found: "That duel couldn't be found.",
     insufficient_gems: "Not enough Gems for this tier.",

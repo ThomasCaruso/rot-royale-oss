@@ -13,39 +13,41 @@
  * changed with the deletion — Email goes straight to the form, and Back from the form leaves
  * sign-in entirely rather than falling to a choice they never saw — are asserted directly.
  *
- * Google's button is GIS's own and renders nothing under the mock, so it is asserted through the
- * `renderGoogleButton` call rather than through the DOM (see ReturningUserRow.social.test.tsx).
+ * Google's tile is an ordinary button now (it starts the OIDC redirect), so all three routes are
+ * asserted the same way - by role, through the DOM. It used to be GIS's own rendered button, which
+ * rendered nothing under the mock and had to be checked indirectly.
  */
 
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const socialProviders = vi.fn();
 const socialSignInApi = vi.fn();
-const CLIENT_ID = "000000000000-testclientid.apps.googleusercontent.com";
+const googleStart = vi.fn();
 
 vi.mock("@/api/client", () => ({
-  api: { socialProviders: () => socialProviders(), socialSignIn: (b: unknown) => socialSignInApi(b) },
+  api: {
+    socialProviders: () => socialProviders(),
+    socialSignIn: (b: unknown) => socialSignInApi(b),
+    googleStart: () => googleStart(),
+  },
 }));
 vi.mock("@/api/session", () => ({
   login: vi.fn(),
   registerAndLogin: vi.fn(),
   socialSignIn: (...a: unknown[]) => socialSignInApi(...a),
 }));
-const renderGoogleButton = vi.fn();
-vi.mock("@/lib/googleIdentity", async () => {
-  const actual =
-    await vi.importActual<typeof import("@/lib/googleIdentity")>("@/lib/googleIdentity");
-  return { ...actual, renderGoogleButton: (o: unknown) => renderGoogleButton(o) };
-});
+vi.mock("@capacitor/core", () => ({
+  Capacitor: { isNativePlatform: () => false },
+}));
 
 import { FirstRun } from "./FirstRun";
 
 /** Both providers usable, so the row offers all three routes. */
 function withBothProviders() {
   socialProviders.mockResolvedValue({
+    // No google_client_id: the browser does not start Google's flow any more, so it needs none.
     providers: ["apple", "google"],
-    google_client_id: CLIENT_ID,
     apple_client_id: "live.rotroyale.web",
     apple_redirect_uri: window.location.origin,
   });
@@ -61,8 +63,8 @@ describe("FirstRun — front door, then the email form, with nothing in between"
 
   beforeEach(() => {
     vi.clearAllMocks();
-    socialProviders.mockResolvedValue({ providers: [], google_client_id: null });
-    renderGoogleButton.mockResolvedValue(undefined);
+    socialProviders.mockResolvedValue({ providers: [] });
+    googleStart.mockResolvedValue({ authorize_url: "https://accounts.google.com/o/oauth2/v2/auth" });
     socialSignInApi.mockResolvedValue({ created: false, passwordRetired: false });
   });
 
@@ -74,7 +76,7 @@ describe("FirstRun — front door, then the email form, with nothing in between"
     expect(screen.getByText("PLAY DAILY ROYALE")).toBeTruthy();
     expect(await screen.findByRole("button", { name: /apple/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /email/i })).toBeTruthy();
-    await waitFor(() => expect(renderGoogleButton).toHaveBeenCalled());
+    expect(await screen.findByRole("button", { name: /google/i })).toBeTruthy();
   });
 
   it("Email goes STRAIGHT to the form — there is no provider-choice step in between", async () => {

@@ -1,7 +1,13 @@
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { api } from "@/api/client";
-import { recoverSessionIfNeeded, restoreSession, startGuest } from "@/api/session";
+import {
+  completeGoogleHandoff,
+  recoverSessionIfNeeded,
+  restoreSession,
+  startGuest,
+} from "@/api/session";
 import { trackFunnel } from "@/lib/analytics";
+import { takeGoogleReturn } from "@/lib/googleReturn";
 import { LanguageSelector } from "@/i18n/LanguageSelector";
 import { loadStarterDone, markStarterDone, resolveFirstRunStep } from "@/lib/firstRun";
 import { restoreLocale, useI18n } from "@/store/i18n";
@@ -100,7 +106,23 @@ export function App() {
 
   useEffect(() => {
     void restoreLocale();
-    void restoreSession();
+    // Returning from Google's redirect REPLACES the ordinary cold-start restore rather than racing
+    // it. Both resolve the session, and running them together is a real bug rather than belt and
+    // braces: the restore finds no persisted token (this browser was never signed in), calls
+    // setAnonymous, and — landing after the handoff has already established the session — signs the
+    // player straight back out at the moment they succeeded. Exactly one of these two runs.
+    const ret = takeGoogleReturn();
+    if (ret.kind === "handoff") {
+      void completeGoogleHandoff(ret.code).catch(() => {
+        // A spent, expired or unknown code. Nothing to recover, so fall back to the normal path and
+        // let the front door say so; the player taps the tile again.
+        useSessionStore.getState().setAuthFailed(true);
+        void restoreSession();
+      });
+    } else {
+      if (ret.kind === "error") useSessionStore.getState().setAuthFailed(true);
+      void restoreSession();
+    }
     void loadStarterDone().then(setStarterDone);
     // Offline play wiring: watch real connectivity, prime the outbox count, drain queued results on
     // reconnect (offline→online) and on app foreground, and re-pull the offline content bundle.

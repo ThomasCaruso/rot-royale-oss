@@ -976,6 +976,8 @@ export const fr: Dict = {
     invalid_credentials: "E-mail ou mot de passe incorrect.",
     social_token_invalid: "Cette connexion n'a pas pu être vérifiée. Réessaie.",
     social_provider_unsupported: "Cette méthode de connexion n'est pas disponible.",
+    oauth_state_invalid: "Cette connexion n'a pas pu aboutir. Réessaie.",
+    oauth_handoff_invalid: "Ce lien de connexion a déjà été utilisé. Reconnecte-toi.",
     rate_limited: "Trop de tentatives. Réessaie dans un instant.",
     duel_not_found: "Ce duel est introuvable.",
     insufficient_gems: "Pas assez de gemmes pour ce rang.",

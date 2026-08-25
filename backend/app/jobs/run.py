@@ -97,6 +97,7 @@ from app.jobs.tasks import (
 )
 from app.services.duel import cleanup_expired_duels
 from app.services.friend_duel import expire_stale_friend_duels
+from app.services.google_oauth import purge_expired as purge_expired_oauth_transactions
 
 _COMMANDS = (
     "transition",
@@ -947,6 +948,12 @@ async def _run(command: str) -> None:
             removed = await purge_expired_share_links(session)
             if removed:
                 print(f"purge_expired_share_links: removed {removed} expired share link(s)")
+            # In-flight Google sign-in handshakes. Same reasoning as the share links: unusable
+            # after ten minutes, but nothing deletes them, so they accumulate forever. Wired here
+            # AND in the daemon because Render runs this entrypoint rather than the daemon.
+            stale_oauth = await purge_expired_oauth_transactions(session)
+            if stale_oauth:
+                print(f"purge_expired_oauth_transactions: removed {stale_oauth} stale row(s)")
         await session.commit()
         if command in ("transition", "both"):
             await run_season_reset(session)  # monthly ladder soft-reset (exactly-once per season)

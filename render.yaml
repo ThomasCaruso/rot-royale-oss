@@ -153,6 +153,20 @@ services:
         sync: false
       - key: GOOGLE_CLIENT_IDS
         sync: false
+      # Sign in with Google runs the OIDC authorization-code flow, so the server exchanges the code
+      # for tokens and that exchange is authenticated with the client SECRET. Dashboard-only, never
+      # in the repo, never logged, never served from any endpoint.
+      #
+      # Google is offered only when the audience AND this are both set (see
+      # Settings.google_oauth_configured): an audience alone can verify a token it could never
+      # obtain, so the button would die after the player had already picked an account.
+      #
+      # The redirect URI must be registered in the Google console EXACTLY as the server builds it —
+      # by default CHALLENGE_BASE_URL + /auth/google/callback, i.e.
+      # https://rot-royale-api.onrender.com/auth/google/callback. Set GOOGLE_REDIRECT_URI to
+      # override, and change it in both places at once or sign-in fails with a generic error.
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
       - key: VAPID_PUBLIC_KEY
         sync: false # Web Push (M9): the API serves this to the browser. Same value as the cron's.
       - key: PYTHON_VERSION
