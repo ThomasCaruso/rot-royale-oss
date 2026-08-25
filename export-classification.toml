@@ -129,6 +129,50 @@ path = "frontend/src/assets/lobby/index.ts"
 classification = "public"
 reason = "A barrel re-export. Code, not art — and the build needs it."
 
+[[rule]]
+path = "frontend/src/ui/royal/ornamentPaths.ts"
+classification = "public"
+reason = """
+DELIBERATE, AND THE ONE ENTRY HERE THAT DESERVES A SECOND OPINION — it inherits `public` from
+frontend/, and unlike every other file under that rule its CONTENT is derived from artwork.
+
+What it is: SVG path data traced out of the login-screen ornament renders — eleven abstract Bézier
+curves and one closed ring. It replaced three PNGs that were `placeholder` (i.e. withheld and
+substituted) under the artwork policy in assets-manifest.json.
+
+Why it is not treated the same way. The policy withholds ARTWORK on unproven provenance; this is a
+geometric abstraction of it — centrelines only, with no colour, no glow, no texture and no pixel
+data. The render cannot be reconstructed from it. It is also unavoidably load-bearing: the exporter
+can only substitute placeholders for image files, so classifying a `.ts` module `withheld` deletes
+it and the public tree stops building.
+
+If that trade is judged wrong, the fix is to teach `export_public.py` to emit a stub module for this
+path (empty `strokes`, empty `d` — the screen degrades to no ornament, which is harmless), not to
+withhold it as-is.
+"""
+
+[[rule]]
+path = "frontend/scripts/trace_login_ornaments.py"
+classification = "withheld"
+reason = """
+The tracer that produces ornamentPaths.ts from the source renders. Withheld for the same reason as
+tools/ — it is build-time tooling rather than the application — and for one specific reason of its
+own: it hardcodes the source artwork's FILENAMES, which disclose that artwork's provenance. That is
+exactly what assets-manifest.json is withheld to protect, so publishing this file would leak it
+through a side door while the manifest holds the front one.
+
+Its output stays public (see the ornamentPaths.ts rule). Losing the tracer costs a reader nothing
+they can act on: they cannot run it without the private renders anyway.
+"""
+
+[[rule]]
+path = "frontend/src/ui/royal/Ornaments.tsx"
+classification = "public"
+reason = """
+The components that paint the ornament, and the composed stage/page primitives beside them. Code —
+no art data of its own.
+"""
+
 # ── Documentation ─────────────────────────────────────────────────────────────────────────────
 
 [[rule]]
@@ -188,6 +232,16 @@ reason = "The repository's internal operating instructions. docs/architecture.md
 path = "PLAN.md"
 classification = "withheld"
 reason = "Internal product spec and milestone plan."
+
+[[rule]]
+path = "HANDOFF-login-screen.md"
+classification = "withheld"
+reason = """
+A working session log for the login/front-door redesign — thirteen passes of measurements, rejected
+approaches and the reasoning behind numbers that ended up in the code. Same class as docs/: useful
+to the next person working here, and of no use to a contributor reading the public tree. It also
+quotes the private reference comp and internal file paths.
+"""
 
 [[rule]]
 path = "assets-manifest.json"

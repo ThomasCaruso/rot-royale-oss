@@ -21,6 +21,7 @@ public	.gitignore
 withheld	CLAUDE.md
 public	CONTRIBUTING.md
 public	DESIGN.md
+withheld	HANDOFF-login-screen.md
 public	LICENSE
 withheld	PLAN.md
 public	README.md
@@ -662,6 +663,7 @@ public	frontend/scripts/prep_hero_plate.py
 public	frontend/scripts/prep_podium.py
 public	frontend/scripts/prep_starter_campaign_art.py
 public	frontend/scripts/strip_bg.py
+withheld	frontend/scripts/trace_login_ornaments.py
 public	frontend/src/api/client.offline.test.ts
 public	frontend/src/api/client.ts
 public	frontend/src/api/session.ts
@@ -822,6 +824,7 @@ public	frontend/src/lib/titleCase.ts
 public	frontend/src/lib/today.test.ts
 public	frontend/src/lib/today.ts
 public	frontend/src/lib/useAiReady.ts
+public	frontend/src/lib/useSocialSignIn.ts
 public	frontend/src/lib/useWindowMeta.ts
 public	frontend/src/main.tsx
 public	frontend/src/modules/changeDetection/ChangeReveal.test.tsx
@@ -857,12 +860,14 @@ public	frontend/src/offline/sync.test.ts
 public	frontend/src/offline/sync.ts
 public	frontend/src/offline/types.ts
 public	frontend/src/preview.tsx
+public	frontend/src/screens/AuthScreen.flow.test.tsx
 public	frontend/src/screens/AuthScreen.social.test.tsx
 public	frontend/src/screens/AuthScreen.tsx
 public	frontend/src/screens/CategorySelect.test.tsx
 public	frontend/src/screens/CategorySelect.tsx
 public	frontend/src/screens/Contest.test.tsx
 public	frontend/src/screens/Contest.tsx
+public	frontend/src/screens/EmailAuthForm.tsx
 public	frontend/src/screens/Home.flow.test.tsx
 public	frontend/src/screens/Home.tsx
 public	frontend/src/screens/NotifyBell.tsx
@@ -876,6 +881,7 @@ public	frontend/src/screens/brainboost/BrainProfileReveal.tsx
 public	frontend/src/screens/brainboost/FirstRun.tsx
 public	frontend/src/screens/brainboost/RankedSaveGate.test.tsx
 public	frontend/src/screens/brainboost/RankedSaveGate.tsx
+public	frontend/src/screens/brainboost/ReturningUserRow.tsx
 public	frontend/src/screens/brainboost/SaveProfileScreen.test.tsx
 public	frontend/src/screens/brainboost/SaveProfileScreen.tsx
 public	frontend/src/screens/campaign/Campaign.nav.test.tsx
@@ -1106,6 +1112,10 @@ public	frontend/src/ui/Stat.test.tsx
 public	frontend/src/ui/Stat.tsx
 public	frontend/src/ui/Top5Leaderboard.tsx
 public	frontend/src/ui/icons.tsx
+public	frontend/src/ui/royal/CrownStage.tsx
+public	frontend/src/ui/royal/Ornaments.tsx
+public	frontend/src/ui/royal/PageOrnament.tsx
+public	frontend/src/ui/royal/ornamentPaths.ts
 public	frontend/src/ui/useReducedMotion.ts
 public	frontend/src/vite-env.d.ts
 public	frontend/tsconfig.app.json

@@ -18,10 +18,27 @@ import type { ReactNode } from "react";
 
 export type SocialProvider = "apple" | "google";
 
-const HEIGHT = 52;
-const RADIUS = 14;
+/**
+ * The sign-in stack's shared metrics. Exported because THREE components have to agree on them or
+ * the choice screen stops reading as one set: this button (Apple), `GoogleSignInButton` (which
+ * scales Google's own rendered button to `AUTH_BUTTON_HEIGHT`), and the email button on
+ * `AuthScreen`. One definition, so a change to any of them moves all three.
+ *
+ * A full pill rather than a soft rectangle, because Google's button offers `shape: "pill"` and a
+ * 4px `rectangular` — never a 14px radius. Matching Google is the only way all three corners agree,
+ * and the pill is the app's own CTA shape anyway (`--radius-pill`, the Daily Royale button).
+ */
+export const AUTH_BUTTON_HEIGHT = 52;
+export const AUTH_BUTTON_RADIUS = 999;
+/** Google renders its `size: "large"` label at 14px; scaled to 52px tall that lands near 18. 17
+ *  keeps ours within a hair of it — the same typographic weight, not the same number. */
+export const AUTH_BUTTON_FONT = 17;
 
-function AppleMark() {
+const HEIGHT = AUTH_BUTTON_HEIGHT;
+const RADIUS = AUTH_BUTTON_RADIUS;
+
+/** Exported so the Daily Royale front door's compact provider tile shows the same mark. */
+export function AppleMark() {
   return (
     <svg width="18" height="22" viewBox="0 0 14 17" aria-hidden focusable="false">
       <path
@@ -32,7 +49,8 @@ function AppleMark() {
   );
 }
 
-function GoogleMark() {
+/** Exported for the front door's compact provider tile. Google's official four-colour mark. */
+export function GoogleMark() {
   return (
     <svg width="19" height="19" viewBox="0 0 18 18" aria-hidden focusable="false">
       <path
@@ -97,7 +115,7 @@ export function SocialButton({
         // Inherit the app's face so the stack reads as one family. Apple's guidelines set the
         // button's colour and mark, not the host app's typeface.
         fontFamily: "inherit",
-        fontSize: 16,
+        fontSize: AUTH_BUTTON_FONT,
         fontWeight: 600,
         letterSpacing: "-0.01em",
         cursor: off ? "default" : "pointer",

@@ -362,6 +362,34 @@ body {
   24% { transform: translateX(160%) skewX(-18deg); opacity: 0; }
   100% { transform: translateX(160%) skewX(-18deg); opacity: 0; }
 }
+/* ── Daily Royale front door ─────────────────────────────────────────────────────────────────
+ *
+ * Four cheap transform/opacity animations, no layout, no repaint of any gradient.
+ *
+ * The two LOOPS are written 0%,100% → 50% rather than as 0% → 100% alternate, and that is
+ * deliberate: the global reduced-motion collapse below runs a single 0.001ms iteration, so a
+ * ramp would freeze at its END state (a crown parked 2px high, a halo parked 1.5% large). Written
+ * this way the end state IS the origin, so reduced motion lands exactly where a still frame
+ * should. */
+@keyframes rr-hero-in {
+  0% { transform: translateY(16px) scale(0.95); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+@keyframes rr-cta-in {
+  0% { transform: translateY(12px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+/* Halo breathing — 1.5% is the top of what stays subliminal; at 3% it reads as a pulse. */
+@keyframes rr-halo-breathe {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.92; }
+  50% { transform: translate(-50%, -50%) scale(1.015); opacity: 1; }
+}
+/* Crown float — 2px. Any more and it bobs. */
+@keyframes rr-crown-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
 /* Stat counters settle into place on mount (rise + fade). Reduced motion → jumps to visible. */
 @keyframes rr-rise-in {
   0% { transform: translateY(9px); opacity: 0; }
@@ -469,6 +497,49 @@ body {
 @media (hover: hover) {
   .rr-tap:hover { transform: translateY(-3px); filter: brightness(1.05); }
   .rr-tap:active { transform: translateY(-1px) scale(0.975); }
+}
+
+/* Cursor affordance for the front door's controls (BrainBoostIntro, ReturningUserRow, the language
+   chip). A GROW, not the .rr-tap LIFT above, and the difference is the point: .rr-tap is for cards
+   in a list, where rising off the page separates one row from its neighbours. These controls stand
+   alone in a lot of white space with nothing to separate from, so meeting the cursor by getting
+   BIGGER reads as the thing being offered to you, where sliding upward just reads as drift.
+
+   The scale composes two custom properties instead of being written as a plain transform, because
+   the press feedback is set INLINE by a pointerdown handler (§7b1 — the give has to land with the
+   finger, not after the click resolves). An inline `transform` beats any :hover rule in the
+   cascade, so writing the press that way would pin the element at scale(1) from its first release
+   onward and hover would be dead for the rest of the session — working on load, broken after one
+   tap, which is exactly the kind of thing that ships. The handler therefore sets --rr-press and the
+   transform itself lives here, where the two MULTIPLY rather than overwrite: a hovered button under
+   the finger is 1.04 * 0.965, which is what a real button does.
+
+   box-shadow is deliberately NOT part of this. `transform` scales an element's shadow along with
+   it, so the CTA's cast already grows in proportion for free; adding a hover shadow on top would
+   double the effect and undo the trim it was just given. */
+.rr-grow {
+  --rr-grow-to: 1.04;
+  transform: translateY(var(--rr-lift, 0px)) scale(calc(var(--rr-hover, 1) * var(--rr-press, 1)));
+  /* The transform duration is one value covering both states: quick enough that the press still
+     feels immediate, slow enough that the hover is a movement rather than a twitch.
+
+     box-shadow and opacity are listed here too, and that is not tidiness — a `transition` shorthand
+     in an inline style REPLACES this declaration wholesale rather than merging with it, so a
+     control keeping its own inline transition silently loses the transform tween and the grow
+     snaps. (Measured: the CTA computed `box-shadow, opacity` and nothing else.) Every control
+     wearing this class therefore declares no transition of its own. */
+  transition: transform 130ms cubic-bezier(0.2, 0.9, 0.3, 1.1), box-shadow 180ms ease, opacity 140ms;
+}
+/* The CTA travels further on a SMALLER ratio: 2.5% of a ~350px pill is ~9px against a tile's ~3.5px,
+   so the same number would make the pill lurch and the tiles do nothing visible. It also lifts a
+   pixel, which the tiles do not — the primary action rises to meet you; the alternatives do not. */
+.rr-grow-cta { --rr-grow-to: 1.025; }
+.rr-grow:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+
+/* Real hover devices only. On touch, :hover latches after a tap and leaves the control grown. */
+@media (hover: hover) {
+  .rr-grow:hover:not(:disabled) { --rr-hover: var(--rr-grow-to); }
+  .rr-grow-cta:hover:not(:disabled) { --rr-lift: -1px; }
 }
 
 /* ---- MONO ("Blank" / "Blank Light"): the refined minimal reskin, in both polarities ----
@@ -716,3 +787,23 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* The returning-user row: prompt, then each provider tile 70ms after the last. Same vocabulary as
+ * the CTA's entrance (small rise + fade) at half the distance, because this row is meant to arrive
+ * quietly after the decision has already been offered. Per-element delays are set inline. */
+@keyframes rr-login-in {
+  0% { transform: translateY(5px) scale(0.98); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+.rr-login-in { animation: rr-login-in 380ms cubic-bezier(0.22, 1, 0.36, 1) 900ms both; }
+
+/* Front-door hero + CTA. The entrance animations use `both` so they hold their end state, which is
+ * also what the reduced-motion collapse leaves on screen. The crown's float is on the <img> while
+ * the entrance is on its wrapper — two elements, so the two transforms never fight over one. */
+.rr-hero-in { animation: rr-hero-in 550ms cubic-bezier(0.22, 1.2, 0.36, 1) both; }
+.rr-hero-halo { animation: rr-halo-breathe 5.5s ease-in-out infinite; }
+.rr-hero-crown { animation: rr-crown-float 7s ease-in-out 700ms infinite; }
+.rr-cta-in { animation: rr-cta-in 520ms cubic-bezier(0.22, 1.2, 0.36, 1) 600ms both; }
+/* One soft sweep every 4s, not a pulse: rr-card-shine spends ~24% of its cycle crossing and the
+ * rest fully transparent, so the button is still for three seconds out of every four. */
+.rr-cta-shine { animation: rr-card-shine 4s ease-in-out 1.9s infinite; }

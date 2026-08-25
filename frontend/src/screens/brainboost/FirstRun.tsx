@@ -16,13 +16,16 @@ export function FirstRun({
   // Launch today's Daily Royale for this visitor (App: guest session if needed → Contest).
   onPlayDaily: () => Promise<void>;
 }) {
-  const [showLogin, setShowLogin] = useState(false);
+  // `null` = not signing in. Otherwise it is the step the sign-in screen should open on: the front
+  // door's compact Apple/Google tiles run their flow in place, but its Email tile routes here, and
+  // a returning player who has already picked their provider should not be asked to pick again.
+  const [loginStep, setLoginStep] = useState<"choose" | "email" | null>(null);
 
-  if (showLogin) {
+  if (loginStep) {
     // Returning player path. On success the session flips to a non-guest account and the app shell
     // routes past first-run automatically; this back link covers a change of mind.
-    return <AuthScreen onBack={() => setShowLogin(false)} />;
+    return <AuthScreen initialStep={loginStep} onBack={() => setLoginStep(null)} />;
   }
 
-  return <BrainBoostIntro onStart={onPlayDaily} onLogin={() => setShowLogin(true)} />;
+  return <BrainBoostIntro onStart={onPlayDaily} onEmailLogin={() => setLoginStep("email")} />;
 }

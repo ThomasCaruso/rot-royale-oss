@@ -77,6 +77,10 @@ EXCLUDE = (
     # documentation written to replace them, and README.public.md points at it instead.
     "CLAUDE.md",
     "PLAN.md",
+    # A working session log for the login/front-door redesign: measurements, rejected approaches and
+    # the reasoning behind numbers now in the code. Same class as docs/ — written for the next
+    # session, not for a contributor, and it quotes the private reference comp.
+    "HANDOFF-login-screen.md",
     ".claude/",
     # Developer tooling that has NOT had its own provenance and security review. It generates the
     # change-detection manifests, so it is genuine tooling worth keeping — but tooling can carry
@@ -84,6 +88,11 @@ EXCLUDE = (
     # decision from publishing the application. It reached the tracked tree via a `git add -A`
     # during a merge; the export is what caught it.
     "tools/",
+    # The login-ornament tracer. Build-time tooling, and it hardcodes the source artwork's
+    # filenames — the provenance that assets-manifest.json below is withheld to protect. Its
+    # OUTPUT (frontend/src/ui/royal/ornamentPaths.ts) stays public; a reader could not run this
+    # without the private renders in any case.
+    "frontend/scripts/trace_login_ornaments.py",
     # The full asset manifest is a directory map of proprietary work — every private asset's path,
     # size, provenance and licence. The public tree gets PUBLIC_MANIFEST_NAME instead, which carries
     # the withheld digests and nothing else, so third-party verification survives without publishing

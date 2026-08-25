@@ -49,7 +49,10 @@ export function LanguageSelector({ variant = "floating" }: { variant?: "floating
         aria-label={`${t.lang.select}: ${current.label}`}
         onClick={() => setOpen((o) => !o)}
         // rr-menu-chip: the mono ("Blank") skins flatten this to a hairline panel chip via CSS.
-        className="rr-menu-chip"
+        // rr-grow: the same cursor affordance as every other control on the screens this chip
+        // appears over (it renders on every UNAUTHENTICATED screen, so its blast radius is the
+        // front door, sign-in and the legal pages — all of which now answer the cursor the same way).
+        className="rr-menu-chip rr-grow"
         style={{
           display: "inline-flex",
           alignItems: "center",

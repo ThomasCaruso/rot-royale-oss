@@ -115,7 +115,16 @@ export function loadGoogleIdentity(): Promise<GoogleAccountsGlobal> {
 export async function renderGoogleButton(options: {
   parent: HTMLElement;
   clientId: string;
-  width: number;
+  /** Pixel width for the standard pill. Ignored for `type: "icon"`, which is a fixed square. */
+  width?: number;
+  /**
+   * GIS button type. "standard" is the wide pill the sign-in stack uses; "icon" is a square with
+   * only the G mark, which is what the front door's compact provider tile needs. Google's own
+   * button either way — a custom control cannot reach an ID token except through One Tap, which
+   * Google suppresses for a real share of players.
+   */
+  type?: "standard" | "icon";
+  shape?: "pill" | "circle" | "square" | "rectangular";
   onCredential: (idToken: string) => void;
   onError: (err: unknown) => void;
   text?: "signin_with" | "continue_with";
@@ -138,17 +147,21 @@ export async function renderGoogleButton(options: {
   });
   options.parent.replaceChildren();
   // GIS owns these pixels — the colourway and mark are Google's to dictate. What it DOES expose is
-  // shape, and the app's own CTA is a fully rounded pill, so `pill` makes the button read as part
-  // of the stack instead of a rectangle pasted above it. `logo_alignment: left` matches the way
-  // every other provider button in the wild sets the mark against the label rather than centring
-  // the pair, which stops the row shifting as the text length changes between languages.
+  // shape and alignment, and both are set to match the sign-in stack around it (ui/SocialButton's
+  // `AUTH_BUTTON_*`): `pill` because the app's own CTA is a fully rounded pill and GIS's only other
+  // option is a 4px rectangle, and `logo_alignment: center` because the Apple and email buttons
+  // either side centre their [mark, label] pair. It was `left` while this button sat above an email
+  // FORM and only had to look like a provider button; now it is one of three equal choices, and a
+  // mark pinned to the left edge is the one thing that breaks the set.
   google.accounts.id.renderButton(options.parent, {
-    type: "standard",
+    type: options.type ?? "standard",
     theme: "outline",
     size: "large",
-    shape: "pill",
-    logo_alignment: "left",
+    shape: options.shape ?? "pill",
+    logo_alignment: "center",
     text: options.text ?? "continue_with",
-    width: options.width,
+    // GIS rejects `width` on an icon button (it is a fixed square), so it is only sent for the
+    // standard pill.
+    ...(options.type === "icon" ? {} : { width: options.width }),
   });
 }
