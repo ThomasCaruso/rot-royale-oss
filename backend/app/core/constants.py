@@ -313,7 +313,12 @@ ROT_SUB_PROVISIONAL_ROUNDS: int = (
 ROT_TYPE_VERB: dict[str, str] = {
     "trivia": "know",
     "rapid_math": "know",
-    "memory_flash": "know",
+    # NOTICE, not "know". It was "know" while this type sat outside the Royale pool and the mapping
+    # never ran; once it entered the pool that would have fed Simon-sequence results into the `know`
+    # sub-rating, which is the FIXED ANCHOR built on the 956-item trivia corpus (§5e). Polluting the
+    # anchor with a different task is the one thing that scale cannot absorb. It reports its own
+    # difficulty band so it does not share a floating item with change detection either.
+    "memory_flash": "notice",
     "span": "know",
     "estimate": "estimate",
     "crowd": "estimate",

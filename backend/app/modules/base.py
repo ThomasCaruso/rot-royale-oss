@@ -37,6 +37,16 @@ class RoundJudgement:
     time_frac: float
     valid: bool
     flags: list[str] = field(default_factory=list)
+    # EXTRA scored answers inside this one round, as (correct, time_frac) pairs.
+    #
+    # None for every round type but `video`, which is the only one that asks more than one question:
+    # two about the clip, then what changed. It occupies ONE Royale slot and takes roughly three
+    # times as long, so it scores as three answers summed through the SAME `compute_points` formula
+    # rather than getting a scoring path of its own.
+    #
+    # `correct` above still decides the round — the streak and the Rot Rating game key off it — so a
+    # type that never sets this behaves exactly as it did before.
+    sub_scores: list[tuple[bool, float]] | None = None
 
 
 def clamp_elapsed_ms(raw: Any, time_limit_ms: int) -> int:

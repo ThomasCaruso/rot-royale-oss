@@ -1,8 +1,9 @@
 """One-shot cron entrypoint — the Render-cron alternative to the in-process daemon.
 
 Usage:  python -m app.jobs.run [transition|create|settle|both|seed]   (default: both)
-        python -m app.jobs.run ingest <file.json | dir>
-        python -m app.jobs.run ingest-change <manifest.json>
+        python -m app.jobs.run ingest <file.json | dir> [--retire-missing]
+        python -m app.jobs.run ingest-change <manifest.json> [--retire-missing]
+        python -m app.jobs.run ingest-video <manifest.json> [--retire-missing]
         python -m app.jobs.run ingest-estimate <file.json> [--retire-missing]
         python -m app.jobs.run export-estimate-verdicts <out.json>
         python -m app.jobs.run classify [--limit N] [--force] [--dry-run] [--id <uuid>]
@@ -36,6 +37,18 @@ Usage:  python -m app.jobs.run [transition|create|settle|both|seed]   (default: 
   ingest-change  load a change-detection asset manifest (content/change_manifest.py documents the
               contract; bounding boxes in normalized 0-1 image coordinates). Upserts by key,
               rejects malformed items loudly (non-zero exit).
+              --retire-missing makes the manifest the ACTIVE SET, as for ingest-estimate. UNLIKE
+              that one it is refused when any item was rejected: this ingest continues past a bad
+              item, so an absent key cannot be told apart from a broken one.
+  ingest-video   load the video round's content package. Merges the MECHANICAL manifest (assets,
+              dimensions, duration) with the AUTHORED questions.json, so regenerating the former
+              cannot silently drop the latter. Upserts by key; rejects malformed items loudly
+              (non-zero exit) — a half-formed clip would surface as an unanswerable round.
+              --retire-missing behaves exactly as it does for ingest-change, same caveat.
+              The manifest path is OPTIONAL, and the two cases differ deliberately: a path you TYPE
+              must exist (a typo must not pass silently), while the RESOLVED default may be absent —
+              a content package with no video/ is a legitimate state, and this command runs inside
+              the web service's `&&` startCommand where a non-zero exit kills the deploy.
   ingest-estimate  load the Fermi estimate content set (a JSON array keyed by string `id`).
               All-or-nothing: any invalid item rejects the WHOLE file and writes nothing (non-zero
               exit, per-item reasons). Upserts by id; never touches admin playtest verdicts.
@@ -107,6 +120,7 @@ _COMMANDS = (
     "seed",
     "ingest",
     "ingest-change",
+    "ingest-video",
     "ingest-estimate",
     "export-estimate-verdicts",
     "classify",
@@ -485,26 +499,52 @@ async def _classify(argv: list[str]) -> int:
     return 1 if report.failed else 0
 
 
-async def _ingest(path: str) -> int:
+async def _ingest(path: str, *, retire_missing: bool = False) -> int:
     """Load a reviewed bank file or directory. Non-zero exit code if any row was rejected."""
     if not Path(path).exists():
         raise SystemExit(f"ingest: {path} does not exist")
+
+    # THE GUARD THAT MATTERS. `path` may be a single bank file, and --retire-missing treats whatever
+    # was loaded as the complete active set. Pointed at one category that would retire every OTHER
+    # category — around 800 questions, i.e. the whole Daily Royale — from one plausible-looking
+    # command. Retiring is only meaningful against the entire bank, so require a directory.
+    if retire_missing and not Path(path).is_dir():
+        raise SystemExit(
+            "ingest --retire-missing needs the WHOLE bank directory, not a single file: "
+            "retiring against one file would deactivate every question in every other category."
+        )
+
     rows = read_bank_rows(path)
     async with SessionLocal() as session:
-        report = await ingest_bank(session, rows)
+        report = await ingest_bank(session, rows, retire_missing=retire_missing)
         await session.commit()
     await engine.dispose()
 
+    sync = f", retired {report.retired}, restored {report.restored}" if retire_missing else ""
     print(
         f"ingest {path}: {len(rows)} rows -> added {report.added}, updated {report.updated}, "
-        f"skipped {report.skipped} (unchanged/dupe), rejected {len(report.rejected)}"
+        f"skipped {report.skipped} (unchanged/dupe), rejected {len(report.rejected)}{sync}"
     )
     for index, reason in report.rejected:
         print(f"  REJECTED row {index}: {reason}", file=sys.stderr)
+    if retire_missing and report.rejected:
+        print(
+            "  NOT RETIRING: rows were rejected, so a question missing from the files cannot be "
+            "told apart from one that failed validation.",
+            file=sys.stderr,
+        )
+    if report.retire_aborted:
+        print(f"  RETIRE ABORTED: {report.retire_aborted}", file=sys.stderr)
+    for blocked in report.retire_blocked:
+        print(
+            f"  KEPT (a campaign level still serves it): {blocked}. Remove it from the campaign "
+            f"plan and rebuild the manifest first, or that level stops being playable.",
+            file=sys.stderr,
+        )
     return 1 if report.rejected else 0
 
 
-async def _ingest_change(path: str) -> int:
+async def _ingest_change(path: str, *, retire_missing: bool = False) -> int:
     """Load a change-detection asset manifest. Non-zero exit if any item was rejected."""
     import json as _json
 
@@ -535,17 +575,91 @@ async def _ingest_change(path: str) -> int:
         if stamped:
             print(f"ingest-change: stamped difficulty on {stamped} item(s) from {tiers_path.name}")
     async with SessionLocal() as session:
-        report = await ingest_change_manifest(session, manifest, _content_dir())
+        report = await ingest_change_manifest(
+            session, manifest, _content_dir(), retire_missing=retire_missing
+        )
         await session.commit()
     await engine.dispose()
 
+    sync = f", retired {report.retired}, reactivated {report.reactivated}" if retire_missing else ""
     print(
         f"ingest-change {path}: added {report.added}, updated {report.updated}, "
-        f"skipped {report.skipped} (unchanged), rejected {len(report.rejected)}"
+        f"skipped {report.skipped} (unchanged), rejected {len(report.rejected)}{sync}"
     )
+    if retire_missing and report.rejected:
+        print(
+            "  NOT RETIRING: the manifest had rejected items, so an absent key cannot be told "
+            "apart from a broken one.",
+            file=sys.stderr,
+        )
     for index, reason in report.rejected:
         print(f"  REJECTED item {index}: {reason}", file=sys.stderr)
     return 1 if report.rejected else 0
+
+
+async def _ingest_video(path: str, *, retire_missing: bool = False, required: bool = True) -> None:
+    """Ingest the video round's content package.
+
+    Two files, merged here: the MECHANICAL manifest (assets, dimensions, duration — probed from the
+    clips) and the AUTHORED questions (prompts, options, answers — written by a person who watched
+    them). Same split as ingest-change's difficulty file, and for the same reason: regenerating the
+    mechanical half must not be able to silently drop the human half.
+
+    `required=False` — set when the path was RESOLVED rather than typed — makes an absent manifest a
+    no-op instead of a failure. A content package with no `video/` at all is a legitimate state:
+    `royale_content_availability` adds "video" to the Royale pool only when active rows exist, so a
+    deployment with no video content simply runs the other four types. This command sits in the web
+    service's `&&` startCommand, where exiting non-zero means uvicorn never starts and the deploy
+    dies on its health check — the same trap `ingest-change` was deliberately kept out of the chain
+    to avoid until a manifest existed for it.
+
+    An explicitly NAMED path is still required to exist. Someone who typed a path meant that path,
+    and silently doing nothing about a typo is how a content release goes missing unnoticed.
+    """
+    from content.video_manifest import (
+        ingest_video_manifest,
+        merge_questions,
+        read_manifest,
+        read_questions,
+    )
+
+    if not Path(path).exists():
+        if required:
+            raise SystemExit(f"ingest-video: {path} does not exist")
+        # Returning BEFORE the retire pass is the load-bearing part. `--retire-missing` treats the
+        # manifest as the active set, so running it against a manifest that is not there would read
+        # as "every item was deleted" and deactivate the entire video corpus at once.
+        print(f"ingest-video: no manifest at {path} — skipping (this package has no video content)")
+        return
+    manifest = read_manifest(path)
+
+    questions_path = _content_dir() / "video" / "questions.json"
+    if questions_path.exists():
+        stamped = merge_questions(manifest, read_questions(questions_path))
+        if stamped:
+            print(
+                f"ingest-video: merged questions for {stamped} item(s) from {questions_path.name}"
+            )
+
+    async with SessionLocal() as session:
+        report = await ingest_video_manifest(
+            session, manifest, _content_dir(), retire_missing=retire_missing
+        )
+        await session.commit()
+    await engine.dispose()
+
+    for idx, reason in report.rejected:
+        where = "manifest" if idx == -1 else f"item {idx}"
+        print(f"ingest-video REJECTED {where}: {reason}")
+    sync = f", retired {report.retired}, reactivated {report.reactivated}" if retire_missing else ""
+    print(
+        f"ingest-video {path}: added {report.added}, updated {report.updated}, "
+        f"skipped {report.skipped} (unchanged), rejected {len(report.rejected)}{sync}"
+    )
+    if report.rejected:
+        # Loudly, with a non-zero exit — a malformed clip must never ingest half-formed and
+        # surface later as a round nobody can answer.
+        raise SystemExit(1)
 
 
 async def _ingest_estimate(path: str, *, retire_missing: bool = False) -> int:
@@ -971,13 +1085,30 @@ def main() -> None:
     # (settings.content_root). That is what lets render.yaml stop naming repo-relative production
     # paths — deployment points ROT_CONTENT_DIR at the private bank and the commands are unchanged.
     if command == "ingest":
-        target = sys.argv[2] if len(sys.argv) > 2 else str(_content_dir() / "bank")
-        raise SystemExit(asyncio.run(_ingest(target)))
-    if command == "ingest-change":
-        target = (
-            sys.argv[2] if len(sys.argv) > 2 else str(_content_dir() / "change" / "manifest.json")
+        args = sys.argv[2:]
+        target = args[0] if args and not args[0].startswith("--") else str(_content_dir() / "bank")
+        raise SystemExit(asyncio.run(_ingest(target, retire_missing="--retire-missing" in args)))
+    if command == "ingest-video":
+        args = sys.argv[2:]
+        # The path is optional and the flag may be given alone, so a leading `--` is NOT a path.
+        explicit = bool(args) and not args[0].startswith("--")
+        target = args[0] if explicit else str(_content_dir() / "video" / "manifest.json")
+        # A TYPED path must exist; a RESOLVED one need not (see _ingest_video).
+        raise SystemExit(
+            asyncio.run(
+                _ingest_video(target, retire_missing="--retire-missing" in args, required=explicit)
+            )
         )
-        raise SystemExit(asyncio.run(_ingest_change(target)))
+    if command == "ingest-change":
+        args = sys.argv[2:]
+        target = (
+            args[0]
+            if args and not args[0].startswith("--")
+            else str(_content_dir() / "change" / "manifest.json")
+        )
+        raise SystemExit(
+            asyncio.run(_ingest_change(target, retire_missing="--retire-missing" in args))
+        )
     if command == "ingest-estimate":
         args = sys.argv[2:]
         target = (

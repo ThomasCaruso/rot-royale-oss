@@ -9,16 +9,23 @@
 export function GlassCard({
   children,
   style,
+  className,
 }: {
   children: React.ReactNode;
   style?: React.CSSProperties;
+  /**
+   * Extra classes, APPENDED to `rr-glass` rather than replacing it — so a caller can add a
+   * transient animation (a win pulse, a shake) to the card without losing the surface treatment or
+   * the per-art-style overrides that depend on `.rr-glass` being present.
+   */
+  className?: string;
 }) {
   // The surface treatment (gradient, border, radius, layered shadows + the per-theme --glow bloom)
   // lives in the `.rr-glass` CSS class so the per-ART-STYLE overrides (arcade = stronger neon glow,
   // soft = rounder + pillowy bloom) can actually take effect — inline styles would otherwise win and
   // make every theme's card identical. Callers still pass layout/spacing overrides via `style`.
   return (
-    <div className="rr-glass" style={style}>
+    <div className={className ? `rr-glass ${className}` : "rr-glass"} style={style}>
       {children}
     </div>
   );

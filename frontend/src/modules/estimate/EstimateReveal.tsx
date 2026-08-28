@@ -1,4 +1,5 @@
 import { fmtNum } from "@/modules/estimate/logScale";
+import { fmt, useT } from "@/i18n/useT";
 
 /**
  * The answer — which for a Fermi question is the entire reason to have asked.
@@ -20,6 +21,8 @@ export function EstimateReveal({
   answer: Record<string, unknown>;
   result: Record<string, unknown>;
 }) {
+  // Before the early return below — a hook after a conditional return breaks the rules of hooks.
+  const t = useT();
   const actual = typeof answer.answer === "number" ? answer.answer : null;
   const guessRaw = result.final_guess;
   const guess = typeof guessRaw === "number" ? guessRaw : null;
@@ -38,8 +41,8 @@ export function EstimateReveal({
     ratio === null || !isFinite(ratio)
       ? null
       : ratio >= 1
-        ? `${(Math.round(ratio * 10) / 10).toLocaleString()}x low`
-        : `${(Math.round((1 / ratio) * 10) / 10).toLocaleString()}x high`;
+        ? fmt(t.rounds.timesLow, { n: (Math.round(ratio * 10) / 10).toLocaleString() })
+        : fmt(t.rounds.timesHigh, { n: (Math.round((1 / ratio) * 10) / 10).toLocaleString() });
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -53,7 +56,7 @@ export function EstimateReveal({
             color: "var(--muted)",
           }}
         >
-          Actual
+          {t.rounds.actual}
         </div>
         <div className="display" style={{ fontSize: 30, color: "var(--text)", lineHeight: 1.15 }}>
           {fmtNum(actual)}
@@ -125,7 +128,7 @@ export function EstimateReveal({
             />
           </div>
           <div style={{ textAlign: "center", fontSize: 13, color: "var(--muted)" }}>
-            Your guess {fmtNum(guess)}
+            {fmt(t.rounds.yourGuess, { value: fmtNum(guess) })}
             {unit}
             {off ? ` — ${off}` : ""}
           </div>

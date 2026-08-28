@@ -244,6 +244,40 @@ body {
   35% { transform: scale(1.09); }
   100% { transform: scale(1); }
 }
+/* A CORRECT tap in the memory round. Overshoots further than rr-tile-flash and settles — the tile
+   should feel struck, not merely highlighted. Distinct from the flash the sequence plays with, so
+   "the game is showing me" and "I hit it" never look the same. */
+@keyframes rr-tile-bloom {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.16); }
+  100% { transform: scale(1); }
+}
+/* The memory round's phase change — the instant the game stops talking and starts listening. A
+   silent text swap made "watch" and "your turn" read as two strings; a short rise makes them read
+   as two modes. Deliberately small: this fires mid-round, so it must never feel like navigation. */
+@keyframes rr-headline-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* The payoff, kept small on purpose: the headline settles into place rather than leaping. Paired
+   with the card's green breath below, that is the whole celebration — a full-screen confetti burst
+   is reserved for milestones (results screen) and would cheapen if it fired every memory round. */
+@keyframes rr-win-pop {
+  from { transform: scale(0.96); opacity: 0.6; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* The card breathes once when a sequence is completed cleanly. Green, brief, and gone. */
+@keyframes rr-mem-win {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--lime) 45%, transparent); }
+  100% { box-shadow: 0 0 0 18px transparent; }
+}
+
+/* The memory round's watch phase, which was previously ~3s of staring with no visible end. */
+@keyframes rr-charge {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
 /* The correct-answer pill on reveal gets a brief gold ring sweep around it (outline glow). */
 @keyframes rr-correct-ring {
   0% { box-shadow: 0 8px 26px rgba(47, 212, 94, .2), 0 0 0 0 rgba(47, 212, 94, .6); }
@@ -339,6 +373,10 @@ body {
 .rr-pop { animation: rr-pop 0.4s ease; }
 .rr-shake { animation: rr-shake 0.45s ease; }
 .rr-tile-flash { animation: rr-tile-flash 0.32s ease; }
+.rr-tile-bloom { animation: rr-tile-bloom 0.34s cubic-bezier(0.2, 0.9, 0.3, 1.4); }
+.rr-headline-in { animation: rr-headline-in 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
+.rr-mem-win { animation: rr-mem-win 0.55s ease-out; }
+.rr-win-pop { animation: rr-win-pop 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.35) both; }
 .rr-correct-ring { animation: rr-correct-ring 0.6s ease-out; }
 .rr-streak-rise { animation: rr-streak-rise 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.4) both; }
 .rr-splash-in { animation: rr-splash-in 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.4); }
@@ -839,3 +877,50 @@ body {
  * roughly six seconds out of every seven, and the band itself is a narrow 30% wedge at low alpha.
  * A CTA that glints occasionally reads as expensive; one that pulses reads as needy. */
 .rr-cta-shine { animation: rr-cta-sweep 7s ease-in-out 1.9s infinite both; }
+
+/* The resting memory tile. Its own hue is washed faintly through the face, not just drawn on the
+ * border.
+ *
+ * Six outlined cards read as a form; six tinted objects read as a set of things you can play. The
+ * hue arrives as --mem-tile from the component (glyphShapes.ts), which owns the palette: it is
+ * FIXED rather than theme-derived, because measuring a token-derived version across all eleven
+ * themes found every theme producing a pair of near-identical tiles. Here the colours are the game
+ * state, so they have to be separable first and harmonious second.
+ *
+ * The plain panel gradient is declared first and only upgraded where color-mix is supported: iOS 13
+ * predates it, and this is a normal property, so an unsupported value simply leaves the fallback in
+ * place. */
+.rr-mem-tile {
+  background: linear-gradient(180deg, var(--panel2), var(--panel));
+}
+@supports (background: color-mix(in srgb, red 50%, blue)) {
+  .rr-mem-tile {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--mem-tile) 14%, var(--panel2)),
+      color-mix(in srgb, var(--mem-tile) 7%, var(--panel))
+    );
+  }
+}
+
+/* Memory Flash status row on narrow phones.
+ *
+ * The host hands modules a pre-styled eyebrow ("ROUND 3 OF 4 · Q 2 OF 2") with an INLINE
+ * fontSize/letterSpacing, so a stylesheet can only reach it with !important — which is exactly what
+ * that exists for: overriding an inline style you do not own. Nothing here changes the TEXT, so the
+ * information a player gets is identical and no other round type is touched.
+ *
+ * Measured at 375px: the string renders ~207px against ~181px of space beside the phase chip, so it
+ * wrapped to two lines and made the top of the round look busier than it is. Most of that width is
+ * pure tracking — 2px across 23 characters is ~46px — so cutting the letter-spacing first preserves
+ * far more legibility than shrinking the type would. */
+@media (max-width: 400px) {
+  .rr-mem-status-eyebrow > * {
+    font-size: 9.5px !important;
+    letter-spacing: 0.6px !important;
+  }
+  .rr-mem-status-chip {
+    padding: 4px 9px !important;
+    letter-spacing: 1px !important;
+  }
+}

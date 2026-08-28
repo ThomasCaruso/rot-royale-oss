@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import type { Dict } from "@/i18n/en";
 import { type ChallengeCreateResponse, type EnterResponse } from "@/api/client";
 import { api } from "@/api/client";
 import { nextStreak, shouldCelebrate } from "@/lib/celebrate";
@@ -9,6 +10,7 @@ import { buildRotReport, type RoundLog } from "@/lib/rotReport";
 import { saveRotReport } from "@/lib/rotReportStore";
 import { formatLocalTime } from "@/lib/time";
 import { useWindowMeta } from "@/lib/useWindowMeta";
+import { warmRoundMedia } from "@/lib/warmRoundMedia";
 import { RotReport } from "@/screens/results/RotReport";
 import { RankedSaveGate } from "@/screens/brainboost/RankedSaveGate";
 import { useSessionStore } from "@/store/session";
@@ -39,6 +41,20 @@ const wrap: React.CSSProperties = {
   flexDirection: "column",
   gap: 16,
 };
+
+/**
+ * What the splash announces for a round that has no trivia category.
+ *
+ * The interactive cognition rounds hardcode their own English labels ("Spot the change",
+ * "Estimate") because modules carry no i18n — so the localized copy has to live out here, on the
+ * screen, and be handed in. An unknown type falls back to the generic round word rather than
+ * rendering an empty beat: `tryGetModule`'s discipline, applied to copy.
+ */
+function splashVerb(type: string, t: Dict): string {
+  if (type === "change_detection") return t.contest.splashSpotTheChange;
+  if (type === "estimate") return t.contest.splashEstimate;
+  return t.contest.splashRound;
+}
 
 // The active round (splash / question / reveal) is vertically centered in the space below the
 // progress dots; min-height stays auto so a tall question grows the page and scrolls rather than
@@ -110,6 +126,10 @@ function ContestPlay({
 }) {
   const t = useT();
   const [pacing, dispatch] = useReducer(pacingReducer, entry.rounds.length, initialPacing);
+
+  // Pull the run's images and clips down while round 1 is on screen, so a change or video round
+  // later in the run does not stall on a cold fetch. Best-effort and cancelled on unmount.
+  useEffect(() => warmRoundMedia(entry.rounds), [entry.rounds]);
   const [choice, setChoice] = useState<number | null>(null);
   // What the module itself reported at completion. The generic reveal only needs `choice`, but a
   // module-owned reveal needs the module's own memory of the round (the tap that was made, the
@@ -254,7 +274,11 @@ function ContestPlay({
   }
 
   const Component = getModule(round.type).Component;
-  const spec = round.client_spec as { category: string; icon: string };
+  // OPTIONAL, and the type used to say otherwise. Trivia rounds carry a category and an icon; the
+  // interactive cognition rounds carry neither. Declaring them required is what let the splash be
+  // written as `spec.category && <CategorySplash/>` without anyone noticing it renders nothing at
+  // all on a change or estimate round. Line 192 already had this right.
+  const spec = round.client_spec as { category?: string; icon?: string };
   const framing = roundFraming(pacing.idx, entry.rounds.length);
 
   return (
@@ -263,10 +287,33 @@ function ContestPlay({
 
       <div style={stage}>
         {pacing.phase === "splash" && (
-          <GlassCard style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          /* A SQUARE, and always the same square.
+           *
+           * Two faults, one cause. The card's height came from `CategorySplash`'s `flex: 1`, so it
+           * was whatever the stage happened to give it — a different size on different screens and
+           * different rounds. And the splash was gated on `spec.category`, which the interactive
+           * cognition rounds do not have: on a change or estimate round this card rendered
+           * COMPLETELY EMPTY. That is the blank beat that shows up around the image round.
+           *
+           * `aspectRatio: 1` fixes the shape, and the fallback below fixes the emptiness: a round
+           * with no category announces what it IS instead. A splash that announces nothing is worse
+           * than no splash at all — it reads as the game having lost its place. */
+          <GlassCard
+            style={{
+              aspectRatio: "1 / 1",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              gap: 12,
+              overflow: "hidden",
+            }}
+          >
             {framing.isBlockStart && <RoundBanner blockKey={framing.blockKey} />}
-            {/* Interactive cognition rounds carry no trivia category/icon — skip the splash. */}
-            {spec.category && <CategorySplash category={spec.category} icon={spec.icon} />}
+            <CategorySplash
+              category={spec.category ?? splashVerb(round.type, t)}
+              icon={spec.icon ?? "🧠"}
+              eyebrow={spec.category ? t.contest.splashCategory : t.contest.splashRound}
+            />
           </GlassCard>
         )}
 

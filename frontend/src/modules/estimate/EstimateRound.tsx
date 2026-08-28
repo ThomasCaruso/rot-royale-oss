@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { api } from "@/api/client";
+import { useT } from "@/i18n/useT";
 import { LogSlider } from "@/modules/estimate/LogSlider";
 import { clamp, fmtNum, geomMid, roundNice } from "@/modules/estimate/logScale";
 import { GlassCard } from "@/ui/GlassCard";
@@ -66,6 +67,7 @@ function GuessPips({ total, used }: { total: number; used: number }) {
 
 /** A ledger row: the guess, then the server's verdict as a tinted direction chip. */
 function AttemptRow({ attempt, unit }: { attempt: Attempt; unit: string | null }) {
+  const t = useT();
   const close = attempt.band === "close";
   const tint = close ? "var(--amber)" : "var(--pink)";
   return (
@@ -113,7 +115,7 @@ function AttemptRow({ attempt, unit }: { attempt: Attempt; unit: string | null }
         }}
       >
         <span aria-hidden>{attempt.direction === "higher" ? "▲" : "▼"}</span>
-        {attempt.direction === "higher" ? "Higher" : "Lower"}
+        {attempt.direction === "higher" ? t.rounds.higher : t.rounds.lower}
         <span style={{ opacity: 0.65, letterSpacing: 0.6 }}>{close ? "· close" : "· way off"}</span>
       </span>
     </div>
@@ -126,6 +128,7 @@ export const EstimateRound: React.FC<{
   eyebrow?: React.ReactNode;
   footer?: React.ReactNode;
 }> = ({ spec, onComplete, eyebrow, footer }) => {
+  const t = useT();
   const [bounds, setBounds] = useState({ min: spec.slider_min, max: spec.slider_max });
   const [value, setValue] = useState(() => geomMid(spec.slider_min, spec.slider_max));
   const [attempts, setAttempts] = useState<Attempt[]>([]);
@@ -160,7 +163,7 @@ export const EstimateRound: React.FC<{
     <div>
       {/* Header lives ABOVE the card, matching every other round module. */}
       <RoundHeader
-        label="Estimate"
+        label={t.rounds.estimate}
         right={<GuessPips total={spec.max_guesses} used={attempts.length} />}
       />
       <GlassCard>
@@ -181,7 +184,7 @@ export const EstimateRound: React.FC<{
             color: "var(--faint)",
           }}
         >
-          <span>Range</span>
+          <span>{t.rounds.range}</span>
           <span style={{ color: "var(--muted)", fontVariantNumeric: "tabular-nums" }}>
             {fmtNum(bounds.min)} – {fmtNum(bounds.max)}
           </span>

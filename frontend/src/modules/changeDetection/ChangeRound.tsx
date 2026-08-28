@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/api/client";
+import { useT } from "@/i18n/useT";
 import { haptic } from "@/lib/sfx";
 import { Display } from "@/ui/Display";
 import { GlassCard } from "@/ui/GlassCard";
@@ -69,6 +70,7 @@ export const ChangeRound: React.FC<{
   // last quarter-second of the round as a MISS.
   const committed = useRef<{ x: number; y: number } | null>(null);
   const imgRef = useRef<HTMLDivElement>(null);
+  const t = useT();
   const reduced = useReducedMotion();
 
   // Don't start the round until both frames are decoded. The flicker and the 15s limit used to run
@@ -216,17 +218,28 @@ export const ChangeRound: React.FC<{
 
   return (
     <div>
-      <RoundHeader label="Spot the change" remainingMs={left} totalMs={spec.time_limit_ms} />
-      <GlassCard>
+      <RoundHeader label={t.rounds.spotTheChange} remainingMs={left} totalMs={spec.time_limit_ms} />
+      {/* `overflow: hidden` is what lets the picture below bleed to the card's edges without
+          squaring off its rounded corners. */}
+      <GlassCard style={{ overflow: "hidden" }}>
         {eyebrow}
-        <PromptText text="Tap where it changes" style={{ margin: "4px 0 10px" }} />
+        <PromptText text={t.rounds.tapWhereItChanges} style={{ margin: "4px 0 10px" }} />
         {/* Which frame is on screen and how long it stays. The two are held for DIFFERENT lengths
             (5s then 8s), so without this the player cannot tell whether to keep studying or wait
             for the swap — they just watch the picture change under them. */}
         {/* Hidden during the titled beat: that beat IS the announcement, and a second countdown
             over it just races the words the player is reading. This row belongs to the image. */}
-        {!locked && ready && !between && (
-          <div style={{ margin: "0 0 10px" }}>
+        {/* This row ALWAYS occupies its space, and is hidden rather than unmounted.
+            Unmounting it shrank the card by 35px on every announcement beat and grew it back a
+            second later, so the card visibly jumped twice per cycle — on a round whose entire
+            mechanic is noticing that something moved, the frame itself was the most animated thing
+            on screen. `visibility` keeps the box; only the ink goes away. */}
+        <div
+          style={{
+            margin: "0 0 10px",
+            visibility: !locked && ready && !between ? "visible" : "hidden",
+          }}
+        >
             <div
               style={{
                 display: "flex",
@@ -239,7 +252,7 @@ export const ChangeRound: React.FC<{
                 color: between ? "var(--faint)" : "var(--muted)",
               }}
             >
-              <span>{showAltered ? "Second image" : "First image"}</span>
+              <span>{showAltered ? t.rounds.secondImage : t.rounds.firstImage}</span>
               <span
                 className="display"
                 style={{
@@ -274,19 +287,25 @@ export const ChangeRound: React.FC<{
               />
             </div>
           </div>
-        )}
         <div
           ref={imgRef}
           onPointerDown={onTap}
           style={{
             position: "relative",
-            width: "100%",
+            // FULL BLEED: cancel the card's own padding so the picture reaches the card's edges.
+            // The picture is the round — it was being rendered inside 20px of padding on each side,
+            // costing ~12% of its width on the one element the player actually has to study. The
+            // card sets `overflow: hidden`, so the corners still clip to the card's radius.
+            //
+            // Horizontal only: `footer` is an optional prop, and bleeding the bottom would run the
+            // image underneath it whenever a caller passes one.
+            margin: "0 calc(var(--pad-card, 20px) * -1)",
             aspectRatio: `${spec.width} / ${spec.height}`,
             // The blank phase is a calm theme surface rather than a white flash — on the ivory
             // Starter skin a hard #fff strobe was the brightest thing on the screen.
             background: between ? "var(--panel2)" : "var(--panel)",
-            border: "1px solid var(--line)",
-            borderRadius: "var(--radius-ctl, 14px)",
+            borderTop: "1px solid var(--line)",
+            borderBottom: "1px solid var(--line)",
             overflow: "hidden",
             cursor: locked ? "default" : "crosshair",
             touchAction: "none",
@@ -339,7 +358,7 @@ export const ChangeRound: React.FC<{
                 <span style={{ width: 22, height: 1, background: "linear-gradient(90deg, color-mix(in srgb, var(--amber) 70%, transparent), transparent)" }} />
               </div>
               <Display style={{ fontSize: "clamp(24px, 7vw, 34px)", lineHeight: 1.05 }}>
-                {frame === 0 ? "First image" : "Second image"}
+                {frame === 0 ? t.rounds.firstImage : t.rounds.secondImage}
               </Display>
               <span
                 style={{
@@ -350,7 +369,7 @@ export const ChangeRound: React.FC<{
                   color: "var(--faint)",
                 }}
               >
-                {frame === 0 ? "The original" : "Something changed"}
+                {frame === 0 ? t.rounds.theOriginal : t.rounds.somethingChanged}
               </span>
             </div>
           )}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useT } from "@/i18n/useT";
 import { useReducedMotion } from "@/ui/useReducedMotion";
 
 /**
@@ -28,6 +29,7 @@ export function ChangeReveal({
   result: Record<string, unknown>;
   correct: boolean;
 }) {
+  const t = useT();
   const reduced = useReducedMotion();
   const [showRing, setShowRing] = useState(reduced);
 
@@ -124,7 +126,11 @@ export function ChangeReveal({
         )}
       </div>
       <div style={{ fontSize: 13, color: "var(--muted)", textAlign: "center" }}>
-        {correct ? "You found it." : tap ? "The change was here." : "Time — the change was here."}
+        {correct
+          ? t.rounds.youFoundIt
+          : tap
+            ? t.rounds.theChangeWasHere
+            : t.rounds.timeTheChangeWasHere}
       </div>
     </div>
   );

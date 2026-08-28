@@ -25,8 +25,9 @@ has to anticipate every encoding and an allowlist does not.
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
+
+from content import asset_paths
 
 ASSETS_SUBDIR = "assets"
 
@@ -41,22 +42,19 @@ MEDIA_TYPES: dict[str, str] = {
     ".png": "image/png",
 }
 
-# One path segment: starts alphanumeric (so no dotfiles and no bare ".."), then alphanumerics and
-# the three punctuation marks real asset names use. No slash, no backslash, no NUL, no spaces.
-_ASSET_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+# The path-safety rule itself now lives in `content/asset_paths.py`, shared with the video clips —
+# a second copy of security-critical path handling is how one copy gets a fix and the other does
+# not. This module keeps the CHANGE-specific bindings: which directory, which media types.
+CHANGE_KIND = "change"
 
 
 def assets_dir(content_root: Path) -> Path:
-    return content_root / "change" / ASSETS_SUBDIR
+    return asset_paths.assets_dir(content_root, CHANGE_KIND)
 
 
 def is_valid_asset_id(asset_id: str) -> bool:
     """Whether a string is SHAPED like an asset id. Says nothing about the file existing."""
-    if not isinstance(asset_id, str) or ".." in asset_id:
-        return False
-    if not _ASSET_ID.fullmatch(asset_id):
-        return False
-    return Path(asset_id).suffix.lower() in MEDIA_TYPES
+    return asset_paths.is_valid_asset_id(asset_id, MEDIA_TYPES)
 
 
 def media_type_for(asset_id: str) -> str | None:
@@ -70,19 +68,4 @@ def resolve(content_root: Path, asset_id: str) -> Path | None:
     caller turns None into a flat 404, so the endpoint cannot be used to probe which names exist on
     disk versus which are merely rejected.
     """
-    if not is_valid_asset_id(asset_id):
-        return None
-    base = assets_dir(content_root)
-    try:
-        resolved_base = base.resolve()
-        candidate = (base / asset_id).resolve()
-    except OSError:  # unresolvable path (broken link, bad mount, name too long for the OS)
-        return None
-    # Containment, checked AFTER resolving symlinks — the shape check above already makes traversal
-    # unreachable, so this is the belt to that braces: a symlinked asset pointing out of the tree
-    # would otherwise leak an arbitrary file.
-    if candidate.parent != resolved_base:
-        return None
-    if not candidate.is_file():
-        return None
-    return candidate
+    return asset_paths.resolve(content_root, CHANGE_KIND, asset_id, MEDIA_TYPES)

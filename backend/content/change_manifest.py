@@ -57,6 +57,10 @@ class ChangeIngestReport:
     updated: int = 0
     skipped: int = 0
     rejected: list[tuple[int, str]] = field(default_factory=list)
+    # Only ever non-zero under retire_missing=True: rows the manifest no longer carries, and rows
+    # it carries again after having been retired.
+    retired: int = 0
+    reactivated: int = 0
 
 
 def read_manifest(path: str | Path) -> dict[str, Any]:
@@ -143,12 +147,29 @@ def validate_manifest(
 
 
 async def ingest_change_manifest(
-    session: AsyncSession, manifest: dict[str, Any], content_root: Path | None = None
+    session: AsyncSession,
+    manifest: dict[str, Any],
+    content_root: Path | None = None,
+    *,
+    retire_missing: bool = False,
 ) -> ChangeIngestReport:
     """Upsert manifest items by key: new keys insert, changed rows refresh in place, unchanged
     rows are a no-op. Files are the source of truth, mirroring the trivia bank ingest. Manifest-
     level errors reject everything; per-item errors reject just those items (loudly, in the
-    report)."""
+    report).
+
+    `retire_missing` makes the manifest the **active set**, as `ingest-estimate` does for the Fermi
+    bank (§5d): an item the manifest no longer carries is DEACTIVATED, and one it carries again is
+    REACTIVATED. Retiring keeps the row — never deletes — so an already-pinned window plan still
+    resolves it, and reverting the content file restores the previous active set.
+
+    THE SAFETY RULE IS DIFFERENT HERE, and it is the whole reason this is not a copy of the estimate
+    version. That ingest is all-or-nothing, so a malformed file writes nothing and can retire
+    nothing. This one rejects PER ITEM and keeps going — so a single typo'd item would look exactly
+    like an item the author deleted, and would be silently retired. Retiring is therefore refused
+    outright if anything was rejected: a partial manifest makes no trustworthy claim about what is
+    absent on purpose.
+    """
     # Imported HERE, not at module scope: importing app.models pulls in app.core.config,
     # which CONSTRUCTS Settings — and in production Settings refuses to exist until
     # ROT_CONTENT_DIR does. The content fetcher's job is to create that directory, so a
@@ -194,5 +215,18 @@ async def ingest_change_manifest(
             report.updated += 1
         else:
             report.skipped += 1
+        if retire_missing and not row.active:
+            row.active = True
+            report.reactivated += 1
+
+    # Only when the manifest is COMPLETE — see the docstring. A rejected item is indistinguishable
+    # from a deleted one, and guessing wrong pulls working content out of the game.
+    if retire_missing and not report.rejected:
+        present = {item["key"] for item in manifest["items"]}
+        for key, row in existing.items():
+            if key not in present and row.active:
+                row.active = False
+                report.retired += 1
+
     await session.flush()
     return report

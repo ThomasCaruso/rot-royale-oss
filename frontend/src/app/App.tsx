@@ -18,7 +18,6 @@ import {
   Campaign,
   CategorySelect,
   ChallengeLanding,
-  CognitionPlaytest,
   Contest,
   DuelFlow,
   FirstRun,
@@ -75,7 +74,6 @@ export function App() {
   const [growthOpen, setGrowthOpen] = useState(false);
   const [duelOpen, setDuelOpen] = useState(false);
   const [friendsOpen, setFriendsOpen] = useState(false);
-  const [playtestOpen, setPlaytestOpen] = useState(false);
   // Level-up celebration trigger: bumped whenever Home becomes the active view (initial authenticated
   // mount + every return to Home after a play flow), so the shell re-checks /me/mastery for a fresh
   // level-up right after the player finishes a session. Not a timer — one check per Home landing.
@@ -172,7 +170,6 @@ export function App() {
     setCampaignOpen(false);
     setDuelOpen(false);
     setFriendsOpen(false);
-    setPlaytestOpen(false);
     setPracticeFlow("off");
     setPracticeMode(null);
     setContestWindowId(null);
@@ -189,7 +186,6 @@ export function App() {
       return true;
     }
     for (const [isOpen, close] of [
-      [playtestOpen, () => setPlaytestOpen(false)],
       [duelOpen, () => setDuelOpen(false)],
       [friendsOpen, () => setFriendsOpen(false)],
       [growthOpen, () => setGrowthOpen(false)],
@@ -205,7 +201,6 @@ export function App() {
     return false;
   }, [
     practiceFlow,
-    playtestOpen,
     duelOpen,
     friendsOpen,
     growthOpen,
@@ -289,7 +284,6 @@ export function App() {
   // Map the overlay/flow flags to a single logical Surface, in the same precedence order the view
   // switch below resolves them. Used to gate ranked/social surfaces when offline.
   function currentSurface(): Surface {
-    if (playtestOpen) return "playtest";
     if (friendsOpen) return "friends";
     if (duelOpen) return "duel";
     if (vaultOpen) return "vault";
@@ -314,9 +308,6 @@ export function App() {
     // panel instead. `goHome` clears every overlay, dropping the user onto the offline-OK Home.
     if (!online && requiresOnline(currentSurface())) {
       return <OnlineRequired onBack={goHome} />;
-    }
-    if (playtestOpen) {
-      return <CognitionPlaytest onBack={goHome} />;
     }
     if (friendsOpen) {
       return (
@@ -484,7 +475,6 @@ export function App() {
         onVault={() => setVaultOpen(true)}
         onDuel={goDuel}
         onFriends={goFriends}
-        onPlaytest={() => setPlaytestOpen(true)}
       />
     );
   }

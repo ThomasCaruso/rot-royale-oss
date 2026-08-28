@@ -1262,7 +1262,30 @@ export const api = {
       `/cognition/change/${id}/submit`,
       jsonInit("POST", { x, y, elapsed_ms: elapsedMs }),
     ),
+
+  /** One of the video round's three answers.
+   *
+   * `choice` indexes the SERVED (shuffled) options; the server maps it back through the same
+   * seeded order to judge, so the client never holds the answer key. NULL is a timeout — a real
+   * outcome that scores as wrong, not an error.
+   */
+  cogVideoAnswer: (id: string, questionIndex: number, choice: number | null, elapsedMs: number) =>
+    authedRequest<CogVideoAnswer>(
+      `/cognition/video/${id}/answer`,
+      jsonInit("POST", {
+        question_index: questionIndex,
+        choice,
+        elapsed_ms: elapsedMs,
+      }),
+    ),
 };
+
+export interface CogVideoAnswer {
+  correct: boolean;
+  question_index: number;
+  answered: number;
+  done: boolean;
+}
 
 export interface CogChangeStart {
   instance_id: string;

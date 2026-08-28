@@ -28,15 +28,20 @@ from PIL import Image, ImageChops
 # similarly-toned object still registers.
 DIFF_THRESHOLD = 24
 
-# Authored tiers live next to the brief they were assigned in.
-_DEFAULT_DIFFICULTY = Path(__file__).resolve().parents[1] / "content" / "change" / "difficulty.json"
+# Authored tiers live in the PRIVATE content package, alongside the images they describe — not in
+# this repo. There is no default: a wrong default here is worse than no default, because ingest only
+# stamps difficulty onto items that do not already carry one, so a manifest built against a stale
+# tier map silently wins over the real one. (It used to point at backend/content/change/
+# difficulty.json, which still held the 20 keys of an earlier, unshipped brief.) Pass --difficulty
+# $ROT_CONTENT_DIR/change/difficulty.json, or omit it and let ingest do the stamping.
+_DEFAULT_DIFFICULTY: Path | None = None
 
-# The mask is analysed at this width. Connected-component labelling on a full 1024px frame is
+# The mask is analysed at this width. Connected-component labelling on a full-resolution frame is
 # needlessly slow, and the questions being asked (how many regions, how big, where) are all
 # scale-invariant.
 ANALYSIS_WIDTH = 256
 
-# Brief §4/§5: a change smaller than this is not findable at the ~325px the image renders at.
+# Brief §4/§5: a change smaller than this is not findable at the ~342px the image renders at.
 MIN_REGION_FRAC = 0.04
 # Brief §4: nothing in the outer 5% — taps near the border are awkward.
 EDGE_MARGIN = 0.05
@@ -114,7 +119,7 @@ def analyse_pair(key: str, base_path: Path, altered_path: Path) -> Pair:
     if max(bw, bh) < MIN_REGION_FRAC:
         pair.problems.append(
             f"changed region is {bw:.1%}x{bh:.1%} of the frame — under the {MIN_REGION_FRAC:.0%} "
-            f"floor, it will not be findable at the ~325px this renders at"
+            f"floor, it will not be findable at the ~342px this renders at"
         )
     if x0 < EDGE_MARGIN or y0 < EDGE_MARGIN or x1 > 1 - EDGE_MARGIN or y1 > 1 - EDGE_MARGIN:
         pair.problems.append(
@@ -166,7 +171,7 @@ def main() -> int:
     ap.add_argument(
         "--difficulty",
         default=None,
-        help="JSON map of key -> easy|medium|hard (default: content/change/difficulty.json)",
+        help="JSON map of key -> easy|medium|hard (no default; see _DEFAULT_DIFFICULTY)",
     )
     ap.add_argument(
         "--strict",
@@ -183,7 +188,7 @@ def main() -> int:
     # property (is this on the subject or in the background?), which no diff can measure.
     diff_path = Path(args.difficulty) if args.difficulty else _DEFAULT_DIFFICULTY
     tiers: dict[str, str] = {}
-    if diff_path.exists():
+    if diff_path is not None and diff_path.exists():
         tiers = {
             k: v
             for k, v in json.loads(diff_path.read_text(encoding="utf-8")).items()

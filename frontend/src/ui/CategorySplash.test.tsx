@@ -34,10 +34,23 @@ describe("CategorySplash", () => {
   beforeEach(() => stubMatchMedia(false));
 
   it("always renders the category name and icon (state is never hidden behind motion)", () => {
-    const html = renderToStaticMarkup(<CategorySplash category="Science & Nature" icon="🔬" />);
+    const html = renderToStaticMarkup(
+      <CategorySplash category="Science & Nature" icon="🔬" eyebrow="Category" />,
+    );
     expect(html).toContain("Science &amp; Nature");
     expect(html).toContain("🔬");
     expect(html).toContain("Category");
+  });
+
+  it("renders the eyebrow it is given, never a hardcoded English word", () => {
+    // The eyebrow was a literal "Category" for this component's whole life, so campaign and
+    // practice showed that English word to es/fr/tr players on every round. It is a required,
+    // caller-localized prop now; this asserts the component actually uses it.
+    const html = renderToStaticMarkup(
+      <CategorySplash category="Ciencia" icon="🔬" eyebrow="Categoría" />,
+    );
+    expect(html).toContain(">Categoría<");
+    expect(html).not.toContain(">Category<");
   });
 });
 

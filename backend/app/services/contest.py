@@ -493,6 +493,16 @@ async def answer_round(
         else:
             break
     points = compute_points(True, judgement.time_frac, streak_prev + 1, half=half) if counts else 0
+    # A round that asked more than one question adds the rest here — today only `video`, which is
+    # one Royale slot holding three answers. Every sub-answer goes through the SAME formula, so
+    # there is still exactly one place points are computed; what changes is how many times it runs.
+    #
+    # The streak multiplier is deliberately held at the round's own level rather than climbing
+    # within the round: a single round should not be able to run the streak up on its own, or the
+    # multiplier stops measuring a run and starts measuring one lucky question type.
+    for sub_correct, sub_frac in judgement.sub_scores or ():
+        if sub_correct and judgement.valid:
+            points += compute_points(True, sub_frac, streak_prev + 1, half=half)
 
     session.add(
         RoundResult(

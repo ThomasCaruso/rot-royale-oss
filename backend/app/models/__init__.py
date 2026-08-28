@@ -13,6 +13,7 @@ from app.models.cognition import (
     CognitionEstimateItem,
     CognitionRoundInstance,
     CognitionRoundType,
+    CognitionVideoItem,
 )
 from app.models.contest import ContestWindow, Entry, RoundAnswer, RoundResult
 from app.models.cosmetic import UserCosmetic
@@ -71,6 +72,7 @@ __all__ = [
     "CognitionAttempt",
     "CognitionEstimateItem",
     "CognitionChangeItem",
+    "CognitionVideoItem",
     "Entry",
     "RoundAnswer",
     "RoundResult",

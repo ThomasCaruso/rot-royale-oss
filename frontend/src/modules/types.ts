@@ -4,6 +4,22 @@ import type React from "react";
  * A round module plays one round and calls onComplete with the result to submit.
  * The contest engine looks modules up by `type` and renders/plays them (docs/architecture.md).
  * The client never receives answers — only `spec` (client_spec); scoring is server-authoritative.
+ *
+ * MODULES OWN THEIR OWN COPY, via `useT()` and the `rounds` dictionary section.
+ *
+ * This used to say the opposite — "modules carry no i18n" — and that convention was itself the bug.
+ * It made an English literal the path of least resistance, so "Spot the change", "Estimate",
+ * "Watch closely", "First image", "Your turn" and a dozen more shipped hardcoded and were rendered
+ * verbatim to Spanish, French and Turkish players on every round they played.
+ *
+ * The alternative — passing every string in as a prop — was rejected because it spreads the same
+ * failure across four host screens (contest, practice, campaign, duels): the moment one of them
+ * forgets, that host silently renders English again, with nothing to catch it. Modules already
+ * import the API client and the haptics singleton, so a store-backed `useT()` is strictly less
+ * coupling than what they had.
+ *
+ * The dividing line: copy the module says about ITSELF lives in the module. Copy the HOST says
+ * about the run (the §5f second-chance banner, the round eyebrow) still arrives as a prop.
  */
 export interface RoundModule<Spec = unknown, Result = unknown> {
   type: string;
@@ -20,9 +36,9 @@ export interface RoundModule<Spec = unknown, Result = unknown> {
     // other module ignores these, so the props are optional across the shared contract.
     eliminated?: number | null;
     retryMs?: number;
-    // Host-supplied banner shown while the second chance is open. Modules carry no copy of their
-    // own (they have no i18n), so the screen passes the localized beat in; modules that don't
-    // support a second chance ignore it.
+    // Host-supplied banner shown while the second chance is open; modules that don't support a
+    // second chance ignore it. This is the SCREEN's message about the run, not the module's own
+    // words — which is the line that decides what arrives as a prop and what doesn't (see below).
     notice?: React.ReactNode;
   }>;
   /**

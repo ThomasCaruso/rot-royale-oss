@@ -13,7 +13,25 @@ import { Display } from "@/ui/Display";
  * rr-orbit / rr-twinkle), which the global reduced-motion media query collapses to an instant,
  * fully-legible state. Decorative layers are aria-hidden.
  */
-export function CategorySplash({ category, icon }: { category: string; icon: string }) {
+export function CategorySplash({
+  category,
+  icon,
+  eyebrow,
+}: {
+  category: string;
+  icon: string;
+  /**
+   * The small caps line above the name, localized BY THE CALLER — this component holds no i18n.
+   *
+   * REQUIRED, deliberately. It was a hardcoded English "Category" for this component's whole life,
+   * which meant campaign and practice showed the word "Category" to Spanish, French and Turkish
+   * players on every single round. Giving it a default would have left both of those callers
+   * silently wrong; requiring it made the compiler find them. It is also no longer always the
+   * word "Category" — the interactive cognition rounds carry no trivia category, and calling
+   * "Spot the change" a Category would be a lie.
+   */
+  eyebrow: string;
+}) {
   const mono = useArtStyle() === "mono";
 
   // Mono ("Blank"): the anticipation beat is pure typography — a whisper-caps eyebrow over the
@@ -41,7 +59,7 @@ export function CategorySplash({ category, icon }: { category: string; icon: str
             color: "var(--faint)",
           }}
         >
-          Category
+          {eyebrow}
         </span>
         <Display style={{ fontSize: "clamp(30px, 9vw, 40px)", textAlign: "center", lineHeight: 1.08, padding: "0 14px" }}>
           {category}
@@ -173,7 +191,7 @@ export function CategorySplash({ category, icon }: { category: string; icon: str
             color: "var(--brand-2)",
           }}
         >
-          Category
+          {eyebrow}
         </span>
         <span style={{ width: 4.5, height: 4.5, transform: "rotate(45deg)", background: "linear-gradient(135deg, #FFE58A, var(--amber))", boxShadow: "0 0 6px color-mix(in srgb, var(--amber) 70%, transparent)" }} />
         <span style={{ width: 26, height: 1, background: "linear-gradient(90deg, color-mix(in srgb, var(--amber) 70%, transparent), transparent)" }} />

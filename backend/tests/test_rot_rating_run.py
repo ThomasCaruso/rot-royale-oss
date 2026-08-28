@@ -40,6 +40,12 @@ async def _royale_window(session: AsyncSession) -> ContestWindow:
         close_at=now + timedelta(hours=1),
         state=OPEN,
         template_id="dr_8_trivia",
+        # Pin an ALL-TRIVIA plan explicitly. These tests need trivia rounds at known indexes, and
+        # they used to get them by accident: with no cognition content seeded, availability was
+        # {"trivia"} and provisioning fell through to the legacy all-trivia build. `memory_flash`
+        # is GENERATED, so it is available every day and no window is trivia-only any more. Saying
+        # so here is what the test meant all along.
+        round_plan=[{"idx": i, "type": "trivia", "content_ref": {}} for i in range(8)],
     )
     session.add(w)
     await session.flush()

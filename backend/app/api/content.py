@@ -22,7 +22,7 @@ release requires; it is not, and is not claimed to be, an access-control boundar
 
 from __future__ import annotations
 
-from content import change_assets
+from content import change_assets, video_assets
 from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import FileResponse
 
@@ -49,5 +49,26 @@ async def change_asset(asset_id: str) -> FileResponse:
     if path is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "asset not found")
     media_type = change_assets.media_type_for(asset_id)
+    assert media_type is not None  # resolve() already rejected unsupported extensions
+    return FileResponse(path, media_type=media_type, headers={"Cache-Control": _CACHE_CONTROL})
+
+
+@router.get("/video/{asset_id}")
+async def video_asset(asset_id: str) -> FileResponse:
+    """One video-round clip from `<content_root>/video/assets/`.
+
+    The same flat-404 discipline as the change images: malformed name, traversal attempt,
+    unsupported extension, unknown asset and not-a-file all answer identically, so the route cannot
+    be used to enumerate the private package.
+
+    Cached hard, and that is what makes the round feel instant. Today's Royale is the SAME content
+    for every player all day (the shared per-window seed), so a clip fetched once — by the idle
+    prefetch or by an earlier round — is still valid when the round actually arrives. Without the
+    cache header a 500 KB clip would be re-fetched mid-run, which reads as the game hanging.
+    """
+    path = video_assets.resolve(settings.content_root, asset_id)
+    if path is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "asset not found")
+    media_type = video_assets.media_type_for(asset_id)
     assert media_type is not None  # resolve() already rejected unsupported extensions
     return FileResponse(path, media_type=media_type, headers={"Cache-Control": _CACHE_CONTROL})

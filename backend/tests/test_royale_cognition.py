@@ -97,7 +97,7 @@ async def test_royale_round_set_is_mixed_and_pins_types(
     types = [r["type"] for r in rounds]
     assert types[0] == "change_detection"  # fast visual/reaction opener
     assert types[7] == "estimate"  # highest-difficulty available finale
-    assert set(types) <= {"trivia", "estimate", "change_detection"}
+    assert set(types) <= {"trivia", "estimate", "change_detection", "memory_flash"}
 
     for r in rounds:
         spec = r["client_spec"]
@@ -162,6 +162,17 @@ async def _play_royale(
             )
             assert r.json()["hit"] is True, r.text
             result = {}
+        elif rtype == "memory_flash":
+            # ATOMIC and generated, so it answers through /entries/{id}/answer like trivia. The
+            # sequence is legitimately in client_spec (it is the stimulus the player watches); the
+            # anti-cheat property is that the submitted TAPS are validated against the stored one.
+            # Tap times must clear MIN_PLAUSIBLE_INPUT_MS or the module flags the run as a spoof.
+            taps = list(spec["sequence"])
+            result = {
+                "taps": taps,
+                "tap_times": [300 * (i + 1) for i in range(len(taps))],
+                "elapsed_ms": 300 * len(taps),
+            }
         else:  # estimate
             iid = spec["cognition_instance_id"]
             r = await client.post(

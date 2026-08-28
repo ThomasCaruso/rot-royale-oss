@@ -30,15 +30,22 @@ from app.models import (
     CognitionChangeItem,
     CognitionEstimateItem,
     CognitionRoundInstance,
+    CognitionVideoItem,
     ContestWindow,
     Entry,
 )
-from app.modules.base import RoundJudgement, clamp_elapsed_ms
+from app.modules.base import GenerationContext, RoundJudgement, clamp_elapsed_ms
 from app.modules.change_detection import CHANGE_TIME_LIMIT_MS
+from app.modules.registry import get_module
 from app.modules.trivia import trivia_spec
 from app.services.bots import window_seed
-from app.services.cognition import start_change_with_item, start_estimate_with_item
-from app.services.royale_sequencing import royale_type_sequence
+from app.services.cognition import (
+    VIDEO_QUESTION_TIME_LIMIT_MS,
+    start_change_with_item,
+    start_estimate_with_item,
+    start_video_with_item,
+)
+from app.services.royale_sequencing import ROYALE_TYPES, royale_type_sequence
 
 # Royale entries that contain cognition rounds carry this scoring_version so historical
 # leaderboards stay distinguishable. (1 = trivia-only Royale — left NULL in practice; 2 = standalone
@@ -97,6 +104,11 @@ async def royale_content_availability(session: AsyncSession, locale: str = "en")
         avail.add("estimate")
     if await _active(session, CognitionChangeItem):
         avail.add("change_detection")
+    if await _active(session, CognitionVideoItem):
+        avail.add("video")
+    # Generated from the seed, so it has no bank and is available every day — there is nothing that
+    # could make it unavailable short of deleting the module.
+    avail.add("memory_flash")
     return avail
 
 
@@ -116,11 +128,13 @@ async def provision_royale_plan(
     seq = royale_type_sequence(seed, avail)
     est_items = await _active(session, CognitionEstimateItem)
     chg_items = await _active(session, CognitionChangeItem)
+    vid_items = await _active(session, CognitionVideoItem)
 
     plan: list[dict[str, Any]] = []
     # Per-type sets, so the day never repeats an item within its own run (see _pick_unseen).
     used_est: set[Any] = set()
     used_chg: set[Any] = set()
+    used_vid: set[Any] = set()
     last = len(seq) - 1
     for idx, t in enumerate(seq):
         ref: dict[str, str] = {}
@@ -135,6 +149,8 @@ async def provision_royale_plan(
             ref["change_item_id"] = str(
                 _pick_unseen(f"{seed}:change:{idx}", chg_items, used_chg, prefer=prefer).id
             )
+        elif t == "video":
+            ref["video_item_id"] = str(_pick_unseen(f"{seed}:video:{idx}", vid_items, used_vid).id)
         plan.append({"idx": idx, "type": t, "content_ref": ref})
 
     window.round_plan = plan
@@ -177,6 +193,19 @@ async def build_royale_entry_rounds(
             answers.append((idx, t, server_answer))
             continue
 
+        if not ROYALE_TYPES[t].interactive:
+            # ATOMIC and GENERATED (memory_flash): no content bank and no cognition instance — the
+            # module makes its own round from the seed, exactly as engine.build_round_set does for
+            # practice. Seeded per (window, type, idx) so the day's round is identical for everyone
+            # and regenerable from the stored seed, like every other Royale round.
+            module = get_module(t)
+            client_spec, server_answer = module.generate(
+                Random(f"{seed}:{t}:{idx}"), None, GenerationContext(bank=[])
+            )
+            round_set.append({"idx": idx, "type": t, "client_spec": client_spec})
+            answers.append((idx, t, server_answer))
+            continue
+
         # INTERACTIVE — create a bound cognition instance from the pinned item.
         inst_seed = int(Random(f"{seed}:{t}:{idx}").getrandbits(63))
         if t == "estimate":
@@ -195,6 +224,14 @@ async def build_royale_entry_rounds(
                 raise ValueError("pinned change item missing")
             chg = await start_change_with_item(session, entry.user_id, inst_seed, citem)
             inst, spec_src = chg.instance, chg.spec
+        elif t == "video":
+            vitem = await session.get(
+                CognitionVideoItem, uuid.UUID(p["content_ref"]["video_item_id"])
+            )
+            if vitem is None:
+                raise ValueError("pinned video item missing")
+            vid = await start_video_with_item(session, entry.user_id, inst_seed, vitem)
+            inst, spec_src = vid.instance, vid.spec
         else:  # pragma: no cover - plan only ever holds pool types
             raise ValueError(f"unknown interactive royale type {t!r}")
 
@@ -267,5 +304,44 @@ async def bridge_judgement(
         )
         time_frac = (CHANGE_TIME_LIMIT_MS - elapsed) / CHANGE_TIME_LIMIT_MS if hit else 0.0
         return RoundJudgement(correct=hit, time_frac=time_frac, valid=True, flags=[])
+
+    if module_type == "video":
+        # THREE answers in one round. Attempt 0 is the draw marker; 1 and 2 are the comprehension
+        # questions; 3 is the change question.
+        #
+        # The CHANGE question decides the round — its correctness is what drives the in-run streak
+        # and the Rot Rating game — because it is the round's actual test. The comprehension pair
+        # adds points without deciding it, which is why they ride in `sub_scores` instead.
+        rows = (
+            (
+                await session.execute(
+                    select(CognitionAttempt)
+                    .where(
+                        CognitionAttempt.round_instance_id == instance.id,
+                        CognitionAttempt.attempt_index > 0,
+                    )
+                    .order_by(CognitionAttempt.attempt_index)
+                )
+            )
+            .scalars()
+            .all()
+        )
+
+        def frac(row: Any) -> float:
+            if not row or not row.is_correct:
+                return 0.0
+            elapsed = clamp_elapsed_ms(row.payload.get("elapsed_ms"), VIDEO_QUESTION_TIME_LIMIT_MS)
+            return (VIDEO_QUESTION_TIME_LIMIT_MS - elapsed) / VIDEO_QUESTION_TIME_LIMIT_MS
+
+        by_index = {r.attempt_index: r for r in rows}
+        change = by_index.get(3)
+        comprehension = [by_index.get(1), by_index.get(2)]
+        return RoundJudgement(
+            correct=bool(change and change.is_correct),
+            time_frac=frac(change),
+            valid=True,
+            flags=[],
+            sub_scores=[(bool(r and r.is_correct), frac(r)) for r in comprehension],
+        )
 
     raise ValueError(f"no royale bridge for module type {module_type!r}")

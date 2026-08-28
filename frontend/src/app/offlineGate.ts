@@ -12,8 +12,7 @@ export type Surface =
   | "duel"
   | "friends"
   | "vault"
-  | "growth"
-  | "playtest";
+  | "growth";
 
 // contest    = the ranked Daily Royale (server-seeded/settled) — must be online.
 // leaderboard = live standings from the server — must be online.
@@ -21,8 +20,7 @@ export type Surface =
 // friends     = the Friends hub is primarily the LIVE friend-duel entry point (add-by-username +
 //               polled request lists + a WebSocket head-to-head). None of it works offline, so the
 //               whole surface is gated online-only rather than showing an inert, un-actionable list.
-// playtest = the cognition harness; every round is server-judged, so it needs the network.
-const ONLINE_ONLY: Surface[] = ["contest", "leaderboard", "duel", "friends", "playtest"];
+const ONLINE_ONLY: Surface[] = ["contest", "leaderboard", "duel", "friends"];
 
 export function requiresOnline(surface: Surface): boolean {
   return ONLINE_ONLY.includes(surface);

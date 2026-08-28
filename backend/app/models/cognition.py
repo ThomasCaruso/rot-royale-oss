@@ -206,3 +206,45 @@ class CognitionChangeItem(Base):
     # needle-in-a-haystack. NULL = unbanded (treated as medium).
     difficulty: Mapped[str | None] = mapped_column(String(16), nullable=True)
     active: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("true"))
+
+
+class CognitionVideoItem(Base):
+    """One video round: a clip, a subtly altered version of it, and the three questions asked about
+    them (content/video_manifest.py).
+
+    ONE Royale slot, THREE scored answers — the only round type that asks more than one question.
+    It earns that by taking roughly three times as long, and is worth roughly three times the
+    points through the same `compute_points` formula as everything else.
+
+    **`questions` and `change_question` hold the CORRECT INDEX, so this table is the answer key.**
+    The client spec carries prompts and options only; the index is resolved server-side per answer,
+    exactly as trivia does. The authored files put every correct answer at index 0 as a writing
+    convenience — that is only safe because options are shuffled from the instance seed before they
+    are served, so the index a client sees is never the authored one.
+
+    `base_asset`/`altered_asset` are ASSET IDS naming files in <content_root>/video/assets/, not
+    URLs — same discipline as the change pairs, so the manifest and its media travel together
+    behind ROT_CONTENT_DIR.
+    """
+
+    __tablename__ = "video_item"
+    __table_args__ = {"schema": SCHEMA}
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    key: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    base_asset: Mapped[str] = mapped_column(Text, nullable=False)
+    altered_asset: Mapped[str] = mapped_column(Text, nullable=False)
+    # Source pixel dimensions, shipped to the client purely for layout — the round sizes the clip
+    # by HEIGHT and derives width from this ratio, so a portrait clip cannot overflow the card.
+    width: Mapped[int] = mapped_column(Integer, nullable=False)
+    height: Mapped[int] = mapped_column(Integer, nullable=False)
+    duration_ms: Mapped[int] = mapped_column(Integer, nullable=False)
+    # The two comprehension questions about the FIRST clip. Each: {prompt, options[4],
+    # correct_index}. A list rather than two columns so the count can grow without a migration.
+    questions: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, nullable=False, default=list)
+    # The "what changed" question about the SECOND clip. This one decides the round: its
+    # correctness is what drives the in-run streak and the Rot Rating game, because it is the
+    # round's actual test — the comprehension pair adds points without deciding it.
+    change_question: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
+    difficulty: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    active: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("true"))

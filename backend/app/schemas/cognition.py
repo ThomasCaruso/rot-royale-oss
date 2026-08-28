@@ -97,3 +97,28 @@ class EstimateUnratedItem(BaseModel):
 
 class EstimateUnratedResponse(BaseModel):
     items: list[EstimateUnratedItem]
+
+
+class VideoStartResponse(BaseModel):
+    instance_id: uuid.UUID
+    spec: dict[str, Any]
+
+
+class VideoAnswerRequest(BaseModel):
+    # Which of the three questions this answers: 0 and 1 are about the first clip, 2 is the change
+    # question. Sent explicitly rather than inferred from a counter so a dropped response cannot
+    # silently shift every later answer onto the wrong question.
+    question_index: int = Field(ge=0, le=2)
+    # An index into the SERVED (shuffled) options. NULL means the 5s clock ran out with no pick —
+    # a legitimate outcome, not a malformed answer, and it scores as wrong. Giving a timeout its own
+    # representation rather than an out-of-range sentinel is the lesson from the change round, where
+    # a (-1,-1) sentinel 422'd and left every timed-out instance unresolved.
+    choice: int | None = Field(default=None, ge=0, le=3)
+    elapsed_ms: int = Field(ge=0)
+
+
+class VideoAnswerResponse(BaseModel):
+    correct: bool
+    question_index: int
+    answered: int
+    done: bool

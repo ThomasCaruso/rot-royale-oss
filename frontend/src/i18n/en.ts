@@ -299,6 +299,62 @@ export const en = {
     feedbackBody: "Tell us what's not working and we'll actually read it — it's a small team.",
     feedbackConfirm: "Send feedback",
   },
+  /**
+   * Copy owned by the ROUND MODULES themselves — headers, prompts and in-round beats.
+   *
+   * Its own section rather than living under `contest`, because modules render from the Daily
+   * Royale, practice, campaign AND friend duels; filing their copy under one of those would be
+   * wrong from the other three. Host-supplied chrome (the §5f second-chance banner) still arrives
+   * as a prop, because that is the SCREEN's message about the run, not the module's own words.
+   */
+  rounds: {
+    // Change detection.
+    spotTheChange: "Spot the change",
+    tapWhereItChanges: "Tap where it changes",
+    firstImage: "First image",
+    secondImage: "Second image",
+    theOriginal: "The original",
+    somethingChanged: "Something changed",
+    // Estimate.
+    estimate: "Estimate",
+    higher: "Higher",
+    lower: "Lower",
+    // Video.
+    videoRound: "Video round",
+    watchClosely: "Watch closely",
+    watchAgain: "Watch again",
+    watchTheClip: "Watch the clip",
+    watchForWhatChanged: "Watch for what changed",
+    // Change reveal.
+    youFoundIt: "You found it.",
+    theChangeWasHere: "The change was here.",
+    timeTheChangeWasHere: "Time — the change was here.",
+    // Estimate dial + reveal.
+    range: "Range",
+    actual: "Actual",
+    yourGuess: "Your guess {value}",
+    timesLow: "{n}x low",
+    timesHigh: "{n}x high",
+    // Memory flash.
+    watch: "Watch",
+    watchCarefully: "Watch carefully",
+    memorizeThePattern: "Memorize the pattern before time runs out.",
+    tapInSameOrder: "Tap the tiles in the same order.",
+    tapInOrder: "Tap in order",
+    waveOf: "Wave {n} of {m}",
+    waveCleared: "Wave cleared",
+    clearedNofM: "Cleared {n} of {m}",
+    perfect: "Perfect!",
+    almost: "Almost!",
+    nowRepeatIt: "Now repeat it",
+    yourTurn: "Your turn",
+    go: "GO",
+    thePattern: "The pattern",
+    perfectRecall: "Perfect recall",
+    youHadNofM: "You had {n} of {m}",
+    lostItOnTap: "You lost it on tap {n}",
+    ranOutOfTime: "Time ran out before you finished",
+  },
   contest: {
     enterError: "Could not enter contest",
     backToHub: "Back to hub",
@@ -311,6 +367,10 @@ export const en = {
     finalCrownRound: "FINAL CROWN ROUND",
     roundProgress: "Round {round} of {total} · Q {q} of {qtotal}",
     lockedIn: "Locked in…",
+    splashCategory: "Category",
+    splashRound: "This round",
+    splashSpotTheChange: "Spot the change",
+    splashEstimate: "Make an estimate",
     correct: "Correct!",
     notQuite: "Not quite",
     counted: "Nice. That one counted.",

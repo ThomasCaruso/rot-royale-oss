@@ -387,7 +387,11 @@ export function Practice({
       <div style={stage}>
         {phase === "splash" ? (
           <GlassCard style={{ display: "flex" }}>
-            <CategorySplash category={spec.category} icon={spec.icon} />
+            <CategorySplash
+              category={spec.category}
+              icon={spec.icon}
+              eyebrow={t.contest.splashCategory}
+            />
           </GlassCard>
         ) : (
           // The round module owns its question card; the countdown ring renders in a header bar

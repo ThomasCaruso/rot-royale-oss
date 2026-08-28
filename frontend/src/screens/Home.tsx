@@ -337,7 +337,6 @@ export function Home({
   onVault,
   onDuel,
   onFriends,
-  onPlaytest,
 }: {
   onPlay: (windowId: string) => void;
   onQuickPlay: () => void;
@@ -350,8 +349,6 @@ export function Home({
   onVault: () => void;
   onDuel: () => void;
   onFriends: () => void;
-  // Opens the deliberately-ugly cognition playtest harness (new round types). Dev/pre-launch.
-  onPlaytest: () => void;
 }) {
   const t = useT();
   const me = useSessionStore((s) => s.me);
@@ -773,28 +770,6 @@ export function Home({
           onOpenMenu={() => setMenuOpen(true)}
           onOpenVault={onVault}
         />
-
-        {/* Pre-launch playtest entry for the new cognitive round types — deliberately plain (not a
-            themed hub row) so it reads as the temporary dev affordance it is. Remove before ship. */}
-        <button
-          type="button"
-          className="rr-tap"
-          onClick={onPlaytest}
-          style={{
-            width: "100%",
-            padding: "10px 14px",
-            borderRadius: 14,
-            border: "2px dashed var(--line)",
-            background: "var(--panel)",
-            color: "var(--text)",
-            fontWeight: 800,
-            fontSize: 13,
-            cursor: "pointer",
-            textAlign: "left",
-          }}
-        >
-          🧪 Try the new modes (playtest)
-        </button>
 
         {/* Guests carry real progress on a device-bound session — one quiet line to save it. */}
         {me.is_guest && (

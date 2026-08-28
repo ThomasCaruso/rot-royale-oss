@@ -98,7 +98,11 @@ describe("ChangeRound — frame announcements", () => {
     act(() => {
       vi.advanceTimersByTime(4000);
     });
-    expect(container.textContent).not.toContain("First image"); // no unreadable 80ms flash
+    // "First image" now appears TWICE when a beat is drawn: once in the countdown row (which is
+    // present-but-hidden so the card never changes height) and once as the beat itself. A legacy
+    // 80ms wipe must not draw the beat — a word flashed for 80ms is noise, not an announcement —
+    // so the row's single occurrence is the only one there should be.
+    expect((container.textContent?.match(/First image/g) ?? []).length).toBe(1);
     act(() => {
       vi.advanceTimersByTime(80 + 50);
     });
@@ -106,5 +110,48 @@ describe("ChangeRound — frame announcements", () => {
       (im) => (im as HTMLImageElement).style.visibility === "visible",
     );
     expect(visible).toHaveLength(1); // straight into the base frame after an 80ms wipe
+  });
+});
+
+describe("ChangeRound — the card must not change size", () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  /**
+   * The countdown row used to be unmounted during each announcement beat, so the card shrank ~35px
+   * and grew back a second later — twice per flicker cycle. On a round whose entire mechanic is
+   * noticing that something moved, the frame around the picture was the most animated thing on
+   * screen. It is now hidden rather than removed, so its box is always reserved.
+   */
+  function row(container: HTMLElement): HTMLElement | undefined {
+    return [...container.querySelectorAll<HTMLElement>("div")].find((d) =>
+      d.style.visibility === "hidden" || d.style.visibility === "visible",
+    );
+  }
+
+  it("keeps the countdown row's space reserved during the announcement beat", () => {
+    const { container } = startRound();
+    // Mid-beat: the row is hidden, but still in the layout.
+    const during = row(container);
+    expect(during).toBeTruthy();
+    expect(during!.style.visibility).toBe("hidden");
+
+    act(() => {
+      vi.advanceTimersByTime(LABEL + 50);
+    });
+    // Frame showing: the same element, now visible. Present in BOTH states is the whole point.
+    const showing = row(container);
+    expect(showing).toBeTruthy();
+    expect(showing!.style.visibility).toBe("visible");
+  });
+
+  it("bleeds the picture past the card's padding", () => {
+    // The picture is the round; it was being drawn inside 20px of padding on each side.
+    const { container } = startRound();
+    const frame = [...container.querySelectorAll<HTMLElement>("div")].find((d) =>
+      d.style.aspectRatio,
+    );
+    expect(frame).toBeTruthy();
+    expect(frame!.style.margin).toContain("var(--pad-card");
   });
 });

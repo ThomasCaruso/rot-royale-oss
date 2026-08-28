@@ -5,7 +5,7 @@ from __future__ import annotations
 from random import Random
 
 from app.modules.base import GenerationContext
-from app.modules.memory_flash import MemoryFlashModule
+from app.modules.memory_flash import ROT_BAND, TILES, MemoryFlashModule
 from app.modules.rapid_math import RapidMathModule
 
 CTX = GenerationContext()  # generated modules ignore content
@@ -106,9 +106,33 @@ def test_memory_flash_wrong_when_taps_differ():
     _, server_answer = m.generate(Random(5), 1, CTX)
     seq = server_answer["sequence"]
     bad = list(seq)
-    bad[-1] = (bad[-1] + 1) % 6
+    bad[-1] = (bad[-1] + 1) % TILES  # % TILES, not a literal — the grid grew to 9
     judged = m.score(server_answer, {"taps": bad, "tap_times": [], "elapsed_ms": 3500})
     assert judged.correct is False
+
+
+def test_memory_flash_grid_size():
+    """Six. Nine was tried and pulled: a 3x3 of nine targets made the same four-step sequence a
+    materially harder round, and it needed nine distinguishable colours — one more than a palette
+    can carry while keeping every hue clearly its own.
+
+    Asserted on the SPEC as well as the constant, because `tiles` is what the client renders from —
+    a shipped binary picks a changed count up with no release (§7c), which is what made trying nine
+    and reverting it cheap."""
+    m = MemoryFlashModule()
+    client_spec, _ = m.generate(Random(11), 1, CTX)
+    assert TILES == 6
+    assert client_spec["tiles"] == 6
+
+
+def test_memory_flash_reports_its_own_rot_rating_band():
+    """Its verb is `notice`, and an absent band defaults to "medium" — which would file every
+    memory round under the SAME floating difficulty item as a medium change-detection round, letting
+    two unrelated tasks drag each other's rating during the daily convergence (§5e)."""
+    m = MemoryFlashModule()
+    _, server_answer = m.generate(Random(12), 1, CTX)
+    assert server_answer["difficulty"] == ROT_BAND
+    assert ROT_BAND not in ("easy", "medium", "hard")
 
 
 def test_memory_flash_is_deterministic():
@@ -124,9 +148,10 @@ def _seq():
 def test_memory_legit_taps_are_valid():
     m = MemoryFlashModule()
     sa = {"sequence": _seq()}
-    j = m.score(
-        sa, {"taps": list(sa["sequence"]), "tap_times": [80, 360, 700, 1050], "elapsed_ms": 1100}
-    )
+    # Tap times are derived from the sequence LENGTH rather than written out: wave 1 is three steps
+    # now, and a hardcoded four made this fail as a count mismatch rather than as anything real.
+    times = [80 + 280 * i for i in range(len(sa["sequence"]))]
+    j = m.score(sa, {"taps": list(sa["sequence"]), "tap_times": times, "elapsed_ms": 1100})
     assert j.valid is True and j.correct is True
 
 

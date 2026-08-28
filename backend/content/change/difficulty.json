@@ -1,26 +1,21 @@
 {
-  "_comment": "Authored difficulty per change-detection pair, matching the tiers assigned in BRIEF.md. Read by scripts/build_change_manifest.py, which stamps it into the generated manifest. Difficulty is an ATTENTION property, not a size one: changes to the subject are found fast, changes to background or incidental objects are much harder even when large, and changes inside a repeating pattern are hardest of all. Keys not listed here ingest as NULL (treated as medium).",
-
-  "pizza_night": "easy",
-  "bedroom_2am": "easy",
-  "festival_crowd": "easy",
-  "dog_park_catch": "easy",
-  "gaming_setup": "easy",
-  "laundromat_wait": "easy",
-
-  "bodega_counter": "medium",
-  "rooftop_party": "medium",
-  "train_platform": "medium",
-  "deadline_desk": "medium",
-  "noodle_stall": "medium",
-  "skate_park": "medium",
-  "roadtrip_dash": "medium",
-  "cereal_aisle": "medium",
-
-  "kitchen_morning_after": "hard",
-  "barbershop_chair": "hard",
-  "plane_window_seat": "hard",
-  "dorm_poster_wall": "hard",
-  "beach_sunset_friends": "hard",
-  "gym_rack": "hard"
+  "_comment": [
+    "EXAMPLE ONLY. The real tier map lives in the PRIVATE content package, at",
+    "$ROT_CONTENT_DIR/change/difficulty.json, next to the images it describes. Nothing in this",
+    "repo reads this file: ingest stamps difficulty from the content root (app/jobs/run.py), and",
+    "Settings.content_root never falls back to backend/content/ - it falls back to content/sample/.",
+    "",
+    "It used to hold twenty real-looking keys from an earlier brief that was never shipped, and",
+    "scripts/build_change_manifest.py defaulted to reading it. That was a live trap: ingest only",
+    "stamps difficulty onto items that do not already carry one, so a manifest built against this",
+    "stale map would have silently overridden the real tiers. The default was removed 2026-08-27.",
+    "",
+    "Difficulty is an ATTENTION property, not a size one: changes to the subject are found fast,",
+    "changes to background or incidental objects are much harder even when large, and changes",
+    "inside a repeating pattern are hardest of all because there is no landmark to compare",
+    "against. No pixel measurement can derive it, which is why it is authored rather than built."
+  ],
+  "example_easy_key": "easy",
+  "example_medium_key": "medium",
+  "example_hard_key": "hard"
 }

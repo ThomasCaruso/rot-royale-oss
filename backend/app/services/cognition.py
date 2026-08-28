@@ -20,7 +20,7 @@ from random import Random
 from typing import Any, cast
 from urllib.parse import quote
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -30,8 +30,9 @@ from app.models import (
     CognitionEstimateItem,
     CognitionRoundInstance,
     CognitionRoundType,
+    CognitionVideoItem,
 )
-from app.modules.base import GenerationContext
+from app.modules.base import GenerationContext, clamp_elapsed_ms
 from app.modules.change_detection import CHANGE_TAP_TOLERANCE_FRAC, ChangeDetectionModule
 from app.modules.estimate import (
     ESTIMATE_MAX_GUESSES,
@@ -44,6 +45,14 @@ from app.modules.registry import get_module
 # Stamped on every new cognition round_instance. Rows predating the column are version 1 (the DB
 # default); bump this when cognition scoring semantics change so leaderboards never mix versions.
 COGNITION_SCORING_VERSION = 2
+
+# Each of the video round's three questions is answered against its own 5s clock.
+#
+# Timed rather than untimed, deliberately: `compute_points` scores on (correct, time_frac), so an
+# untimed question would score flat and make speed meaningless in the one mode where every other
+# round rewards it. Five seconds is enough to read four short options and commit, and short enough
+# that three of them plus two 5s clips still land the round near 30 seconds.
+VIDEO_QUESTION_TIME_LIMIT_MS = 5000
 
 
 class CognitionError(Exception):
@@ -333,7 +342,7 @@ class ChangeOutcome:
     bbox: dict[str, float]
 
 
-def _asset_url(asset: str) -> str:
+def _asset_url(asset: str, kind: str = "change") -> str:
     """The ABSOLUTE URL a client should fetch a change-detection asset from.
 
     Absolute for the reason it always was: the native app has no `server.url` — it loads the bundled
@@ -362,7 +371,7 @@ def _asset_url(asset: str) -> str:
         return asset
     asset_id = PurePosixPath(asset).name  # legacy "/assets/change/x.jpg" -> "x.jpg"
     base = settings.challenge_base_url.rstrip("/")
-    return f"{base}/content/change/{quote(asset_id)}"
+    return f"{base}/content/{kind}/{quote(asset_id)}"
 
 
 def _change_item_dict(item: CognitionChangeItem) -> dict[str, Any]:
@@ -498,4 +507,192 @@ async def change_submit(
     await session.flush()
     return ChangeOutcome(
         hit=judgement.correct, points=points, done=True, bbox=server_answer["bbox"]
+    )
+
+
+# ---------------------------------------------------------------------------- video round
+
+
+@dataclass
+class VideoStart:
+    instance: CognitionRoundInstance
+    spec: dict[str, Any]
+
+
+@dataclass
+class VideoAnswerOutcome:
+    correct: bool
+    question_index: int
+    answered: int  # how many of the three are now in
+    finished: bool
+
+
+def video_option_order(seed: int, question_index: int, count: int) -> list[int]:
+    """The served option order for one question, derived from the instance seed.
+
+    The authored content puts every correct answer at index 0 — a writing convenience that would
+    otherwise be a free win for anyone who noticed. Shuffling here makes the authored index
+    unobservable, and deriving the order from the seed (rather than storing it) means the server
+    can reconstruct it when the answer comes back without keeping per-question state.
+    """
+    order = list(range(count))
+    Random(f"{seed}:video-opts:{question_index}").shuffle(order)
+    return order
+
+
+def _video_questions(item: CognitionVideoItem) -> list[dict[str, Any]]:
+    """The three questions in play order: two about the first clip, then the change question."""
+    return [*item.questions, item.change_question]
+
+
+def _video_item_spec(item: CognitionVideoItem, seed: int) -> dict[str, Any]:
+    """The CLIENT spec. Prompts and options only — never a correct index.
+
+    The clip URLs are absolute for the same reason the change images' are: the native app loads its
+    bundle from disk, so a relative path resolves against the BUNDLE and 404s for any content added
+    after that binary shipped (docs/architecture.md §11).
+    """
+    questions = []
+    for qi, q in enumerate(_video_questions(item)):
+        order = video_option_order(seed, qi, len(q["options"]))
+        questions.append({"prompt": q["prompt"], "options": [q["options"][i] for i in order]})
+    return {
+        "base_url": _asset_url(item.base_asset, kind="video"),
+        "altered_url": _asset_url(item.altered_asset, kind="video"),
+        "width": item.width,
+        "height": item.height,
+        "duration_ms": item.duration_ms,
+        # The first two are asked after the first clip; the last after the altered one.
+        "questions": questions[:-1],
+        "change_question": questions[-1],
+        "question_time_limit_ms": VIDEO_QUESTION_TIME_LIMIT_MS,
+        "difficulty": item.difficulty,
+    }
+
+
+async def start_video_with_item(
+    session: AsyncSession, user_id: uuid.UUID, seed: int, item: CognitionVideoItem
+) -> VideoStart:
+    """Create a video instance for a SPECIFIC clip pair (the Royale pins the day's)."""
+    rt = await get_round_type(session, "video")
+    inst = CognitionRoundInstance(
+        round_type_id=rt.id,
+        user_id=user_id,
+        seed=seed,
+        scoring_version=COGNITION_SCORING_VERSION,
+    )
+    session.add(inst)
+    await session.flush()
+    # Attempt 0 is the draw marker: it pins WHICH clip this instance is playing, so the answers
+    # that follow are judged against the item drawn at start rather than anything re-derived later.
+    session.add(
+        CognitionAttempt(
+            round_instance_id=inst.id, attempt_index=0, payload={"item_id": str(item.id)}
+        )
+    )
+    await session.flush()
+    return VideoStart(instance=inst, spec=_video_item_spec(item, seed))
+
+
+async def _video_item_for(
+    session: AsyncSession, inst: CognitionRoundInstance
+) -> CognitionVideoItem:
+    marker = (
+        await session.execute(
+            select(CognitionAttempt).where(
+                CognitionAttempt.round_instance_id == inst.id,
+                CognitionAttempt.attempt_index == 0,
+            )
+        )
+    ).scalar_one_or_none()
+    if marker is None:
+        raise RoundNotFoundError(str(inst.id))
+    item = await session.get(CognitionVideoItem, uuid.UUID(marker.payload["item_id"]))
+    if item is None:
+        raise RoundNotFoundError(str(inst.id))
+    return item
+
+
+async def video_answer(
+    session: AsyncSession,
+    instance_id: uuid.UUID,
+    user_id: uuid.UUID,
+    question_index: int,
+    choice: int | None,
+    elapsed_ms: int,
+    *,
+    now: datetime | None = None,
+) -> VideoAnswerOutcome:
+    """Record one of the three answers and judge it server-side.
+
+    `choice` is an index into the SERVED (shuffled) options, so it is mapped back through the same
+    seeded order before being compared — the client never learns the authored index, and a client
+    that guesses one gains nothing. `None` is a timeout, which scores as wrong without an option.
+
+    The unique (instance, attempt_index) constraint is the double-submit guard: answering the same
+    question twice is refused by the database rather than by a check that can race.
+    """
+    inst = await _owned_instance(session, instance_id, user_id, "video")
+    if inst.completed_at is not None:
+        raise RoundCompletedError(str(instance_id))
+    item = await _video_item_for(session, inst)
+    questions = _video_questions(item)
+    if not 0 <= question_index < len(questions):
+        raise RoundNotFoundError(str(instance_id))
+
+    q = questions[question_index]
+    correct = False
+    if choice is not None:
+        order = video_option_order(inst.seed, question_index, len(q["options"]))
+        if 0 <= choice < len(order):
+            correct = order[choice] == int(q["correct_index"])
+
+    session.add(
+        CognitionAttempt(
+            round_instance_id=inst.id,
+            attempt_index=question_index + 1,  # 0 is the draw marker
+            payload={
+                "choice": choice,
+                "elapsed_ms": clamp_elapsed_ms(elapsed_ms, VIDEO_QUESTION_TIME_LIMIT_MS),
+            },
+            is_correct=correct,
+        )
+    )
+    await session.flush()
+
+    answered = (
+        await session.execute(
+            select(func.count())
+            .select_from(CognitionAttempt)
+            .where(
+                CognitionAttempt.round_instance_id == inst.id,
+                CognitionAttempt.attempt_index > 0,
+            )
+        )
+    ).scalar_one()
+    finished = int(answered) >= len(questions)
+    if finished:
+        inst.completed_at = _now(now)
+        # A summary, not the score: how many of the three landed. The Royale's points come from the
+        # bridge, which reads the attempts themselves.
+        rows = (
+            (
+                await session.execute(
+                    select(CognitionAttempt).where(
+                        CognitionAttempt.round_instance_id == inst.id,
+                        CognitionAttempt.attempt_index > 0,
+                    )
+                )
+            )
+            .scalars()
+            .all()
+        )
+        inst.final_score = sum(1 for r in rows if r.is_correct)
+        await session.flush()
+
+    return VideoAnswerOutcome(
+        correct=correct,
+        question_index=question_index,
+        answered=int(answered),
+        finished=finished,
     )

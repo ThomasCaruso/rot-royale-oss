@@ -179,7 +179,7 @@ function renderHome() {
       onVault={noop}
       onDuel={noop}
       onFriends={noop}
-      onPlaytest={noop}
+     
     />,
   );
 }
@@ -213,7 +213,7 @@ describe("Home — Daily Royale hero state machine", () => {
     });
     const onPlay = vi.fn();
     const { findByText, getByText } = render(
-      <Home onPlay={onPlay} onQuickPlay={noop} onPractice={noop} onTrainCategory={noop} onCampaign={noop} onGrowth={noop} onLeaderboard={noop} onVault={noop} onDuel={noop} onFriends={noop} onPlaytest={noop} />,
+      <Home onPlay={onPlay} onQuickPlay={noop} onPractice={noop} onTrainCategory={noop} onCampaign={noop} onGrowth={noop} onLeaderboard={noop} onVault={noop} onDuel={noop} onFriends={noop} />,
     );
     await findByText("ENTER DAILY ROYALE");
     // The brand tagline sits under the title; its gold tail ("One crown.") renders as its own span.
@@ -284,7 +284,7 @@ describe("Home — Daily Royale hero state machine", () => {
     const onPlay = vi.fn();
     const onQuickPlay = vi.fn();
     const live = render(
-      <Home onPlay={onPlay} onQuickPlay={onQuickPlay} onPractice={noop} onTrainCategory={noop} onCampaign={noop} onGrowth={noop} onLeaderboard={noop} onVault={noop} onDuel={noop} onFriends={noop} onPlaytest={noop} />,
+      <Home onPlay={onPlay} onQuickPlay={onQuickPlay} onPractice={noop} onTrainCategory={noop} onCampaign={noop} onGrowth={noop} onLeaderboard={noop} onVault={noop} onDuel={noop} onFriends={noop} />,
     );
     await live.findByLabelText("Play the open game");
     fireEvent.click(live.getByLabelText("Play the open game"));
@@ -302,7 +302,7 @@ describe("Home — Daily Royale hero state machine", () => {
     const onPlay2 = vi.fn();
     const onQuickPlay2 = vi.fn();
     const locked = render(
-      <Home onPlay={onPlay2} onQuickPlay={onQuickPlay2} onPractice={noop} onTrainCategory={noop} onCampaign={noop} onGrowth={noop} onLeaderboard={noop} onVault={noop} onDuel={noop} onFriends={noop} onPlaytest={noop} />,
+      <Home onPlay={onPlay2} onQuickPlay={onQuickPlay2} onPractice={noop} onTrainCategory={noop} onCampaign={noop} onGrowth={noop} onLeaderboard={noop} onVault={noop} onDuel={noop} onFriends={noop} />,
     );
     await locked.findByLabelText("Play a quick mixed trivia round");
     fireEvent.click(locked.getByLabelText("Play a quick mixed trivia round"));

@@ -20,7 +20,6 @@ import { HOME_OVERLAY_LOADERS } from "@/screens/home/lazyOverlays";
  */
 
 const loadCampaign = () => import("@/screens/campaign/Campaign");
-const loadCognitionPlaytest = () => import("@/screens/dev/CognitionPlaytest");
 const loadCategorySelect = () => import("@/screens/CategorySelect");
 const loadChallengeLanding = () => import("@/screens/challenge/ChallengeLanding");
 const loadContest = () => import("@/screens/Contest");
@@ -33,9 +32,6 @@ const loadPractice = () => import("@/screens/Practice");
 const loadVaultScreen = () => import("@/screens/vault/VaultScreen");
 
 export const Campaign = lazy(() => loadCampaign().then((m) => ({ default: m.Campaign })));
-export const CognitionPlaytest = lazy(() =>
-  loadCognitionPlaytest().then((m) => ({ default: m.CognitionPlaytest })),
-);
 export const CategorySelect = lazy(() =>
   loadCategorySelect().then((m) => ({ default: m.CategorySelect })),
 );

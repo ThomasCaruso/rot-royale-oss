@@ -9,6 +9,7 @@ import uuid
 
 from content import estimate_ingest
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_admin_user, get_current_user
@@ -27,6 +28,8 @@ from app.schemas.cognition import (
     EstimateUnratedResponse,
     EstimateVerdictRequest,
     EstimateVerdictResponse,
+    VideoAnswerRequest,
+    VideoAnswerResponse,
 )
 from app.services import cognition as cog
 
@@ -174,3 +177,43 @@ async def change_submit(
     except cog.ChangeUnavailableError as exc:
         raise ApiErrorCode("change_unavailable") from exc
     return ChangeSubmitResponse(hit=out.hit, points=out.points, done=out.done, bbox=out.bbox)
+
+
+@router.post("/video/{instance_id}/answer", response_model=VideoAnswerResponse)
+async def video_answer(
+    instance_id: uuid.UUID,
+    body: VideoAnswerRequest,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> VideoAnswerResponse:
+    """Answer one of the video round's three questions.
+
+    Judged server-side against the authored key, which never leaves the database: `choice` indexes
+    the SHUFFLED options the client was served, and is mapped back through the same seeded order
+    before comparison. The instance is looked up by (id, user), so one player cannot answer
+    another's round, and the unique (instance, attempt_index) constraint refuses a second answer to
+    the same question at the database rather than in a check that can race.
+    """
+    try:
+        outcome = await cog.video_answer(
+            session,
+            instance_id,
+            user.id,
+            body.question_index,
+            body.choice,
+            body.elapsed_ms,
+        )
+    except cog.RoundCompletedError as exc:
+        raise ApiErrorCode("cognition_round_completed") from exc
+    except cog.RoundNotFoundError as exc:
+        raise ApiErrorCode("cognition_round_not_found") from exc
+    except IntegrityError as exc:
+        # The double-submit guard firing: this question already has an answer.
+        raise ApiErrorCode("cognition_round_completed") from exc
+    await session.commit()
+    return VideoAnswerResponse(
+        correct=outcome.correct,
+        question_index=outcome.question_index,
+        answered=outcome.answered,
+        done=outcome.finished,
+    )
