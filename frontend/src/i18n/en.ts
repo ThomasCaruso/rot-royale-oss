@@ -333,8 +333,9 @@ export const en = {
     range: "Range",
     actual: "Actual",
     yourGuess: "Your guess {value}",
-    timesLow: "{n}x low",
-    timesHigh: "{n}x high",
+    timesLow: "{n}× low",
+    timesHigh: "{n}× high",
+    exact: "Exact",
     // Memory flash.
     watch: "Watch",
     watchCarefully: "Watch carefully",

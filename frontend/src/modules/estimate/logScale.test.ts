@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clamp, geomMid, roundNice } from "@/modules/estimate/logScale";
+import { clamp, fmtRatio, geomMid, roundNice } from "@/modules/estimate/logScale";
 
 describe("roundNice — estimate guess granularity that makes practical sense", () => {
   it("rounds counts under 100 to whole numbers (no pointless 0.1)", () => {
@@ -35,5 +35,27 @@ describe("clamp / geomMid", () => {
   it("geomMid is the log-axis midpoint", () => {
     expect(geomMid(1, 100)).toBe(10);
     expect(geomMid(100, 10000)).toBe(1000);
+  });
+});
+
+describe("fmtRatio — how far off, at a precision a person reads", () => {
+  it("keeps a tenth where a tenth is a different guess", () => {
+    expect(fmtRatio(1.818)).toBe("1.8");
+    expect(fmtRatio(1.9)).toBe("1.9");
+  });
+
+  it("drops a trailing .0 so an exact double reads as a whole number", () => {
+    expect(fmtRatio(2)).toBe("2");
+  });
+
+  it("stops pretending to a decimal once the ratio is large", () => {
+    expect(fmtRatio(23.7)).toBe("24");
+    // 2363.6x out and 2364x out are the same guess; the decimal is noise dressed as precision.
+    expect(fmtRatio(2363.63)).toBe("2,400");
+  });
+
+  it("returns nothing for a ratio that is not a number", () => {
+    expect(fmtRatio(Infinity)).toBe("");
+    expect(fmtRatio(0)).toBe("");
   });
 });

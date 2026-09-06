@@ -17,9 +17,11 @@ import { primeArcadeTheme } from "@/test/primeArcadeTheme";
 primeArcadeTheme();
 
 const cogEstimateGuess = vi.fn();
+const cogEstimateResolve = vi.fn();
 vi.mock("@/api/client", () => ({
   api: {
     cogEstimateGuess: (id: string, value: number) => cogEstimateGuess(id, value),
+    cogEstimateResolve: (id: string) => cogEstimateResolve(id),
   },
 }));
 
@@ -36,7 +38,23 @@ const spec = {
 // geomMid(10, 1000) = 100 — the opening value is deterministic, so the CTA label is assertable.
 const OPENING = 100;
 
-beforeEach(() => cogEstimateGuess.mockReset());
+// A guess response that ends the round.
+const DONE = {
+  correct: true,
+  direction: null,
+  band: null,
+  done: true,
+  guesses_left: 2,
+  points: 140,
+  slider_min: 10,
+  slider_max: 1000,
+};
+
+beforeEach(() => {
+  cogEstimateGuess.mockReset();
+  cogEstimateResolve.mockReset();
+  cogEstimateResolve.mockResolvedValue({ answer: 1300, unit: "Earths", components: [] });
+});
 afterEach(cleanup);
 
 describe("EstimateRound — chrome", () => {
@@ -122,5 +140,37 @@ describe("EstimateRound — guessing", () => {
     fireEvent.click(getByRole("button"));
     await waitFor(() => expect(cogEstimateGuess).toHaveBeenCalledTimes(1));
     expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it("carries the reveal payload up, because nothing else will", async () => {
+    // A Royale interactive round's stored server_answer is a binding marker with no answer in it,
+    // so if this round does not fetch the resolve payload the reveal has nothing to show and the
+    // player is never told the number.
+    cogEstimateGuess.mockResolvedValue({ ...DONE });
+    const onComplete = vi.fn();
+    const { getByRole } = render(<EstimateRound spec={spec} onComplete={onComplete} />);
+
+    fireEvent.click(getByRole("button"));
+    await waitFor(() => expect(onComplete).toHaveBeenCalledTimes(1));
+
+    expect(cogEstimateResolve).toHaveBeenCalledWith("inst-1");
+    expect(onComplete.mock.calls[0][0]).toMatchObject({
+      final_guess: OPENING,
+      reveal: { answer: 1300 },
+    });
+  });
+
+  it("finalizes the round even when the reveal fetch fails", async () => {
+    // The payoff is worth a request; the RUN is worth more. onComplete is what finalizes the
+    // Royale round, so a failed resolve must cost the explanation and nothing else — otherwise a
+    // flaky network strands the player on a round they have already finished.
+    cogEstimateGuess.mockResolvedValue({ ...DONE });
+    cogEstimateResolve.mockRejectedValue(new Error("offline"));
+    const onComplete = vi.fn();
+    const { getByRole } = render(<EstimateRound spec={spec} onComplete={onComplete} />);
+
+    fireEvent.click(getByRole("button"));
+    await waitFor(() => expect(onComplete).toHaveBeenCalledTimes(1));
+    expect(onComplete.mock.calls[0][0]).toEqual({ final_guess: OPENING });
   });
 });

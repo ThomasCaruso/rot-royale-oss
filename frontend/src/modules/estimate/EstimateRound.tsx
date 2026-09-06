@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import { api } from "@/api/client";
+import { api, type CogEstimateResolve } from "@/api/client";
 import { useT } from "@/i18n/useT";
 import { LogSlider } from "@/modules/estimate/LogSlider";
 import { clamp, fmtNum, geomMid, roundNice } from "@/modules/estimate/logScale";
@@ -146,7 +146,26 @@ export const EstimateRound: React.FC<{
         // The server has the outcome and the Royale bridge re-reads it server-side, so this payload
         // is not scored — it carries the player's LAST guess purely so the reveal can show it
         // against the real answer. Sending their own input back is not a leak.
-        onComplete({ final_guess: committed });
+        //
+        // The REVEAL is fetched here because nothing else will. A Royale round's stored
+        // `server_answer` for an interactive type is only a binding marker — no answer, no
+        // explanation — so the reveal has nothing to render and falls back to a bare
+        // "Correct!"/"Not quite". `estimate/resolve` is a pure read that only becomes legal once
+        // the round is complete, which it now is, and it returns the whole payoff: the number, the
+        // arithmetic it is built from, and why the intuition misleads. For a Fermi question that
+        // payoff IS the round (§5c) — a player who guessed 550 when the truth was 1,000 otherwise
+        // learns nothing.
+        //
+        // Failure must cost the PAYOFF, never the run: `onComplete` is what finalizes the Royale
+        // round, so it is called either way. A missing explanation is a disappointment; a round
+        // that never finalizes strands the player mid-run.
+        let reveal: CogEstimateResolve | undefined;
+        try {
+          reveal = await api.cogEstimateResolve(spec.cognition_instance_id);
+        } catch {
+          reveal = undefined;
+        }
+        onComplete({ final_guess: committed, ...(reveal ? { reveal } : {}) });
         return;
       }
       setAttempts((a) => [...a, { value: committed, direction: r.direction, band: r.band }]);

@@ -113,7 +113,7 @@ describe("round modules render the active locale", () => {
   it("EstimateReveal", () => {
     const { container } = render(
       <EstimateReveal
-        spec={{ unit: null, slider_min: 1, slider_max: 1000 }}
+        spec={{ unit: null }}
         answer={{ answer: 1000 }}
         result={{ final_guess: 550 }}
       />,

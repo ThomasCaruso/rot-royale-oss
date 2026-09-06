@@ -1,12 +1,16 @@
-import { fmtNum } from "@/modules/estimate/logScale";
+import type { CogEstimateResolve } from "@/api/client";
+import { fmtNum, fmtRatio } from "@/modules/estimate/logScale";
 import { fmt, useT } from "@/i18n/useT";
 
 /**
  * The answer — which for a Fermi question is the entire reason to have asked.
  *
- * The round used to end on "counted" / "no points" and never say the number. A player who guessed
- * 550 when the truth was 1,000 learned nothing, and the one satisfying thing about this round type
- * ("huh, really?") was thrown away at the moment it was earned.
+ * TWO BEATS AND NOTHING ELSE: the number, then how far off you were. An earlier pass also showed
+ * the explanation, the components the answer is built from and the intuition note — all of which
+ * are genuinely good content, and all of which turned a 90-second game's between-round splash into
+ * a datasheet. Sixty words of reading competed with the one number the round exists to deliver.
+ * If that material comes back it belongs somewhere a player CHOOSES to go, not in the beat between
+ * two timed rounds.
  *
  * Distance is shown as a RATIO, not a difference. These questions span orders of magnitude, so
  * "450 off" is meaningless — 450 off a thousand is a good guess and 450 off ten is not. "1.8x low"
@@ -16,41 +20,56 @@ export function EstimateReveal({
   spec,
   answer,
   result,
+  correct = false,
 }: {
-  spec: { unit: string | null; slider_min: number; slider_max: number };
+  // Only the unit is read. The slider bounds are in the round's spec but have no job here now that
+  // the reveal states the miss rather than plotting it.
+  spec: { unit: string | null };
   answer: Record<string, unknown>;
   result: Record<string, unknown>;
+  correct?: boolean;
 }) {
   // Before the early return below — a hook after a conditional return breaks the rules of hooks.
   const t = useT();
-  const actual = typeof answer.answer === "number" ? answer.answer : null;
+  // `result.reveal` is the estimate/resolve payload the round fetched on its last guess. It is the
+  // ONLY source inside a Royale: an interactive round's stored server_answer is a binding marker
+  // with no `answer` in it, so reading `answer.answer` alone left this component returning null and
+  // the player seeing a bare "Correct!" with the number never named. `answer` is still preferred so
+  // any path that does carry a real server answer keeps working.
+  const rev = (result.reveal ?? {}) as Partial<CogEstimateResolve>;
+  const actual =
+    typeof answer.answer === "number"
+      ? answer.answer
+      : typeof rev.answer === "number"
+        ? rev.answer
+        : null;
   const guessRaw = result.final_guess;
   const guess = typeof guessRaw === "number" ? guessRaw : null;
   if (actual === null) return null;
 
-  const unit = spec.unit ? ` ${spec.unit}` : "";
-  // log positions so the marks sit where the DIAL put them — a linear bar would bunch every
-  // interesting guess into the left edge.
-  const lo = Math.log(Math.max(spec.slider_min, 1e-9));
-  const hi = Math.log(Math.max(spec.slider_max, spec.slider_min * 1.0001));
-  const at = (v: number) =>
-    Math.max(0, Math.min(1, (Math.log(Math.max(v, 1e-9)) - lo) / (hi - lo))) * 100;
-
   const ratio = guess !== null && guess > 0 ? actual / guess : null;
+  const exact = ratio !== null && isFinite(ratio) && fmtRatio(ratio >= 1 ? ratio : 1 / ratio) === "1";
   const off =
     ratio === null || !isFinite(ratio)
       ? null
-      : ratio >= 1
-        ? fmt(t.rounds.timesLow, { n: (Math.round(ratio * 10) / 10).toLocaleString() })
-        : fmt(t.rounds.timesHigh, { n: (Math.round((1 / ratio) * 10) / 10).toLocaleString() });
+      : exact
+        ? t.rounds.exact
+        : ratio >= 1
+          ? fmt(t.rounds.timesLow, { n: fmtRatio(ratio) })
+          : fmt(t.rounds.timesHigh, { n: fmtRatio(1 / ratio) });
+
+  // The chip carries the verdict, so it takes the outcome's colour rather than a fixed "miss" red:
+  // an estimate can be a long way off in ratio terms and still land inside the acceptable band, and
+  // painting that red would contradict the "Correct!" sitting directly above it.
+  const accent = correct ? "var(--lime)" : "var(--pink)";
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+    <div className="rr-headline-in" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <div style={{ textAlign: "center" }}>
         <div
           style={{
-            fontSize: 11,
-            letterSpacing: 1.4,
+            fontSize: 10,
+            letterSpacing: 1.8,
             textTransform: "uppercase",
             fontWeight: 800,
             color: "var(--muted)",
@@ -58,81 +77,58 @@ export function EstimateReveal({
         >
           {t.rounds.actual}
         </div>
-        <div className="display" style={{ fontSize: 30, color: "var(--text)", lineHeight: 1.15 }}>
+        {/* The hero. Everything else on this card exists to give this number a scale to sit on. */}
+        <div
+          className="display"
+          style={{
+            fontSize: 40,
+            color: "var(--text)",
+            lineHeight: 1.05,
+            marginTop: 2,
+            letterSpacing: -0.5,
+          }}
+        >
           {fmtNum(actual)}
-          <span style={{ fontSize: 16, color: "var(--muted)" }}>{unit}</span>
         </div>
+        {spec.unit && (
+          <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 1 }}>{spec.unit}</div>
+        )}
       </div>
 
       {guess !== null && (
-        <>
-          {/* Both marks on one axis: the gap between them IS the feedback, and seeing it on the
-              same scale the dial used is what connects the guess to the miss. */}
-          <div style={{ position: "relative", height: 30, margin: "2px 4px 0" }}>
-            <div
-              style={{
-                position: "absolute",
-                left: 0,
-                right: 0,
-                top: 13,
-                height: 4,
-                borderRadius: 999,
-                background: "var(--panel2)",
-              }}
-            />
-            {/* The SEGMENT between the two marks is the point. Two dots on a rail leave the reader
-                measuring the gap by eye; drawing it says "this much" in one glance — and on a log
-                axis a small-looking gap really is a small miss, which is the intuition worth
-                building. */}
-            <div
-              aria-hidden
-              style={{
-                position: "absolute",
-                left: `${Math.min(at(guess), at(actual))}%`,
-                width: `${Math.abs(at(actual) - at(guess))}%`,
-                top: 13,
-                height: 4,
-                borderRadius: 999,
-                background: "var(--amber)",
-                opacity: 0.85,
-              }}
-            />
+        // The second beat. With no rail plotting the distance, the chip IS the statement of how far
+        // off you were, so it carries the weight rather than trailing the guess as a tag.
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 6,
+            borderTop: "1px solid var(--line)",
+            paddingTop: 12,
+          }}
+        >
+          {off && (
             <span
-              aria-hidden
               style={{
-                position: "absolute",
-                left: `${at(guess)}%`,
-                top: 8,
-                width: 14,
-                height: 14,
-                marginLeft: -7,
-                borderRadius: "50%",
-                background: "var(--muted)",
-                border: "2px solid var(--panel)",
+                fontSize: 15,
+                fontWeight: 800,
+                color: accent,
+                padding: "6px 16px",
+                borderRadius: 999,
+                border: `1px solid color-mix(in srgb, ${accent} 45%, transparent)`,
+                background: `color-mix(in srgb, ${accent} 12%, var(--panel))`,
+                whiteSpace: "nowrap",
               }}
-            />
-            <span
-              aria-hidden
-              style={{
-                position: "absolute",
-                left: `${at(actual)}%`,
-                top: 5,
-                width: 20,
-                height: 20,
-                marginLeft: -10,
-                borderRadius: "50%",
-                background: "var(--lime)",
-                border: "2px solid var(--panel)",
-                boxShadow: "0 0 14px var(--glow)",
-              }}
-            />
-          </div>
-          <div style={{ textAlign: "center", fontSize: 13, color: "var(--muted)" }}>
+            >
+              {off}
+            </span>
+          )}
+          {/* Supporting detail, not the point — the ratio above already said how far off. */}
+          <span style={{ fontSize: 12, color: "var(--muted)" }}>
             {fmt(t.rounds.yourGuess, { value: fmtNum(guess) })}
-            {unit}
-            {off ? ` — ${off}` : ""}
-          </div>
-        </>
+          </span>
+        </div>
       )}
     </div>
   );

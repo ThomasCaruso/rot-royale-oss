@@ -18,3 +18,22 @@ export const roundNice = (v: number): number => {
   return Math.round(v / mag) * mag;
 };
 export const fmtNum = (v: number) => roundNice(v).toLocaleString();
+
+/**
+ * Format HOW FAR OFF a guess was, as a ratio ("1.8", "24", "2,400").
+ *
+ * Precision has to shrink as the ratio grows, which is why this is not just `toLocaleString`. Being
+ * 1.8x out and 1.9x out are meaningfully different guesses, so the tenth earns its place. Being
+ * 2,363.6x out and 2,364x out are the same guess — the decimal is noise dressed as precision, and
+ * on a reveal card it reads as a machine talking rather than a game.
+ */
+export const fmtRatio = (r: number): string => {
+  if (!isFinite(r) || r <= 0) return "";
+  if (r < 10) {
+    // One decimal, with a trailing ".0" dropped so an exact double reads "2", not "2.0".
+    return String(Math.round(r * 10) / 10);
+  }
+  if (r < 100) return String(Math.round(r));
+  // Past a hundred, two significant figures is all anyone reads anyway.
+  return roundNice(r).toLocaleString();
+};

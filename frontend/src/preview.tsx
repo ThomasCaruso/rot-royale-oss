@@ -155,10 +155,23 @@ createRoot(el).render(
           result={{ tap: { x: 0.62, y: 0.55 } }}
           correct={false}
         />
+        {/* The ROYALE shape, deliberately. An interactive round's server_answer is a binding
+            marker with no answer in it, and the payoff arrives in `result.reveal` from
+            estimate/resolve. Previewing the old `answer={{answer}}` shape is why this harness
+            never showed that the reveal was rendering nothing in the real game. */}
         <EstimateReveal
-          spec={{ unit: "charges", slider_min: 10, slider_max: 100000 }}
-          answer={{ answer: 1000 }}
-          result={{ final_guess: 550 }}
+          spec={{ unit: "Earths" }}
+          answer={{ interactive: true, module_type: "estimate" }}
+          result={{ final_guess: 550, reveal: { answer: 1300000, unit: "Earths" } }}
+        />
+        {/* The other outcome: inside the acceptable band, so the chip goes green. An estimate can
+            be some way off in ratio terms and still be CORRECT, and painting that red would
+            contradict the "Correct!" sitting above it. */}
+        <EstimateReveal
+          spec={{ unit: "Earths" }}
+          answer={{}}
+          result={{ final_guess: 1100000, reveal: { answer: 1300000, unit: "Earths" } }}
+          correct
         />
         <MemoryFlashReveal answer={{ sequence: [0, 4, 7, 2] }} result={{ taps: [0, 4, 1] }} />
       </div>
