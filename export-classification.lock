@@ -469,6 +469,7 @@ withheld	docs/plans/2026-07-25-notification-guardrails.md
 withheld	docs/plans/2026-08-02-referral-loop-audit-CLOSED.md
 withheld	docs/plans/notifications-system-design.md
 withheld	docs/runbooks/daily-royale-deploy.md
+withheld	docs/store-listing.md
 withheld	docs/superpowers/plans/2026-06-10-avatar-identity-v1.md
 withheld	docs/superpowers/plans/2026-06-10-daily-royale.md
 withheld	docs/superpowers/plans/2026-06-10-identity-v2-aesthetics.md
@@ -789,6 +790,7 @@ public	frontend/src/i18n/format.ts
 public	frontend/src/i18n/fr.ts
 public	frontend/src/i18n/i18n.test.ts
 public	frontend/src/i18n/index.ts
+withheld	frontend/src/i18n/storeListing.copy.test.ts
 public	frontend/src/i18n/tr.ts
 public	frontend/src/i18n/useT.ts
 public	frontend/src/lib/analytics.test.ts

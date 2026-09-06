@@ -152,6 +152,20 @@ withhold it as-is.
 """
 
 [[rule]]
+path = "frontend/src/i18n/storeListing.copy.test.ts"
+classification = "withheld"
+reason = """
+Holds the App Store / Play listing copy to the same honesty lists the app is held to. It reads
+docs/store-listing.md, which is withheld with the rest of docs/, so it cannot travel without it:
+published alone it would be a test that fails on a missing file, and it would name a withheld path
+in public code.
+
+Same shape as the ornament tracer below — the withheld thing is the INPUT, and whatever reads it
+has to be classified with it. Losing this test costs a public reader nothing: the listing it guards
+is not in the public tree either, and copyGuard.ts (public) still guards every in-app string.
+"""
+
+[[rule]]
 path = "frontend/scripts/trace_login_ornaments.py"
 classification = "withheld"
 reason = """

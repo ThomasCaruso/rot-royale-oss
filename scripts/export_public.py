@@ -93,6 +93,11 @@ EXCLUDE = (
     # OUTPUT (frontend/src/ui/royal/ornamentPaths.ts) stays public; a reader could not run this
     # without the private renders in any case.
     "frontend/scripts/trace_login_ornaments.py",
+    # The store-listing copy guard. It READS docs/store-listing.md, which is withheld with the rest
+    # of docs/ — so publishing the test would ship a suite that fails on a file the public tree does
+    # not contain, and would name a withheld path in public code. Same shape as the tracer above:
+    # the withheld thing is the INPUT, and the file that reads it has to travel with it.
+    "frontend/src/i18n/storeListing.copy.test.ts",
     # The full asset manifest is a directory map of proprietary work — every private asset's path,
     # size, provenance and licence. The public tree gets PUBLIC_MANIFEST_NAME instead, which carries
     # the withheld digests and nothing else, so third-party verification survives without publishing
