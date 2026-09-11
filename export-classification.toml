@@ -258,6 +258,22 @@ quotes the private reference comp and internal file paths.
 """
 
 [[rule]]
+path = "PRODUCT-TRUTH.md"
+classification = "withheld"
+reason = """
+A code-derived audit of what the product actually is: every feature labelled SHIPPED,
+BUILT-BUT-DARK or PLANNED, with a path:line for each claim, plus a register of every place the
+documentation, naming or copy disagrees with the code. Same class as HANDOFF-login-screen.md and
+docs/ — written for the next session, not for a contributor.
+
+Withheld for a reason the other internal docs do not carry, and it is the stronger one: an
+inventory of what is BUILT-BUT-DARK is a map of this application's unfinished and unreachable
+surfaces, ordered by how close each is to working. That is a starting point for someone probing
+the deployed service, and no part of it is inferable from the public tree — the whole value of the
+document is that it says which code paths nothing currently reaches.
+"""
+
+[[rule]]
 path = "assets-manifest.json"
 classification = "withheld"
 reason = """

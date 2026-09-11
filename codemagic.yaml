@@ -20,7 +20,11 @@ workflows:
       app_store_connect: codemagic-rot-royale
 
     environment:
-      node: 20
+      # 22, not 20: Node 20 went EOL 2026-04-30, and .github/workflows/ci.yml already builds on 22 —
+      # so pinning 20 here meant the STORE BINARY was produced on a different, unsupported runtime
+      # from the one that validates every PR. The lane that matters least to catch a regression on
+      # was the only one still on it. (Capacitor 8 will also require 22+; this is a prerequisite.)
+      node: 22
       xcode: latest
       cocoapods: default
       ios_signing:
@@ -134,6 +138,10 @@ workflows:
       - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
 
     publishing:
+      # This DOES upload the IPA to App Store Connect. The two flags below only control what happens
+      # afterwards, in post-processing: submission to TestFlight beta review (required for EXTERNAL
+      # testers) and submission to App Store review. With both false the build still lands in App
+      # Store Connect and is installable by INTERNAL TestFlight testers once it finishes processing.
       app_store_connect:
         auth: integration
         submit_to_testflight: false
@@ -149,15 +157,31 @@ workflows:
   #     populates the same variables.
   #   • Integration `codemagic-rot-royale-play` — a Google Play service account with
   #     "Release to testing tracks" permission.
-  # Uploads are left DISABLED below, same as the iOS lane, so the first build is inspected by hand.
+  #
+  # ⚠️ THIS LANE CANNOT PRODUCE A PUBLISHABLE ARTIFACT TODAY. Play has required targetSdk 36 for new
+  # apps and updates since 2026-08-31; variables.gradle is at 35, and reaching 36 means Capacitor 8
+  # (Capacitor 7 tops out at 35). See docs/android-play-store-prep.md. The lane still builds a
+  # signed AAB, which is useful for a first green build — it just will not pass review.
+  #
+  # NOTE ON UPLOADS — this used to say "uploads are left DISABLED below, same as the iOS lane", and
+  # that was wrong about BOTH lanes. `publishing.google_play` below is fully configured, so a
+  # successful build UPLOADS to the internal track as a draft. On the iOS lane,
+  # `publishing.app_store_connect` likewise uploads the IPA to App Store Connect;
+  # `submit_to_testflight: false` only skips TestFlight BETA REVIEW (needed for external testers) —
+  # internal testers can install the build regardless. Neither flag prevents an upload. If you want
+  # a genuinely local artifact, delete the publishing block rather than trusting these flags.
   android-play:
     name: Rot Royale Android (Play)
     max_build_duration: 90
     instance_type: linux_x2
 
     environment:
-      node: 20
-      java: 17 # Android Gradle Plugin 8.x requires JDK 17
+      node: 22 # see the iOS lane: 20 is EOL and CI builds on 22
+      # Correct for AGP 8.2.1, which is what this project pins today. It does NOT survive the
+      # Capacitor upgrade: Capacitor 7 already requires JDK 21, so bump this in the same branch as
+      # the Capacitor 8 work or the first Android build afterwards fails inside Gradle, looking
+      # nothing like a Capacitor problem. See docs/android-play-store-prep.md.
+      java: 17
       groups:
         - google_play
       vars:

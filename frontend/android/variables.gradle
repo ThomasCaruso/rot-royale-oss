@@ -3,9 +3,12 @@ ext {
     // Capacitor 6's template ships 34, which Play REJECTS: since 2025-08-31 new apps and updates
     // must target API 35+. Bumped to 35 to be publishable at all.
     //
-    // ⚠️ Dated risk: the next annual step (API 36 / Android 16) lands 2026-08-31. Capacitor 6
-    // officially supports up to 35, so meeting that deadline most likely means upgrading to
-    // Capacitor 7 rather than editing this number. Plan it before late August 2026.
+    // ⚠️ THIS IS NOW BELOW THE REQUIRED LEVEL. The annual step to API 36 / Android 16 took effect
+    // 2026-08-31: new apps and updates must target 36, so a Play submission at 35 is rejected.
+    // Do NOT just edit this number — Capacitor 6 does not support 36, and neither does Capacitor 7
+    // (it tops out at 35, which an earlier note here got wrong). Reaching 36 means CAPACITOR 8,
+    // which also moves minSdk to 24, AGP to 8.13.0, Gradle to 8.14.3 and the iOS deployment target
+    // to 15.0. The full delta and the resumption order are in docs/android-play-store-prep.md.
     //
     // API 35 also enforces edge-to-edge on Android 15+: content draws behind the status/navigation
     // bars unless insets are handled. The app already pads with env(safe-area-inset-*) throughout

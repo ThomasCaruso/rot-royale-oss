@@ -81,6 +81,11 @@ EXCLUDE = (
     # the reasoning behind numbers now in the code. Same class as docs/ — written for the next
     # session, not for a contributor, and it quotes the private reference comp.
     "HANDOFF-login-screen.md",
+    # A code-derived audit labelling every feature SHIPPED / BUILT-BUT-DARK / PLANNED. Internal like
+    # the two above, but withheld for a sharper reason: the BUILT-BUT-DARK list is a map of this
+    # app's unreachable and half-finished surfaces, ranked by how close each is to working, and none
+    # of it can be inferred from the public tree.
+    "PRODUCT-TRUTH.md",
     ".claude/",
     # Developer tooling that has NOT had its own provenance and security review. It generates the
     # change-detection manifests, so it is genuine tooling worth keeping — but tooling can carry
