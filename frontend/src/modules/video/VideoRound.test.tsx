@@ -35,10 +35,19 @@ const spec = {
   change_question: { prompt: "what changed", options: ["a3", "b3", "c3", "d3"] },
 };
 
-/** jsdom never plays media, so the clip phases are advanced by firing `ended` directly. */
+/** jsdom never plays media, so the clip phases are advanced by firing `ended` directly.
+ *
+ *  The OPENING clip plays TWICE, so leaving it takes two `ended` events while the altered clip
+ *  takes one. This fires until the round has actually left the clip (the <video> unmounts once a
+ *  question shows) rather than hardcoding a count, so it stays correct if FIRST_CLIP_PLAYS moves. */
 function endClip(container: HTMLElement) {
-  const v = container.querySelector("video");
-  if (v) act(() => void fireEvent.ended(v));
+  for (let i = 0; i < 5; i++) {
+    const v = container.querySelector("video");
+    if (!v) return; // a question is showing — we have left the clip phase
+    act(() => void fireEvent.ended(v));
+    if (!container.querySelector("video")) return;
+  }
+  throw new Error("clip never advanced past its replays");
 }
 
 /** The component ignores taps for 250ms after a question appears (the double-tap guard), so a test
@@ -100,7 +109,7 @@ describe("VideoRound", () => {
     expect(cogVideoAnswer.mock.calls[1].slice(0, 3)).toEqual(["inst-1", 1, 2]);
   });
 
-  it("completes after the third answer", () => {
+  it("completes after the third answer", async () => {
     const onComplete = vi.fn();
     const { container } = render(<VideoRound spec={spec} onComplete={onComplete} />);
     endClip(container);
@@ -108,6 +117,11 @@ describe("VideoRound", () => {
     pick("a2");
     endClip(container);
     pick("a3");
+    // Awaited now, not synchronous: the third answer is what resolves the cognition instance, and
+    // completing before it lands 409s the Royale bridge (see the race test below).
+    await act(async () => {
+      await Promise.resolve();
+    });
     expect(onComplete).toHaveBeenCalledTimes(1);
     expect(cogVideoAnswer).toHaveBeenCalledTimes(3);
   });
@@ -171,5 +185,83 @@ describe("VideoRound", () => {
     pick("a1");
     expect(screen.getByText("second question")).toBeTruthy(); // still pending, already advanced
     settle({});
+  });
+  it("AWAITS the final answer before completing — the Royale bridge 409s otherwise", async () => {
+    // The third answer is the request that sets the cognition instance's completed_at (it is the
+    // one that makes answered >= len(questions)). onComplete triggers /entries/{id}/answer, whose
+    // bridge REFUSES an unresolved instance with round_not_resolved -> "Finish this round before
+    // moving on". Firing the last answer and completing in the same tick is therefore a race the
+    // player loses on any connection slower than localhost: they finish the last round of the
+    // Daily Royale and get an error instead of their Rot Report.
+    //
+    // Early questions must STAY fire-and-forget (the test above pins that) — there the next
+    // question needs nothing from the reply. Only the LAST one gates completion.
+    let settle: (v: unknown) => void = () => {};
+    const onComplete = vi.fn();
+    const { container } = render(<VideoRound spec={spec} onComplete={onComplete} />);
+    endClip(container);
+    pick("a1");
+    pick("a2");
+    endClip(container); // altered clip -> change question
+    cogVideoAnswer.mockReturnValue(new Promise((r) => (settle = r)));
+    pick("a3");
+    expect(onComplete).not.toHaveBeenCalled(); // still in flight — must not finalize yet
+    await act(async () => {
+      settle({ done: true });
+    });
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it("still completes if the final answer REJECTS, rather than stranding the player", async () => {
+    // Awaiting must not become a new way to wedge the round. A failed request is not a reason to
+    // sit on the last question forever; the server is authoritative and will report the real
+    // problem through /answer.
+    const onComplete = vi.fn();
+    const { container } = render(<VideoRound spec={spec} onComplete={onComplete} />);
+    endClip(container);
+    pick("a1");
+    pick("a2");
+    endClip(container);
+    cogVideoAnswer.mockRejectedValue(new Error("offline"));
+    pick("a3");
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+  it("plays the OPENING clip twice before the first question", () => {
+    // One pass is not enough to take in a clip you have never seen and do not yet know what to look
+    // for in — the questions are about detail, so a single play makes this a memory test of an
+    // unprimed glance.
+    const { container } = render(<VideoRound spec={spec} onComplete={() => {}} />);
+    const v = container.querySelector("video") as HTMLVideoElement;
+    act(() => void fireEvent.ended(v));
+    expect(container.querySelector("video")).toBeTruthy(); // replaying, not advancing
+    expect(screen.queryByText("first question")).toBeNull();
+    act(() => void fireEvent.ended(v));
+    expect(screen.getByText("first question")).toBeTruthy(); // second pass done -> questions
+  });
+
+  it("the ALTERED clip plays once — it is not doubled", () => {
+    // By the altered clip the player knows exactly what they are looking for, and this is already
+    // the longest round in the pool (VIDEO_SLOTS pins it to 3/6/7, never 8). Doubling both passes
+    // would spend a second clip length on comprehension that is no longer missing.
+    const { container } = render(<VideoRound spec={spec} onComplete={() => {}} />);
+    endClip(container);
+    pick("a1");
+    pick("a2");
+    const v = container.querySelector("video") as HTMLVideoElement;
+    expect(v.getAttribute("src")).toBe("/v/altered.mp4");
+    act(() => void fireEvent.ended(v));
+    expect(screen.getByText("what changed")).toBeTruthy(); // one `ended` was enough
+  });
+
+  it("a clip that FAILS to load is never replayed — it would wedge the round", () => {
+    // `onError` routes through the same handler. Retrying a broken source would loop forever on a
+    // dead screen, which is the exact failure the error handler exists to prevent.
+    const { container } = render(<VideoRound spec={spec} onComplete={() => {}} />);
+    const v = container.querySelector("video") as HTMLVideoElement;
+    act(() => void fireEvent.error(v));
+    expect(screen.getByText("first question")).toBeTruthy(); // advanced on the FIRST error
   });
 });

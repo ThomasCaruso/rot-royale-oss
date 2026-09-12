@@ -4,19 +4,19 @@
 // so each piece sits cleanly on both the light skins (Starter/Daylight/Bubblegum…) and the dark ones
 // (Midnight/Apex/Champion…). Like the other campaign art these load on demand (not PWA-precached);
 // all text (titles, counts, CTAs) is rendered in React/CSS, never baked into the art.
-import heroCrownMap from "./campaign-hero-crown-map.png";
-import badgeArts from "./world-badge-arts.png";
-import badgeGeography from "./world-badge-geography.png";
-import badgeHistory from "./world-badge-history.png";
-import badgePop from "./world-badge-pop.png";
-import badgeScience from "./world-badge-science.png";
-import badgeSports from "./world-badge-sports.png";
-import sceneArts from "./world-scene-arts.png";
-import sceneGeography from "./world-scene-geography.png";
-import sceneHistory from "./world-scene-history.png";
-import scenePop from "./world-scene-pop.png";
-import sceneScience from "./world-scene-science.png";
-import sceneSports from "./world-scene-sports.png";
+import heroCrownMap from "./campaign-hero-crown-map.webp";
+import badgeArts from "./world-badge-arts.webp";
+import badgeGeography from "./world-badge-geography.webp";
+import badgeHistory from "./world-badge-history.webp";
+import badgePop from "./world-badge-pop.webp";
+import badgeScience from "./world-badge-science.webp";
+import badgeSports from "./world-badge-sports.webp";
+import sceneArts from "./world-scene-arts.webp";
+import sceneGeography from "./world-scene-geography.webp";
+import sceneHistory from "./world-scene-history.webp";
+import scenePop from "./world-scene-pop.webp";
+import sceneScience from "./world-scene-science.webp";
+import sceneSports from "./world-scene-sports.webp";
 
 /** The gold-crown-on-a-map hero illustration for the "Campaign" banner card. */
 export const starterHeroArt = heroCrownMap;

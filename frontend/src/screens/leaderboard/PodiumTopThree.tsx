@@ -1,4 +1,4 @@
-import championAura from "@/assets/leaderboard/champion-aura.png";
+import championAura from "@/assets/leaderboard/champion-aura.webp";
 import { lobbyArt } from "@/assets/lobby";
 import { FitText } from "@/ui/FitText";
 import { getTitle, titleFlairStyle } from "@/theme/identity";

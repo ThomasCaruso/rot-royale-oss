@@ -75,33 +75,33 @@ export interface ThemeArt {
  *  an explicit list is what makes it obvious, when a new theme is added, that its polarity is a
  *  decision someone has to make. */
 const DARK_SKIN_ART = {
-  brain: "/assets/themes/starter/brain-dark.png?v=2",
+  brain: "/assets/themes/starter/brain-dark.webp?v=2",
 } as const;
 
 export const STARTER_ART: ThemeArt = {
-  crown: "/assets/themes/starter/daily-royale-crown-showcase.png?v=3",
-  podium: "/assets/themes/starter/starter-podium.png",
-  crownBare: "/assets/themes/starter/crown.png?v=3",
+  crown: "/assets/themes/starter/daily-royale-crown-showcase.webp?v=3",
+  podium: "/assets/themes/starter/starter-podium.webp",
+  crownBare: "/assets/themes/starter/crown.webp?v=3",
   dailyCard: "/assets/themes/starter/starter-daily-card.jpg?v=5",
   // ?v= is a cache-buster, and it is load-bearing: this file lives in public/, which Vite copies
   // verbatim WITHOUT content-hashing, so re-exporting the art under the same URL leaves every
   // browser that already fetched it serving the old bytes forever. Bump the number on any re-export.
-  background: "/assets/themes/starter/background_art_starter.png?v=6",
-  brain: "/assets/themes/starter/brain.png?v=2",
-  shield: "/assets/themes/starter/shield.png?v=3",
+  background: "/assets/themes/starter/background_art_starter.webp?v=6",
+  brain: "/assets/themes/starter/brain.webp?v=2",
+  shield: "/assets/themes/starter/shield.webp?v=3",
   // ?v=2 — the counter of the R shipped with the editor's transparency checkerboard flattened into
   // real pixels (an opaque white/grey grid). Re-exported transparent; the bump is what makes anyone
   // who already cached the white-holed version actually see it (same public/ no-hashing trap as
   // `background` above).
-  logo: "/assets/themes/starter/starter-logo-r-mark.png?v=3",
-  iconBattle: "/assets/themes/starter/starter-icon-battle.png?v=2",
-  iconBrain: "/assets/themes/starter/starter-icon-brain.png?v=2",
-  iconFriends: "/assets/themes/starter/starter-icon-friends.png?v=2",
-  iconGrowth: "/assets/themes/starter/starter-icon-growth.png?v=2",
-  iconRoyale: "/assets/themes/starter/starter-icon-royale.png?v=2",
-  battleScene: "/assets/themes/starter/starter-battle-scene.png?v=3",
-  avatarFrame: "/assets/themes/starter/starter-avatar-frame.png?v=2",
-  vsBadge: "/assets/themes/starter/starter-vs-badge.png?v=2",
+  logo: "/assets/themes/starter/starter-logo-r-mark.webp?v=3",
+  iconBattle: "/assets/themes/starter/starter-icon-battle.webp?v=2",
+  iconBrain: "/assets/themes/starter/starter-icon-brain.webp?v=2",
+  iconFriends: "/assets/themes/starter/starter-icon-friends.webp?v=2",
+  iconGrowth: "/assets/themes/starter/starter-icon-growth.webp?v=2",
+  iconRoyale: "/assets/themes/starter/starter-icon-royale.webp?v=2",
+  battleScene: "/assets/themes/starter/starter-battle-scene.webp?v=3",
+  avatarFrame: "/assets/themes/starter/starter-avatar-frame.webp?v=2",
+  vsBadge: "/assets/themes/starter/starter-vs-badge.webp?v=2",
 };
 
 /**
@@ -342,7 +342,7 @@ export const THEMES: Theme[] = [
     // composition, same 900x803 pipeline).
     art: {
       ...STARTER_ART,
-      dailyCard: "/assets/themes/starter/background-hero-card-bubblegum.jpg?v=3",
+      dailyCard: "/assets/themes/starter/background-hero-card-bubblegum.webp?v=3",
     },
   },
   {
@@ -452,7 +452,7 @@ export const THEMES: Theme[] = [
     art: {
       ...STARTER_ART,
       ...DARK_SKIN_ART,
-      dailyCard: "/assets/themes/starter/background-hero-card-apex.jpg?v=5",
+      dailyCard: "/assets/themes/starter/background-hero-card-apex.webp?v=5",
       dailyCardInk: "light",
     },
   },
@@ -493,7 +493,7 @@ export const THEMES: Theme[] = [
     art: {
       ...STARTER_ART,
       ...DARK_SKIN_ART,
-      dailyCard: "/assets/themes/starter/background-hero-card-crown_arena.jpg?v=4",
+      dailyCard: "/assets/themes/starter/background-hero-card-crown_arena.webp?v=4",
       dailyCardInk: "light",
     },
   },
@@ -534,7 +534,7 @@ export const THEMES: Theme[] = [
     art: {
       ...STARTER_ART,
       ...DARK_SKIN_ART,
-      dailyCard: "/assets/themes/starter/background-hero-card-champion.jpg?v=5",
+      dailyCard: "/assets/themes/starter/background-hero-card-champion.webp?v=5",
       dailyCardInk: "light",
     },
   },

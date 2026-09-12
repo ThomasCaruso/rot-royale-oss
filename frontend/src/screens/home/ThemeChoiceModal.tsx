@@ -64,8 +64,14 @@ export function ThemeChoiceModal({ onDone }: { onDone: () => void }) {
                 <img
                   // ?v=3 — these live in public/, which Vite does not content-hash, so a re-exported
                   // file keeps serving stale bytes to anyone who already fetched it (docs/architecture.md §13).
-                  // Bumped when the previews were resized to 3× their render size.
-                  src={`/assets/theme-previews/${id}.png?v=3`}
+                  // Bumped when the previews were resized to 3× their render size; NOT bumped for the
+                  // move to .webp, because changing the extension already changes the URL.
+                  //
+                  // This path is BUILT FROM A VARIABLE, which is why it is the one reference the
+                  // automated .webp retarget could not resolve — it matches no file on disk to check
+                  // against. A stale extension here would not fail the build; it would 404 silently
+                  // at runtime. `CHOICES` above is the whole set, and both files exist as .webp.
+                  src={`/assets/theme-previews/${id}.webp?v=3`}
                   alt=""
                   aria-hidden
                   draggable={false}

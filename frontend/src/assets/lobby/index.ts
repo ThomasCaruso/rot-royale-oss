@@ -5,21 +5,21 @@
 // NOTE: these are large source files (~1.4 MB each); they are NOT in the PWA precache glob (png is
 // excluded), so they load on demand rather than on install. A downscale/webp pass is the obvious
 // follow-up if Home's first paint needs to be lighter on cellular.
-import avatarBot from "./clean/avatar-bot.png";
-import avatarHooded from "./clean/avatar-hooded.png";
-import chestVault from "./clean/chest-vault.png";
-import coin from "./clean/coin.png";
-import crownArena from "./clean/crown-arena.png";
-import crownCta from "./clean/crown-cta.png";
-import crownHero from "./clean/crown-hero.png";
-import rotRoyaleBanner from "./clean/rot-royale-banner.png";
-import crownPodium from "./clean/crown-podium.png";
-import gem from "./clean/gem.png";
-import flagProgress from "./clean/flag-progress.png";
-import flameStreak from "./clean/flame-streak.png";
-import globeCampaign from "./clean/globe-campaign.png";
-import shieldAvatar from "./clean/shield-avatar.png";
-import shieldGoldIii from "./clean/shield-gold-iii.png";
+import avatarBot from "./clean/avatar-bot.webp";
+import avatarHooded from "./clean/avatar-hooded.webp";
+import chestVault from "./clean/chest-vault.webp";
+import coin from "./clean/coin.webp";
+import crownArena from "./clean/crown-arena.webp";
+import crownCta from "./clean/crown-cta.webp";
+import crownHero from "./clean/crown-hero.webp";
+import rotRoyaleBanner from "./clean/rot-royale-banner.webp";
+import crownPodium from "./clean/crown-podium.webp";
+import gem from "./clean/gem.webp";
+import flagProgress from "./clean/flag-progress.webp";
+import flameStreak from "./clean/flame-streak.webp";
+import globeCampaign from "./clean/globe-campaign.webp";
+import shieldAvatar from "./clean/shield-avatar.webp";
+import shieldGoldIii from "./clean/shield-gold-iii.webp";
 
 export const lobbyArt = {
   crownHero,

@@ -1,30 +1,36 @@
 ext {
-    minSdkVersion = 22
-    // Capacitor 6's template ships 34, which Play REJECTS: since 2025-08-31 new apps and updates
-    // must target API 35+. Bumped to 35 to be publishable at all.
+    // Capacitor 8 requires 24. Capacitor 6's template shipped 22, so this bump is forced by the
+    // upgrade rather than chosen: it drops API 22-23 (Android 5.1 Lollipop and 6.0 Marshmallow),
+    // devices ten-plus years old. There is no way to hold 22 and still reach the targetSdk Play
+    // now requires, so the trade is not available to us.
+    minSdkVersion = 24
+
+    // API 36 has been REQUIRED by Play for new apps and updates since 2026-08-31, and there is no
+    // extension to fall back on: Play grants those only to apps already published, and this one has
+    // never been submitted (docs/android-play-store-prep.md). Capacitor 6 could not reach 36 and
+    // neither could Capacitor 7 -- it tops out at 35, exactly where this file used to sit, which is
+    // why the 7 upgrade would have moved nothing. Capacitor 8 is what delivers 36, so this number
+    // and the Capacitor major had to move together and cannot be edited apart from it.
     //
-    // ⚠️ THIS IS NOW BELOW THE REQUIRED LEVEL. The annual step to API 36 / Android 16 took effect
-    // 2026-08-31: new apps and updates must target 36, so a Play submission at 35 is rejected.
-    // Do NOT just edit this number — Capacitor 6 does not support 36, and neither does Capacitor 7
-    // (it tops out at 35, which an earlier note here got wrong). Reaching 36 means CAPACITOR 8,
-    // which also moves minSdk to 24, AGP to 8.13.0, Gradle to 8.14.3 and the iOS deployment target
-    // to 15.0. The full delta and the resumption order are in docs/android-play-store-prep.md.
-    //
-    // API 35 also enforces edge-to-edge on Android 15+: content draws behind the status/navigation
+    // API 35+ also enforces edge-to-edge on Android 15+: content draws behind the status/navigation
     // bars unless insets are handled. The app already pads with env(safe-area-inset-*) throughout
-    // for the iOS notch, which is the same mechanism — but this needs a look on a real device
-    // before release (see docs/android-play-store-prep.md).
-    compileSdkVersion = 35
-    targetSdkVersion = 35
-    androidxActivityVersion = '1.8.0'
-    androidxAppCompatVersion = '1.6.1'
-    androidxCoordinatorLayoutVersion = '1.2.0'
-    androidxCoreVersion = '1.12.0'
-    androidxFragmentVersion = '1.6.2'
-    coreSplashScreenVersion = '1.0.1'
-    androidxWebkitVersion = '1.9.0'
+    // for the iOS notch, which is the same mechanism -- but this still needs a look on a real
+    // device before release (see docs/android-play-store-prep.md).
+    compileSdkVersion = 36
+    targetSdkVersion = 36
+
+    // The androidx block moves as a set with Capacitor 8; these are the versions its template
+    // ships. Pinning a mixed set is how you get a manifest-merger or duplicate-class failure that
+    // reads as a Capacitor bug.
+    androidxActivityVersion = '1.11.0'
+    androidxAppCompatVersion = '1.7.1'
+    androidxCoordinatorLayoutVersion = '1.3.0'
+    androidxCoreVersion = '1.17.0'
+    androidxFragmentVersion = '1.8.9'
+    coreSplashScreenVersion = '1.2.0'
+    androidxWebkitVersion = '1.14.0'
     junitVersion = '4.13.2'
-    androidxJunitVersion = '1.1.5'
-    androidxEspressoCoreVersion = '3.5.1'
-    cordovaAndroidVersion = '10.1.1'
+    androidxJunitVersion = '1.3.0'
+    androidxEspressoCoreVersion = '3.7.0'
+    cordovaAndroidVersion = '14.0.1'
 }

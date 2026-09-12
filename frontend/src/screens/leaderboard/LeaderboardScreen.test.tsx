@@ -87,7 +87,7 @@ describe("LeaderboardRow", () => {
       equipped_frame: "gold_crown",
     };
     const html = renderToStaticMarkup(<LeaderboardRow row={row} youLabel="YOU" />);
-    expect(html).toContain("/avatars/portraits/rook.png?v=2"); // preset portrait
+    expect(html).toContain("/avatars/portraits/rook.webp?v=2"); // preset portrait
     expect(html).toContain("👑"); // gold_crown ornament
     expect(html).toContain("#ffb300"); // gold_crown ring gradient painted into the border box
   });
@@ -116,7 +116,7 @@ describe("LeaderboardRow", () => {
   it("rows without identity fields fall back to the knight default (legacy constructors safe)", () => {
     const row = { rank: 5, username: "NovaStrike", score: 810, isMe: false };
     const html = renderToStaticMarkup(<LeaderboardRow row={row} youLabel="YOU" />);
-    expect(html).toContain("/avatars/portraits/knight.png?v=2");
+    expect(html).toContain("/avatars/portraits/knight.webp?v=2");
   });
 
   it("shows up to 3 tiny badge emoji after the username (aria-hidden honors)", () => {

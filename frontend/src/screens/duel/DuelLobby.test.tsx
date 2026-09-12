@@ -121,7 +121,7 @@ describe("DuelLobby", () => {
     // renders the player's avatar portrait and the mystery rival renders none. The theme-gated swap
     // itself (founder art when equipped_theme === "royale") is covered directly in BattleAvatar.test.
     const html = render();
-    expect(html).toContain("/avatars/portraits/knight.png?v=2"); // YOU shows a real pfp portrait (default preset)
+    expect(html).toContain("/avatars/portraits/knight.webp?v=2"); // YOU shows a real pfp portrait (default preset)
     expect(html.split("/avatars/").length - 1).toBe(1); // exactly one portrait — the rival has none
     expect(html).toContain(en.duel.cardRival);
   });

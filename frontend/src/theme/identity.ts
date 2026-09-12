@@ -16,10 +16,10 @@ export interface AvatarPreset {
   emoji: string;
   /** Radial-gradient disc background — shown behind the portrait (and as the emoji fallback). */
   bg: string;
-  /** Line-art heraldic mark (a /avatars/*.png in public/) — the Blank pair's profile image (the
+  /** Line-art heraldic mark (a /avatars/*.webp in public/) — the Blank pair's profile image (the
    * whole Blank skin is one line-drawing style). */
   img?: string;
-  /** Illustrated human character portrait (/avatars/portraits/*.png) — the profile image on
+  /** Illustrated human character portrait (/avatars/portraits/*.webp) — the profile image on
    * every theme EXCEPT the Blank pair (Starter system + the arcade Rot Champion). */
   portrait?: string;
 }
@@ -46,7 +46,7 @@ const disc = (tint: string) =>
   `color-mix(in srgb, ${tint} 30%, var(--panel)) 100%)`;
 
 /**
- * The free presets — illustrated hoodie-bust portraits (public/avatars/portraits/*.png), ids
+ * The free presets — illustrated hoodie-bust portraits (public/avatars/portraits/*.webp), ids
  * validated server-side (PATCH /me/avatar). The emoji + disc gradient are the fallback shown behind
  * the portrait. `knight` is the default. To add one: drop a portrait PNG in
  * public/avatars/portraits/, add an entry here, and mirror the id in theme/cosmeticIds.json +
@@ -62,20 +62,20 @@ export const AVATAR_PRESETS: AvatarPreset[] = [
   // grey on an ivory page. Curated for a pleasing spread: two violets, gold, mauve, rose, peach,
   // green, periwinkle — distinct but all in the theme's harmony. `--cyan` is deliberately unused (it
   // is a muted near-grey on several themes, exactly the tone we're moving away from).
-  { id: "knight", emoji: "♞", bg: disc("var(--brand)"), img: "/avatars/knight.png?v=2", portrait: "/avatars/portraits/knight.png?v=2" },
+  { id: "knight", emoji: "♞", bg: disc("var(--brand)"), img: "/avatars/knight.webp?v=2", portrait: "/avatars/portraits/knight.webp?v=2" },
   // ?v=2 — crescent was the ONE portrait whose artwork did not run to the bottom of its canvas
   // (17px short, against a gap of 0 on all seven others), so inside the circular crop her shoulders
   // left a band of bare disc that no other avatar had, and she read smaller than everyone else. The
   // art was re-framed: scaled to the cohort's median content height and sat flush on the bottom
   // edge. The bump is what makes anyone who already cached her actually see it — /avatars is served
   // from public/, which Vite copies WITHOUT content-hashing (docs/architecture.md §13).
-  { id: "crescent", emoji: "🌙", bg: disc("var(--brand-2)"), img: "/avatars/crescent.png?v=2", portrait: "/avatars/portraits/crescent.png?v=3" },
-  { id: "rook", emoji: "♜", bg: disc("var(--amber)"), img: "/avatars/rook.png?v=2", portrait: "/avatars/portraits/rook.png?v=2" },
-  { id: "bishop", emoji: "♝", bg: disc("color-mix(in srgb, var(--brand) 50%, var(--pink))"), img: "/avatars/bishop.png?v=2", portrait: "/avatars/portraits/bishop.png?v=2" },
-  { id: "ember", emoji: "🔥", bg: disc("var(--pink)"), portrait: "/avatars/portraits/ember.png?v=2" },
-  { id: "sol", emoji: "☀️", bg: disc("color-mix(in srgb, var(--amber) 56%, var(--pink))"), portrait: "/avatars/portraits/sol.png?v=2" },
-  { id: "willow", emoji: "🌿", bg: disc("var(--lime)"), portrait: "/avatars/portraits/willow.png?v=2" },
-  { id: "onyx", emoji: "🌑", bg: disc("color-mix(in srgb, var(--brand-2) 55%, var(--lime))"), portrait: "/avatars/portraits/onyx.png?v=2" },
+  { id: "crescent", emoji: "🌙", bg: disc("var(--brand-2)"), img: "/avatars/crescent.webp?v=2", portrait: "/avatars/portraits/crescent.webp?v=3" },
+  { id: "rook", emoji: "♜", bg: disc("var(--amber)"), img: "/avatars/rook.webp?v=2", portrait: "/avatars/portraits/rook.webp?v=2" },
+  { id: "bishop", emoji: "♝", bg: disc("color-mix(in srgb, var(--brand) 50%, var(--pink))"), img: "/avatars/bishop.webp?v=2", portrait: "/avatars/portraits/bishop.webp?v=3" },
+  { id: "ember", emoji: "🔥", bg: disc("var(--pink)"), portrait: "/avatars/portraits/ember.webp?v=2" },
+  { id: "sol", emoji: "☀️", bg: disc("color-mix(in srgb, var(--amber) 56%, var(--pink))"), portrait: "/avatars/portraits/sol.webp?v=2" },
+  { id: "willow", emoji: "🌿", bg: disc("var(--lime)"), portrait: "/avatars/portraits/willow.webp?v=2" },
+  { id: "onyx", emoji: "🌑", bg: disc("color-mix(in srgb, var(--brand-2) 55%, var(--lime))"), portrait: "/avatars/portraits/onyx.webp?v=2" },
 ];
 
 export const DEFAULT_AVATAR_PRESET = "knight";

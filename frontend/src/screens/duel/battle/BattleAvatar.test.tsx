@@ -17,7 +17,7 @@ describe("BattleAvatar", () => {
     const html = renderToStaticMarkup(
       <BattleAvatar {...common} label="YOU" sleek identity={{ preset: "bishop", frame: null }} />,
     );
-    expect(html).toContain("/avatars/portraits/bishop.png?v=2");
+    expect(html).toContain("/avatars/portraits/bishop.webp?v=3");
   });
 
   it("renders an honest mystery disc for the rival — no portrait, just the ? mark", () => {

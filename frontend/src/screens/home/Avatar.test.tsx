@@ -15,7 +15,7 @@ primeArcadeTheme();
 describe("Avatar — backward compatibility (no new props)", () => {
   it("default render is the knight portrait disc: image, tinted gradient, plain ring, no frame layers", () => {
     const html = renderToStaticMarkup(<Avatar />);
-    expect(html).toContain("/avatars/portraits/knight.png?v=2"); // the default portrait
+    expect(html).toContain("/avatars/portraits/knight.webp?v=2"); // the default portrait
     expect(html).toContain(getPreset("knight").bg); // disc still tints behind the portrait
     expect(html).toContain("2px solid var(--line)");
     expect(html).not.toContain("rr-glow-pulse");
@@ -39,14 +39,14 @@ describe("Avatar — backward compatibility (no new props)", () => {
 describe("Avatar — presets", () => {
   it("renders the requested preset's portrait and disc gradient", () => {
     const html = renderToStaticMarkup(<Avatar preset="bishop" />);
-    expect(html).toContain("/avatars/portraits/bishop.png?v=2");
+    expect(html).toContain("/avatars/portraits/bishop.webp?v=3");
     expect(html).toContain(getPreset("bishop").bg);
-    expect(html).not.toContain("/avatars/portraits/knight.png?v=2");
+    expect(html).not.toContain("/avatars/portraits/knight.webp?v=2");
   });
 
   it("unknown preset falls back to the default portrait (server ids only — never a broken disc)", () => {
     const html = renderToStaticMarkup(<Avatar preset="zebra" />);
-    expect(html).toContain("/avatars/portraits/knight.png?v=2");
+    expect(html).toContain("/avatars/portraits/knight.webp?v=2");
     expect(html).toContain(getPreset("knight").bg);
   });
 });
@@ -97,7 +97,7 @@ describe("Avatar — frames", () => {
 
   it("preset + frame compose: the disc gradient and the ring gradient are both present", () => {
     const html = renderToStaticMarkup(<Avatar preset="rook" frame="violet_glow" />);
-    expect(html).toContain("/avatars/portraits/rook.png?v=2");
+    expect(html).toContain("/avatars/portraits/rook.webp?v=2");
     expect(html).toContain(getPreset("rook").bg);
     const ring = FRAME_STYLES.violet_glow.ring as string;
     expect(html).toContain(ring.slice(0, 30));

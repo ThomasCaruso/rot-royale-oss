@@ -99,7 +99,7 @@ describe("ProfileMenu", () => {
     );
     // Version-agnostic: `?v=N` is a cache-buster that changes whenever the art is re-exported
     // (docs/architecture.md §13), so pinning the number makes this test fail on unrelated asset work.
-    expect(html).toMatch(/\/avatars\/portraits\/crescent\.png(\?v=\d+)?/);
+    expect(html).toMatch(/\/avatars\/portraits\/crescent\.webp(\?v=\d+)?/);
     // The violet_glow ring gradient, read from the source of truth so a visual retune never
     // breaks this wiring pin (which only asserts the frame is actually worn).
     expect(html).toContain((FRAME_STYLES.violet_glow.ring as string).slice(0, 40));

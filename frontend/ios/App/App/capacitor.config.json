@@ -3,6 +3,11 @@
 	"appName": "Rot Royale",
 	"webDir": "dist",
 	"packageClassList": [
-		"PreferencesPlugin"
+		"InAppReviewPlugin",
+		"AppPlugin",
+		"HapticsPlugin",
+		"CAPNetworkPlugin",
+		"PreferencesPlugin",
+		"PushNotificationsPlugin"
 	]
 }

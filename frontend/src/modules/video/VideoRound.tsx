@@ -58,6 +58,10 @@ const STAGE_MAX_PX = 580;
 
 const PHASE_ORDER: Phase[] = ["clip1", "q0", "q1", "clip2", "q2"];
 
+/** How many times the OPENING clip plays before its questions. The altered clip always plays once
+ *  (see onEnded for why). */
+const FIRST_CLIP_PLAYS = 2;
+
 /**
  * Taps are ignored for this long after a question appears.
  *
@@ -135,19 +139,34 @@ export function VideoRound({
       answersRef.current = [...answersRef.current, picked];
       const elapsed = Math.min(limit, Math.max(0, Date.now() - startedAt.current));
 
-      // Fire and forget, and advance IMMEDIATELY rather than awaiting the response.
-      //
-      // The server is authoritative — it judges the answer and the round finalizes through
-      // /entries/{id}/answer regardless — so there is nothing in the reply the next question needs.
-      // Waiting for it would stall the player on a slow connection at the one moment a timed round
-      // cannot afford it, and a dropped request would leave them stuck on a question they have
-      // already answered.
-      void api
+      const sent = api
         .cogVideoAnswer(spec.cognition_instance_id, questionIndex, picked, elapsed)
         .catch(() => {});
 
-      if (questionIndex === 2) onComplete({ answers: answersRef.current });
-      else advance();
+      if (questionIndex === 2) {
+        // THE LAST ANSWER IS AWAITED, and only the last one.
+        //
+        // This request is what resolves the cognition instance: the server sets `completed_at`
+        // once answered >= len(questions), which happens on the THIRD answer and no earlier.
+        // `onComplete` then finalizes the Royale round through /entries/{id}/answer, whose bridge
+        // refuses an unresolved instance (`InteractiveRoundNotResolvedError` -> 409
+        // `round_not_resolved` -> "Finish this round before moving on").
+        //
+        // Firing both in the same tick is a race the player loses on anything slower than
+        // localhost, and it loses at the worst possible moment: the last round of the Daily
+        // Royale, where the reward for finishing is an error and a button back to Home instead of
+        // the Rot Report. Awaiting costs one round-trip at a point where nothing is being timed —
+        // the round is over.
+        //
+        // `sent` already swallows rejection, so an offline device still completes and lets the
+        // server report the real problem rather than sitting on a dead question forever.
+        void sent.then(() => onComplete({ answers: answersRef.current }));
+      } else {
+        // Questions 0 and 1 stay FIRE-AND-FORGET, deliberately. The server is authoritative and
+        // the next question needs nothing from the reply, so waiting would only stall a timed
+        // round on a slow connection — the one moment it cannot afford it.
+        advance();
+      }
     },
     [questionIndex, limit, spec.cognition_instance_id, onComplete, advance],
   );
@@ -162,9 +181,39 @@ export function VideoRound({
     submit(null);
   }, [left, showingClip, limit, submit]);
 
-  const onEnded = useCallback(() => {
+  // THE OPENING CLIP PLAYS TWICE before the questions; the altered clip plays once.
+  //
+  // One pass is not enough to take in a clip you have never seen and have no idea what to look for
+  // in — the questions are about detail, so a single play makes the round a memory test of an
+  // unprimed glance. The altered clip is deliberately NOT doubled: by then the player knows exactly
+  // what they are looking for, and this is already the longest round in the pool (which is why
+  // VIDEO_SLOTS pins it to 3/6/7 and never to 8). Doubling only the first pass buys the
+  // comprehension where it is missing at the cost of one clip length, not two.
+  const firstClipPlays = useRef(0);
+  const advancePhase = useCallback(() => {
     setPhase((p) => (p === "clip1" ? "q0" : p === "clip2" ? "q2" : p));
   }, []);
+  const onEnded = useCallback(
+    (e: React.SyntheticEvent<HTMLVideoElement>) => {
+      const el = e.currentTarget;
+      // `onError` routes here too, so a clip that FAILED must never be replayed — that would retry
+      // a broken source forever and wedge the round on a dead screen, which is the exact failure
+      // the error handler exists to prevent.
+      const failed = e.type === "error" || (el.error != null && el.readyState === 0);
+      if (phase === "clip1" && !failed && firstClipPlays.current < FIRST_CLIP_PLAYS - 1) {
+        firstClipPlays.current += 1;
+        try {
+          el.currentTime = 0;
+          void el.play?.()?.catch?.(() => advancePhase());
+        } catch {
+          advancePhase(); // a browser that refuses the replay must still move the round on
+        }
+        return;
+      }
+      advancePhase();
+    },
+    [phase, advancePhase],
+  );
 
   const step = questionIndex < 0 ? (phase === "clip1" ? 1 : 3) : questionIndex + 1;
 

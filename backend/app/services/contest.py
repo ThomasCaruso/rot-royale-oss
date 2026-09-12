@@ -26,6 +26,7 @@ from app.services.bots import window_seed
 from app.services.engine import build_round_set
 from app.services.friends import list_friends
 from app.services.personalization import personalize_bank
+from app.services.ranked_bank import weight_ranked_bank
 from app.services.rot_rating_store import apply_run as apply_rot_rating
 from app.services.royale_rounds import (
     ROYALE_COGNITION_SCORING_VERSION,
@@ -167,6 +168,11 @@ async def enter_contest(
     # PERSONALIZE_RANKED_DAILY=true (default false — leaderboard comparability). The call runs
     # through the one gate so the flag is enforced in a single place.
     bank = await personalize_bank(session, user_id, bank, mode="ranked", seed=seed)
+    # Same §5c weighting as the mixed path, but ONLY for the ranked slot: this branch also serves
+    # the legacy morning/midday/night windows kept for history (§6), and re-weighting those would
+    # rewrite what an archived day would regenerate from its seed.
+    if window.slot == "royale":
+        bank = weight_ranked_bank(bank)
     ctx = GenerationContext(bank=bank, seed=seed)
     rounds = build_round_set(seed, template, ctx)
 
@@ -215,7 +221,10 @@ async def _enter_royale_mixed(
 ) -> Entry:
     """Build a mixed-type Royale entry from the pinned plan. Trivia rounds are ordinary
     RoundAnswers; interactive rounds create a cognition instance bound to (entry_id, idx)."""
-    bank = await fetch_bank(session, "trivia", locale=locale)
+    # Ranked trivia is biased toward §5c's thinking shapes. Applied by PRE-WEIGHTING the bank, the
+    # same seam §5a scopes categories through, so the engine and the modules stay unaware of it.
+    # Deterministic, so the shared window seed still gives every player the identical eight.
+    bank = weight_ranked_bank(await fetch_bank(session, "trivia", locale=locale))
     entry = Entry(
         window_id=window.id,
         user_id=user_id,

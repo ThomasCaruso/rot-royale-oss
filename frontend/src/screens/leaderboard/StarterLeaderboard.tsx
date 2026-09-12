@@ -6,7 +6,7 @@ import { Avatar } from "@/screens/home/Avatar";
 import { HomeHeader } from "@/screens/home/HomeHeader";
 import { ProfileMenu } from "@/screens/home/ProfileMenu";
 import type { Me } from "@/store/session";
-import podiumImg from "@/assets/leaderboard/podium.png";
+import podiumImg from "@/assets/leaderboard/podium.webp";
 import { CrownIcon } from "@/ui/CrownIcon";
 import { FitText } from "@/ui/FitText";
 import { GoldButton } from "@/ui/GoldButton";

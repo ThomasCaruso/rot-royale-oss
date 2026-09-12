@@ -7,8 +7,16 @@
 # 1.0 anyway — and App Store Connect then refuses to attach the build, because 1.0 is already
 # released. No error appears in the build log; the failure surfaces days later at submission. The
 # anchor means iOS and Android cannot drift from each other or from this file either.
+#
+# A RELEASED VERSION IS BURNED FOREVER. 1.1 was approved on the App Store, which CLOSES its
+# pre-release train: build 21 archived, signed and exported cleanly, then died at the publish step
+# on `ITMS 90186 — the train version '1.1' is closed for new build submissions` plus `90062 —
+# CFBundleShortVersionString [1.1] must contain a higher version than the previously approved
+# version [1.1]`. Note where that lands: the BUILD passes and the UPLOAD fails, so the cost is a
+# whole green build plus the minutes, and nothing in the code is wrong. Bump this BEFORE running a
+# lane that publishes, not after it fails.
 definitions:
-  app_version: &app_version "1.1"
+  app_version: &app_version "1.2"
 
 workflows:
   ios-testflight:
@@ -177,11 +185,11 @@ workflows:
 
     environment:
       node: 22 # see the iOS lane: 20 is EOL and CI builds on 22
-      # Correct for AGP 8.2.1, which is what this project pins today. It does NOT survive the
-      # Capacitor upgrade: Capacitor 7 already requires JDK 21, so bump this in the same branch as
-      # the Capacitor 8 work or the first Android build afterwards fails inside Gradle, looking
-      # nothing like a Capacitor problem. See docs/android-play-store-prep.md.
-      java: 17
+      # 21, not 17: Capacitor 7 already required JDK 21 and Capacitor 8 inherits it, so this moved
+      # in the same branch as the upgrade exactly as the previous comment here predicted. 17 was
+      # correct only for AGP 8.2.1; against AGP 8.13.0 it fails inside Gradle, looking nothing like
+      # a Capacitor problem. See docs/android-play-store-prep.md.
+      java: 21
       groups:
         - google_play
       vars:

@@ -81,7 +81,7 @@ describe("LevelComplete — frame-unlock celebration", () => {
     expect(html).toContain("Science · World Complete");
     expect(html).toContain("Science Orbit"); // FRAME_STYLES[WORLD_FRAMES.Science].name
     expect(html).toContain("⚛️"); // science_orbit ornament on the avatar
-    expect(html).toContain("/avatars/portraits/rook.png?v=2"); // the player's OWN preset portrait wears the frame
+    expect(html).toContain("/avatars/portraits/rook.webp?v=2"); // the player's OWN preset portrait wears the frame
     expect(html).toContain("Unlocked in the Vault"); // honest copy: unlocked to buy, not granted
   });
 

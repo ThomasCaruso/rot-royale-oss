@@ -25,9 +25,24 @@ Two rules, both deliberately conservative:
    verified by eye at that size; everything else must be near-lossless or it keeps full colour.
    Untouched JPEGs are not re-encoded at all --- a few KB is not worth generation loss.
 
-WebP would give another ~3x, and is NOT used on purpose: `ios/App/App.xcodeproj` pins
-IPHONEOS_DEPLOYMENT_TARGET = 13.0, and WKWebView only gained WebP support in iOS 14. Shipping WebP
-would silently break every image for iOS 13 users. Revisit if that target is ever raised.
+3. CONVERT TO WEBP (`--webp`). This was refused for years on one ground: `ios/App/App.xcodeproj`
+   pinned IPHONEOS_DEPLOYMENT_TARGET = 13.0 and WKWebView only gained WebP in iOS 14, so WebP would
+   have silently broken every image for iOS 13 users. Capacitor 8 raised that floor to 15.0, which
+   retired the objection for the NATIVE app.
+
+   It does not retire it for the WEB app, and that distinction is deliberate rather than overlooked.
+   rotroyale.live is served to whatever browser arrives, and Safari gained WebP only in iOS 14
+   --- so
+   a visitor on iOS 13 Safari sees broken images with no fallback. That is an accepted trade, not an
+   oversight: iOS 13's share of web traffic is now negligible, and a <picture> fallback would double
+   the asset count and the reference surface to serve it. Revisit only if that population reappears.
+
+   The quality gates below apply UNCHANGED to WebP, with one correction. RMSE over raw RGBA is
+   MEANINGLESS for transparent art: lossy WebP rewrites the RGB of fully-transparent pixels, which
+   are never rasterised, and that alone scored crown.png at RMSE 25 and the crown showcase at 47 ---
+   numbers that would have rejected both as catastrophic when nothing visible had changed. WebP is
+   judged on the image COMPOSITED OVER THE PAGE COLOUR, plus the alpha channel compared separately.
+   Measured that way the same two files score 4.11 and 2.98, with alpha error of exactly 0.00.
 
 Usage
 -----
@@ -155,6 +170,72 @@ def accepts(original: Image.Image, candidate: Image.Image, measured: bool) -> bo
     )
 
 
+# The app's cream page colour (--bg). Transparent art is composited over this before being
+# measured, because that is what a viewer actually sees.
+PAGE_BG = (241, 234, 233, 255)
+
+
+def _composited(img: Image.Image) -> Image.Image:
+    bg = Image.new("RGBA", img.size, PAGE_BG)
+    return Image.alpha_composite(bg, img.convert("RGBA")).convert("RGB")
+
+
+def visible_rmse(original: Image.Image, candidate: Image.Image) -> tuple[float, float, float]:
+    """(visible RGB error, blurred visible error, alpha error) — see the WebP note in the docstring.
+
+    Returned as a triple because a lossy codec can damage colour and alpha independently, and an
+    alpha error is the one that shows up as a hard edge or a halo rather than as softness.
+    """
+    o, c = _composited(original), _composited(candidate)
+    return (
+        rmse(o, c),
+        rmse(o.filter(ImageFilter.GaussianBlur(8)), c.filter(ImageFilter.GaussianBlur(8))),
+        rmse(original.convert("RGBA").split()[3], candidate.convert("RGBA").split()[3]),
+    )
+
+
+# Alpha is cheap to keep exact and expensive to get wrong, so it is held to a far tighter bound than
+# colour rather than being folded into one number.
+ALPHA_RMSE_LIMIT = 1.0
+
+
+def accepts_webp(original: Image.Image, candidate: Image.Image, measured: bool) -> bool:
+    """Same two-gate rule as PNG quantisation (see above), measured on the composited image."""
+    vis, blur, alpha = visible_rmse(original, candidate)
+    if alpha > ALPHA_RMSE_LIMIT:
+        return False
+    if measured:
+        return vis <= RMSE_LIMIT_MEASURED
+    return vis <= RMSE_LIMIT_STRICT and blur <= BLUR_RMSE_LIMIT_STRICT
+
+
+def encode_webp(img: Image.Image, measured: bool, lossless_only: bool) -> tuple[bytes, str]:
+    """Smallest WebP that clears the applicable gate; lossless if nothing lossy does.
+
+    `lossless_only` carries the PRESERVE_COLOR contract into this codec. Those four files exist to
+    keep a known art defect from being quietly repainted by an optimiser, and a lossy encode would
+    repaint it just as surely as a palette would — so they get lossless WebP, which is still a real
+    win (crescent.png: 98.6 KB -> 57.6 KB) with the pixels bit-exact.
+    """
+    img = img.convert("RGBA")
+    lossless = BytesIO()
+    img.save(lossless, "WEBP", lossless=True, quality=100, method=6)
+    if lossless_only:
+        return lossless.getvalue(), "lossless"
+
+    best, how = lossless.getvalue(), "lossless"
+    # Ascending quality: the FIRST one that passes is the smallest acceptable encode.
+    for q in (80, 85, 88, 92, 95):
+        buf = BytesIO()
+        img.save(buf, "WEBP", quality=q, method=6, alpha_quality=100)
+        data = buf.getvalue()
+        if len(data) >= len(best):
+            continue
+        if accepts_webp(img, Image.open(BytesIO(data)), measured):
+            return data, f"q{q}"
+    return best, how
+
+
 def encode_png(img: Image.Image, allow_quantise: bool = True, measured: bool = False) -> tuple[bytes, str]:
     """Smallest acceptable PNG encoding: quantised only if it clears the applicable gate."""
     img = img.convert("RGBA")
@@ -249,11 +330,17 @@ def shipped_files() -> list[str]:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument(
+        "--webp",
+        action="store_true",
+        help="convert to .webp (replacing the .png/.jpg) and print the reference renames needed",
+    )
     args = ap.parse_args()
 
     files = shipped_files()
     before_total = after_total = 0
     changed_public: list[str] = []
+    renames: list[tuple[str, str]] = []
     rows: list[tuple[int, str]] = []
 
     for rel in files:
@@ -267,7 +354,13 @@ def main() -> int:
             img = img.resize((max(1, round(w * scale)), max(1, round(h * scale))), Image.LANCZOS)
             resized = True
 
-        if rel.lower().endswith((".jpg", ".jpeg")):
+        if args.webp:
+            # A JPEG source is re-encoded here even when it was not resized: unlike the PNG path,
+            # the format change is the point, and the gate still refuses anything visibly worse.
+            data, how = encode_webp(
+                img, measured=longest is not None, lossless_only=rel in PRESERVE_COLOR
+            )
+        elif rel.lower().endswith((".jpg", ".jpeg")):
             if not resized:
                 # Re-encoding an untouched JPEG trades generation loss for a few KB. Skip it.
                 before_total += before
@@ -289,10 +382,15 @@ def main() -> int:
         before_total += before
         after_total += after
         note = f"{w}x{h}->{img.size[0]}x{img.size[1]} ({why})" if resized else f"{w}x{h} recompress"
-        rows.append((before - after, f"  {before:8,} -> {after:8,}  {note:38s} {how:7s} {rel}"))
+        dest = re.sub(r"\.(png|jpe?g)$", ".webp", rel, flags=re.I) if args.webp else rel
+        rows.append((before - after, f"  {before:8,} -> {after:8,}  {note:38s} {how:7s} {dest}"))
         if not args.dry_run:
-            with open(rel, "wb") as fh:
+            with open(dest, "wb") as fh:
                 fh.write(data)
+            if dest != rel:
+                os.remove(rel)
+        if dest != rel:
+            renames.append((rel, dest))
         if rel.startswith("public/"):
             changed_public.append(rel)
 
@@ -308,6 +406,13 @@ def main() -> int:
     print(f"saved {saved:,} bytes ({pct:.1f}%){'  [DRY RUN - nothing written]' if args.dry_run else ''}")
     if changed_public:
         print(f"\n{len(changed_public)} public/ files changed -> bump their ?v= (docs/architecture.md section 13)")
+    if renames:
+        # Every reference must move with the file. `npm run build` fails loudly on a stale src/
+        # import, but a stale public/ URL is a STRING -- it 404s silently at runtime, so those are
+        # printed explicitly rather than left to be noticed.
+        print(f"\n{len(renames)} files changed extension -> update every reference:")
+        for src_path, dest_path in renames:
+            print(f"  {src_path}  ->  {dest_path}")
     return 0
 
 

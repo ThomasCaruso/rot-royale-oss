@@ -33,9 +33,9 @@ describe("LeaderboardPreview", () => {
       { username: "NovaStrike", score: 810 }, // no identity fields → safe defaults
     ];
     const html = renderToStaticMarkup(<LeaderboardPreview rows={rows} fieldCount={4} />);
-    expect(html).toContain("/avatars/portraits/rook.png?v=2"); // T_Sniffs' preset portrait
+    expect(html).toContain("/avatars/portraits/rook.webp?v=2"); // T_Sniffs' preset portrait
     expect(html).toContain("#7c3aed"); // violet_glow ring gradient painted into the border box
-    expect(html).toContain("/avatars/portraits/knight.png?v=2"); // NovaStrike falls back to the knight default
+    expect(html).toContain("/avatars/portraits/knight.webp?v=2"); // NovaStrike falls back to the knight default
   });
 
   it("frameless 'me' row keeps the amber ring (frame only wins when equipped)", () => {
@@ -43,7 +43,7 @@ describe("LeaderboardPreview", () => {
     const html = renderToStaticMarkup(<LeaderboardPreview rows={rows} fieldCount={1} />);
     // Version-agnostic: `?v=N` is a cache-buster that changes whenever the art is re-exported
     // (docs/architecture.md §13), so pinning the number makes this test fail on unrelated asset work.
-    expect(html).toMatch(/\/avatars\/portraits\/crescent\.png(\?v=\d+)?/);
+    expect(html).toMatch(/\/avatars\/portraits\/crescent\.webp(\?v=\d+)?/);
     expect(html).toContain("2px solid var(--amber)");
   });
 });

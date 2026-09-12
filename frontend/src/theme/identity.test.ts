@@ -37,16 +37,16 @@ describe("avatar presets", () => {
       // to carry a cache-buster or every browser that already fetched it keeps the old bytes
       // (docs/architecture.md §13). Forbidding the suffix here would forbid ever re-cutting a portrait.
       expect(p.portrait, `${p.id} portrait`).toMatch(
-        new RegExp(`^/avatars/portraits/${p.id}\\.png(\\?v=\\d+)?$`),
+        new RegExp(`^/avatars/portraits/${p.id}\\.webp(\\?v=\\d+)?$`),
       );
       // Only the original Blank-pair presets carry a line-art `img`; portrait-only presets omit it.
-      if (p.img) expect(p.img, `${p.id} img`).toMatch(new RegExp(`^/avatars/${p.id}\\.png(\\?v=\\d+)?$`));
+      if (p.img) expect(p.img, `${p.id} img`).toMatch(new RegExp(`^/avatars/${p.id}\\.webp(\\?v=\\d+)?$`));
     }
   });
 
   it("knight is the default preset and carries its portrait", () => {
     expect(DEFAULT_AVATAR_PRESET).toBe("knight");
-    expect(getPreset("knight").img).toBe("/avatars/knight.png?v=2");
+    expect(getPreset("knight").img).toBe("/avatars/knight.webp?v=2");
     expect(getPreset("knight").bg).toContain("radial-gradient");
   });
 

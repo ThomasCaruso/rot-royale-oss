@@ -54,15 +54,15 @@ describe("BrainBoostIntro — the front door has no signup wall", () => {
     // (docs/architecture.md §13), so pinning the number breaks this test on unrelated asset work.
     const hasArt = (path: string) =>
       srcs.some((s) => s != null && s.replace(/\?v=\d+$/, "") === path);
-    expect(hasArt("/assets/themes/starter/crown.png")).toBe(true);
+    expect(hasArt("/assets/themes/starter/crown.webp")).toBe(true);
 
     // The crown is now the ONLY bitmap in the hero. The marble podium and the painted lavender
     // backdrop plate were retired when this screen adopted the sign-in screen's treatment: the
     // crown stands in a vector halo and a CSS light field instead, so the front door and its login
     // step share one continuous ivory background. Asserted rather than assumed, because dropping
     // either asset back in would silently reintroduce two different worlds either side of one tap.
-    expect(hasArt("/assets/themes/starter/starter-podium.png")).toBe(false);
-    expect(hasArt("/assets/themes/starter/background_art_starter.png")).toBe(false);
+    expect(hasArt("/assets/themes/starter/starter-podium.webp")).toBe(false);
+    expect(hasArt("/assets/themes/starter/background_art_starter.webp")).toBe(false);
     expect(srcs.filter((s) => s != null)).toHaveLength(1);
 
     expect(container.querySelector('[aria-hidden="true"] img')).toBeTruthy();

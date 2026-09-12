@@ -3,17 +3,17 @@
 // scripts/prep_campaign_art.py: medallions background-stripped + tight-cropped, layers alpha-clean
 // + downscaled). Like the lobby art, these PNGs are NOT in the PWA precache glob — they load on
 // demand. All text (numbers, titles, stars, CTAs) is rendered in React/CSS, never baked into art.
-import nodeBoss from "./cosmic/clean/campaign_node_boss.png";
-import nodeCompleted from "./cosmic/clean/campaign_node_completed.png";
-import nodeCurrent from "./cosmic/clean/campaign_node_current.png";
-import nodeLocked from "./cosmic/clean/campaign_node_locked.png";
-import layerGalaxy from "./cosmic/clean/cosmic_layer_boss_galaxy.png";
-import layerMoon from "./cosmic/clean/cosmic_layer_moon_foreground.png";
-import layerNebula from "./cosmic/clean/cosmic_layer_nebula_midground.png";
-import worldIcon from "./cosmic/clean/world_icon_cosmic_labs.png";
+import nodeBoss from "./cosmic/clean/campaign_node_boss.webp";
+import nodeCompleted from "./cosmic/clean/campaign_node_completed.webp";
+import nodeCurrent from "./cosmic/clean/campaign_node_current.webp";
+import nodeLocked from "./cosmic/clean/campaign_node_locked.webp";
+import layerGalaxy from "./cosmic/clean/cosmic_layer_boss_galaxy.webp";
+import layerMoon from "./cosmic/clean/cosmic_layer_moon_foreground.webp";
+import layerNebula from "./cosmic/clean/cosmic_layer_nebula_midground.webp";
+import worldIcon from "./cosmic/clean/world_icon_cosmic_labs.webp";
 // The chapter-cache chest reuses the existing Vault treasure-chest art (a bespoke
 // reward_chest_cosmic asset wasn't generated; this keeps the reward language consistent app-wide).
-import chest from "../lobby/clean/chest-vault.png";
+import chest from "../lobby/clean/chest-vault.webp";
 
 export const cosmicArt = {
   nodeCompleted,
