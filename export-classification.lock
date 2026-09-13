@@ -46,6 +46,7 @@ public	backend/alembic/versions/5c402b74891e_social_friendships_live_friend_duel
 public	backend/alembic/versions/5f5382299f7e_m2_contest_windows_entries_round_.py
 public	backend/alembic/versions/7c1e4a92d6b3_profile_timezone.py
 public	backend/alembic/versions/852a40df68c4_m2_fix_entries_seed_to_biginteger.py
+public	backend/alembic/versions/8d45f69b8bbe_oauth_transaction_client_platform.py
 public	backend/alembic/versions/9e2d5b81f4c7_push_provisional.py
 public	backend/alembic/versions/a0b1c2d3e4f5_estimate_item_source_flags_verdict.py
 public	backend/alembic/versions/a1b2c3d4e5f6_change_assets_behind_content_root.py
@@ -374,6 +375,7 @@ public	backend/tests/test_funnel_analytics.py
 public	backend/tests/test_gem_ledger.py
 public	backend/tests/test_glicko2.py
 public	backend/tests/test_goodwill.py
+public	backend/tests/test_google_native_return.py
 public	backend/tests/test_google_oauth.py
 public	backend/tests/test_growth.py
 public	backend/tests/test_guest_auth.py
@@ -808,6 +810,8 @@ public	frontend/src/lib/downloadBrowser.test.ts
 public	frontend/src/lib/downloadBrowser.ts
 public	frontend/src/lib/firstRun.test.ts
 public	frontend/src/lib/firstRun.ts
+public	frontend/src/lib/googleNative.test.ts
+public	frontend/src/lib/googleNative.ts
 public	frontend/src/lib/googleReturn.test.ts
 public	frontend/src/lib/googleReturn.ts
 public	frontend/src/lib/haptics.ts

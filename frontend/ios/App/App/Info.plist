@@ -42,6 +42,22 @@
 	<true/>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
+    <!-- The custom URL scheme the native Google sign-in returns to. The server redirects to
+         "live.rotroyale.app://auth#handoff=<code>" and iOS delivers it as appUrlOpen
+         (src/lib/googleNative.ts). It matches the bundle id, which Apple guarantees is unique to
+         this app, so no other app can claim the redirect. Google itself never sees this scheme —
+         its registered redirect_uri is still the SERVER's callback, unchanged. -->
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>live.rotroyale.app</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>live.rotroyale.app</string>
+            </array>
+        </dict>
+    </array>
 </dict>
 </plist>
 

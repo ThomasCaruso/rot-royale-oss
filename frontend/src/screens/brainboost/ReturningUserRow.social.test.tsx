@@ -115,12 +115,45 @@ describe("returning-user row: social sign-in", () => {
     expect(assign).not.toHaveBeenCalled();
   });
 
-  it("hides Google on native, where the redirect has nowhere to return to", async () => {
+  it("SHOWS Google on native now that the deep-link flow exists", async () => {
+    // This test used to assert the opposite, and the inversion is the change. Google was hidden on
+    // native because the web redirect had no origin to return to — honest at the time, but it left
+    // iOS with no Google sign-in at all. The native path opens SFSafariViewController and comes
+    // back through a custom URL scheme (lib/googleNative.ts), so the tile now has a working flow
+    // behind it on both platforms.
     isNative.mockReturnValue(true);
     socialProviders.mockResolvedValue({ providers: ["google"] });
     renderRow();
+    expect(await screen.findByRole("button", { name: /google/i })).toBeTruthy();
+  });
+
+  it("SHOWS Apple on native even though the origin can never match the web Return URL", async () => {
+    // The origin gate is about the WEB flow: Apple matches the Return URL exactly against the
+    // Service ID. Native sign-in is ASAuthorization — no Service ID, no Return URL, no origin — so
+    // applying that gate compared `capacitor://localhost` to the registered web origin, which can
+    // never match, and Apple vanished from every build of the app.
+    isNative.mockReturnValue(true);
+    socialProviders.mockResolvedValue({
+      providers: ["apple"],
+      apple_client_id: "live.rotroyale.web",
+      apple_redirect_uri: "https://rotroyale.live",
+    });
+    renderRow();
+    expect(await screen.findByRole("button", { name: /apple/i })).toBeTruthy();
+  });
+
+  it("still hides Apple on a WEB origin the Return URL does not name", async () => {
+    // The gate must keep doing its original job: this app is also reachable on *.onrender.com,
+    // where a sign-in would open the popup and die on a generic `invalid_request`.
+    isNative.mockReturnValue(false);
+    socialProviders.mockResolvedValue({
+      providers: ["apple"],
+      apple_client_id: "live.rotroyale.web",
+      apple_redirect_uri: "https://rotroyale.live",
+    });
+    renderRow();
     expect(await screen.findByRole("button", { name: /email/i })).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /google/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /apple/i })).toBeNull();
   });
 
   it("reports a failed redirect that came back in the URL", async () => {

@@ -25,6 +25,7 @@ from app.models import User
 from app.models.identity import PROVIDER_APPLE, SOCIAL_PROVIDERS
 from app.schemas.auth import (
     GoogleHandoffRequest,
+    GoogleStartRequest,
     GoogleStartResponse,
     LoginRequest,
     RefreshRequest,
@@ -36,10 +37,12 @@ from app.schemas.auth import (
 )
 from app.services.auth import InvalidCredentialsError, authenticate_user, issue_tokens
 from app.services.google_oauth import (
+    PLATFORM_WEB,
     GoogleOAuthError,
     complete_callback,
     google_configured,
     redeem_handoff,
+    return_url,
     start_transaction,
 )
 from app.services.registration import (
@@ -260,6 +263,7 @@ async def social_sign_in(
 @router.post("/google/start", response_model=GoogleStartResponse)
 async def google_start(
     request: Request,
+    body: GoogleStartRequest | None = None,
     user: User | None = Depends(get_optional_user),
     session: AsyncSession = Depends(get_session),
 ) -> GoogleStartResponse:
@@ -280,7 +284,11 @@ async def google_start(
         raise ApiErrorCode("social_provider_unsupported")
 
     try:
-        _txn, authorize_url = await start_transaction(session, guest=user)
+        # The body is OPTIONAL: every client shipped before native sign-in posts none, and must keep
+        # working untouched (§7c). Absent body -> absent platform -> normalised to "web".
+        _txn, authorize_url = await start_transaction(
+            session, guest=user, client_platform=body.platform if body else None
+        )
     except GoogleOAuthError as exc:
         raise ApiErrorCode("social_provider_unsupported") from exc
     return GoogleStartResponse(authorize_url=authorize_url)
@@ -306,11 +314,16 @@ async def google_callback(
     access, refresh or ID token is ever exposed to browser history, a referrer header or a proxy
     log.
     """
-    spa = settings.web_base_url.rstrip("/")
+    # WHERE to return is a property of the TRANSACTION, not of this request: Google sends the
+    # browser back with nothing that distinguishes the app from the website. Until the state
+    # resolves we cannot know which this was, so the failures below that happen BEFORE that point
+    # can only go to the web. That is the right fallback regardless — they carry no session to lose.
 
     # The player pressed Cancel, or Google refused. Not an error worth alarming anyone about.
     if error or not code or not state:
-        return RedirectResponse(url=f"{spa}/#auth_error=google", status_code=status.HTTP_302_FOUND)
+        return RedirectResponse(
+            url=return_url(PLATFORM_WEB, "auth_error=google"), status_code=status.HTTP_302_FOUND
+        )
 
     try:
         txn, _result = await complete_callback(session, code=code, state=state)
@@ -323,11 +336,21 @@ async def google_callback(
         await session.commit()
         # The error itself is deliberately swallowed: `GoogleOAuthError` never carries provider
         # detail, and even its own message stays out of the redirect.
-        return RedirectResponse(url=f"{spa}/#auth_error=google", status_code=status.HTTP_302_FOUND)
+        #
+        # Still the web target: `complete_callback` raised, so there is no transaction in hand to
+        # read a platform off. A native player lands on the website showing the same opaque error
+        # they would have seen in the app — not ideal, but this path only runs when the sign-in
+        # already failed, and guessing a destination is worse than a known-safe one.
+        return RedirectResponse(
+            url=return_url(PLATFORM_WEB, "auth_error=google"), status_code=status.HTTP_302_FOUND
+        )
 
     await session.commit()
+    # The SUCCESS path is the one that must honour the platform: this fragment carries the handoff
+    # code, and sending it to the website would strand a native player one step from a session.
     return RedirectResponse(
-        url=f"{spa}/#handoff={txn.handoff_code}", status_code=status.HTTP_302_FOUND
+        url=return_url(txn.client_platform, f"handoff={txn.handoff_code}"),
+        status_code=status.HTTP_302_FOUND,
     )
 
 

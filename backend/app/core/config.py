@@ -147,6 +147,19 @@ class Settings(BaseSettings):
     # value embedded in OG tags, so it MUST be the externally reachable API origin in prod. NOTE:
     # web_base_url's origin must also be in CORS_ORIGINS in prod (this doesn't relax CORS).
     web_base_url: str = Field(default="http://localhost:5173")
+
+    # Where a NATIVE Google sign-in is returned to. The app registers this custom URL scheme in its
+    # Info.plist; the callback redirects to "<scheme>://auth#handoff=..." and the app picks it up
+    # through Capacitor's appUrlOpen listener.
+    #
+    # It is CONFIGURATION, never a request parameter, and that is the whole security of the native
+    # flow. The handoff code in that fragment is a one-time credential for a real session, so a
+    # client-supplied return target would be an open redirect that hands sessions to whoever asks.
+    # The request may only choose between named platforms; the URLs live here.
+    #
+    # Defaults to the iOS bundle id, which is what capacitor.config.ts registers and what Apple
+    # guarantees is unique to this app.
+    native_auth_scheme: str = Field(default="live.rotroyale.app")
     challenge_base_url: str = Field(default=CHALLENGE_BASE_URL_DEFAULT)
 
     # Render sets this to the service's own external URL on every web service. It is the fallback

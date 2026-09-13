@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { api } from "@/api/client";
-import { socialSignIn } from "@/api/session";
-import { AppleSignInCancelled, signInWithApple } from "@/lib/appleIdentity";
+import { completeGoogleHandoff, socialSignIn } from "@/api/session";
+import { GoogleSignInCancelled, signInWithGoogleNative } from "@/lib/googleNative";
+import { AppleSignInCancelled, signInWithApple, signInWithAppleNative } from "@/lib/appleIdentity";
 import { errorMessage } from "@/i18n/errors";
 import { useSessionStore } from "@/store/session";
 import type { Dict } from "@/i18n/en";
@@ -68,23 +69,36 @@ useEffect(() => {
   };
 }, []);
 
-// Apple matches the Return URL EXACTLY against the Service ID registration. This app is also
-// reachable on the platform's default *.onrender.com hostname, where a sign-in would open the
+// ON THE WEB, Apple matches the Return URL EXACTLY against the Service ID registration. This app is
+// also reachable on the platform's default *.onrender.com hostname, where a sign-in would open the
 // popup and die on a generic `invalid_request`. Showing the button only on the registered origin
 // means it never appears somewhere it cannot work.
+//
+// NATIVE IS EXEMPT FROM THAT GATE, and the exemption is the whole point of it being a gate
+// about the WEB flow rather than about Apple. On iOS the sign-in is ASAuthorization: no Service ID,
+// no Return URL, no origin — the OS authorizes against the bundle id in the entitlement. Applying
+// the web gate there compared `capacitor://localhost` to the registered web origin, which can never
+// match, so Apple silently vanished from every build of the app. The button was correct and the
+// question asked of it was the wrong one.
+const isNative = Capacitor.isNativePlatform();
 const appleUsable =
+  isNative ||
   !appleRedirectUri ||
   (typeof window !== "undefined" && window.location.origin === appleRedirectUri);
 
-const showApple = providers.includes("apple") && Boolean(appleClientId) && appleUsable;
+// `appleClientId` is likewise a WEB requirement (it is the Service ID the JS SDK initialises with).
+// Native needs no client id, so requiring one would reintroduce the same bug by a different route.
+const showApple = providers.includes("apple") && (isNative || Boolean(appleClientId)) && appleUsable;
 
-// Google's flow is a full-page redirect out to accounts.google.com and back to a web origin. The
-// Capacitor build has no such origin — it loads from disk, so there is nowhere for Google to return
-// to — and Google refuses OAuth inside an embedded webview regardless. The tile therefore hides
-// itself on native rather than sitting there doing nothing when tapped, which is precisely what it
-// used to do: Apple's tile self-hid via its origin gate, Google had no equivalent, so Google alone
-// looked broken. Native Google needs a deep-link flow and is its own piece of work.
-const showGoogle = providers.includes("google") && !Capacitor.isNativePlatform();
+// Google now works on BOTH, by two different routes. On the web it is a full-page redirect back to
+// this origin. On native there is no origin to return to — Capacitor loads from disk — and Google
+// refuses OAuth inside an embedded webview, so the app opens SFSafariViewController and the server
+// redirects to a custom URL scheme that comes back as a deep link (lib/googleNative.ts).
+//
+// This used to read `&& !Capacitor.isNativePlatform()`, which hid the tile because the flow behind
+// it could not work. That was the honest thing to render at the time — a tile that does nothing
+// when tapped is worse than no tile — but it meant iOS had no Google sign-in at all.
+const showGoogle = providers.includes("google");
 
 /**
  * Google leaves the page. The tile is an ordinary button that asks the server where to go.
@@ -107,10 +121,24 @@ async function onGoogle() {
   setNotice(null);
   setSocialBusy("google");
   try {
-    const { authorize_url } = await api.googleStart();
+    if (isNative) {
+      // The native flow RESOLVES here rather than navigating away, so unlike the web path there is
+      // a session to establish and a busy state to clear. The handoff exchange is the same one
+      // App.tsx runs when the website comes back from a redirect — one code, one endpoint, one
+      // completion — so a change to what a finished sign-in means cannot land on only one platform.
+      const code = await signInWithGoogleNative();
+      const res = await completeGoogleHandoff(code);
+      if (res?.passwordRetired) setNotice(t.auth.passwordRetired);
+      return;
+    }
+    const { authorize_url } = await api.googleStart("web");
     window.location.assign(authorize_url);
   } catch (err) {
-    setError(errorMessage(err, t, t.auth.somethingWentWrong));
+    setError(
+      err instanceof GoogleSignInCancelled
+        ? t.auth.socialCancelled
+        : errorMessage(err, t, t.auth.somethingWentWrong)
+    );
     setSocialBusy(null);
   }
 }
@@ -121,10 +149,9 @@ async function onApple(clientId: string, redirectURI: string | null) {
   setNotice(null);
   setSocialBusy("apple");
   try {
-    const { idToken, nonce } = await signInWithApple({
-      clientId,
-      redirectURI: redirectURI ?? undefined,
-    });
+    const { idToken, nonce } = isNative
+      ? await signInWithAppleNative()
+      : await signInWithApple({ clientId, redirectURI: redirectURI ?? undefined });
     const res = await socialSignIn("apple", idToken, nonce);
     if (res.passwordRetired) setNotice(t.auth.passwordRetired);
   } catch (err) {

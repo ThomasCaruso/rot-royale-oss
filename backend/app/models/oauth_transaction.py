@@ -53,6 +53,21 @@ class OAuthTransaction(Base):
     # Stored rather than derived so the check compares against what we actually sent.
     nonce: Mapped[str] = mapped_column(String(128), nullable=False)
 
+    # WHERE THE CALLBACK MUST SEND THE BROWSER when this finishes: back into the SPA ("web"), or out
+    # to the app's custom URL scheme ("native"). Recorded at /start, because by the time Google
+    # redirects us there is nothing in the request that could tell the two apart.
+    #
+    # It is a PLATFORM NAME, never a URL, and that distinction is the security of it. The actual
+    # destination is built server-side from configuration; accepting a redirect target from the
+    # client would be an open redirect that hands the handoff code — a one-time credential for a
+    # real session — to whoever asked for it.
+    #
+    # server_default "web" so every row that predates this column keeps the only behaviour it ever
+    # had, and an older client that sends no platform is treated as the web it is.
+    client_platform: Mapped[str] = mapped_column(
+        String(16), nullable=False, server_default="web", default="web"
+    )
+
     # The guest whose progress this sign-in must adopt, resolved from a validated token at /start.
     # SET NULL rather than CASCADE: losing the guest row should not delete the audit of the attempt.
     guest_user_id: Mapped[uuid.UUID | None] = mapped_column(

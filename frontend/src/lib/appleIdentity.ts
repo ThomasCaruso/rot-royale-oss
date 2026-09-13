@@ -159,3 +159,51 @@ export async function signInWithApple(options: {
     throw err instanceof Error ? err : new Error(String(err));
   }
 }
+
+/**
+ * The NATIVE Sign in with Apple flow (iOS), using ASAuthorization through the Capacitor plugin.
+ *
+ * WHY A SECOND FUNCTION RATHER THAN A BRANCH INSIDE THE WEB ONE. They share the nonce contract and
+ * nothing else. The web flow loads Apple's JS SDK, needs a Service ID and a Return URL registered
+ * against it, and opens a popup; the native flow loads no script, takes no redirect URI, and is
+ * presented by the OS. Folding them together would mean a function whose two halves share one line.
+ *
+ * THE AUDIENCE IS DIFFERENT, AND THIS IS THE PART THAT BITES. A token minted natively carries the
+ * app's BUNDLE ID (live.rotroyale.app) as its audience, not the Service ID (live.rotroyale.web) the
+ * website uses. Both are valid audiences for the same product, which is exactly why the server keeps
+ * `APPLE_CLIENT_IDS` as a LIST — but the bundle id has to actually BE in that list or every native
+ * sign-in fails verification with a correct-looking token.
+ *
+ * The nonce convention is IDENTICAL to the web flow deliberately: hand Apple the hash, report the
+ * hash, because the server compares the token's `nonce` claim against whatever the client says it
+ * sent. Two different conventions for one endpoint would be a bug waiting to happen.
+ */
+export async function signInWithAppleNative(): Promise<{ idToken: string; nonce: string }> {
+  const { SignInWithApple } = await import("@capacitor-community/apple-sign-in");
+
+  const hashed = await sha256Hex(randomNonce());
+  try {
+    const res = await SignInWithApple.authorize({
+      // Both are required by the plugin's type and IGNORED by iOS, which authorizes against the
+      // bundle id from the entitlement. They matter only to the plugin's Android/web fallbacks,
+      // which this app does not use.
+      clientId: "",
+      redirectURI: "",
+      scopes: "email name",
+      nonce: hashed,
+    });
+    const idToken = res?.response?.identityToken;
+    if (!idToken) throw new AppleSignInCancelled();
+    return { idToken, nonce: hashed };
+  } catch (err) {
+    // ASAuthorizationError.canceled is 1001. The plugin surfaces it as a message rather than a
+    // typed code, so both are checked — a cancelled sheet is a normal outcome, never an error.
+    const text = String(
+      (err as { code?: string | number })?.code ?? (err as { message?: string })?.message ?? err ?? ""
+    ).toLowerCase();
+    if (text.includes("1001") || text.includes("cancel") || text.includes("abort")) {
+      throw new AppleSignInCancelled();
+    }
+    throw err instanceof Error ? err : new Error(String(err));
+  }
+}

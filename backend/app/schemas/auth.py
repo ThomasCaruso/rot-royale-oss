@@ -70,6 +70,21 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
 
 
+class GoogleStartRequest(BaseModel):
+    """Which client is starting the sign-in, so the callback knows where to return it.
+
+    A PLATFORM NAME, never a URL. The destination is built from server configuration; accepting a
+    return target here would be an open redirect handing out one-time session credentials.
+
+    Optional with a "web" default because the body itself is optional: every shipped client predates
+    this field and sends none (§7c — widen inputs, never narrow them). An unrecognised value is
+    normalised to "web" server-side rather than rejected, so a newer platform name reaching an older
+    server degrades to the web flow instead of failing the sign-in.
+    """
+
+    platform: str | None = Field(default=None, max_length=16)
+
+
 class GoogleStartResponse(BaseModel):
     """Where to send the browser to begin Sign in with Google.
 

@@ -58,6 +58,36 @@ TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token"
 # extra scope is another consent line the player has to read and another thing to justify.
 SCOPES = "openid email profile"
 
+# The platforms a sign-in may be returned to. A request names one of THESE; it never supplies a
+# URL. Anything unrecognised — an old client, a typo, someone probing — falls back to the web,
+# which is the only behaviour that existed before native sign-in and is always safe.
+PLATFORM_WEB = "web"
+PLATFORM_NATIVE = "native"
+_PLATFORMS = (PLATFORM_WEB, PLATFORM_NATIVE)
+
+
+def normalize_platform(value: str | None) -> str:
+    """The stored platform for a requested one. Unknown input becomes "web", never an error."""
+    candidate = (value or "").strip().lower()
+    return candidate if candidate in _PLATFORMS else PLATFORM_WEB
+
+
+def return_url(client_platform: str, fragment: str) -> str:
+    """Where the callback sends the browser, for a transaction started on `client_platform`.
+
+    `fragment` is the part after "#" and carries either a one-time handoff code or an opaque error.
+    It goes in the FRAGMENT for both platforms and for the same reason: fragments are not sent to
+    servers, so the code never reaches a proxy log, a referrer header or an access log.
+
+    Built entirely from configuration. Nothing the client sent reaches this string.
+    """
+    if normalize_platform(client_platform) == PLATFORM_NATIVE:
+        # A custom scheme has no host to speak of; "://auth" gives the app a stable path to match
+        # on, so a future second deep link cannot be confused for a sign-in return.
+        return f"{settings.native_auth_scheme}://auth#{fragment}"
+    return f"{settings.web_base_url.rstrip(chr(47))}/#{fragment}"
+
+
 # 256 bits of urandom, hex. Both values are guessing targets, so they are sized to make guessing
 # irrelevant rather than merely unlikely.
 _TOKEN_BYTES = 32
@@ -94,6 +124,7 @@ async def start_transaction(
     session: AsyncSession,
     *,
     guest: User | None,
+    client_platform: str | None = None,
 ) -> tuple[OAuthTransaction, str]:
     """Open a transaction and build the URL to send the browser to.
 
@@ -110,6 +141,7 @@ async def start_transaction(
         state=_random_token(),
         nonce=_random_token(),
         guest_user_id=guest.id if guest is not None else None,
+        client_platform=normalize_platform(client_platform),
         expires_at=_now() + timedelta(seconds=GOOGLE_OAUTH_STATE_TTL_SECONDS),
     )
     session.add(txn)

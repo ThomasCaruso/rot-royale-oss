@@ -946,8 +946,17 @@ export const api = {
    * HERE — the server reads it from this request's token and binds it to the transaction. Without
    * it a guest who signs in would land on a brand-new account and lose their streak, coins and
    * rating. The user id is never sent in the body; the server resolves it from the token itself. */
-  googleStart: () =>
-    authedRequest<{ authorize_url: string }>("/auth/google/start", { method: "POST" }),
+  /**
+   * `platform` tells the server where to return the browser when the sign-in finishes: into the
+   * SPA, or out to the app's custom URL scheme. It is a NAME, not a URL — the destination is built
+   * from server configuration, because the fragment it lands in carries a one-time credential for a
+   * real session and a client-chosen target would be an open redirect.
+   */
+  googleStart: (platform?: "web" | "native") =>
+    authedRequest<{ authorize_url: string }>("/auth/google/start", {
+      method: "POST",
+      body: JSON.stringify({ platform: platform ?? "web" }),
+    }),
 
   /** Trade the one-time code from the URL fragment for a real session. Single-use, ~60s life. */
   googleHandoff: (handoffCode: string) =>

@@ -3,8 +3,10 @@
 	"appName": "Rot Royale",
 	"webDir": "dist",
 	"packageClassList": [
+		"SignInWithApple",
 		"InAppReviewPlugin",
 		"AppPlugin",
+		"CAPBrowserPlugin",
 		"HapticsPlugin",
 		"CAPNetworkPlugin",
 		"PreferencesPlugin",
