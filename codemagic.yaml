@@ -46,12 +46,15 @@ workflows:
           # '<name>' were found", which names the available options and is the quickest way to see
           # what the store actually holds.
           #
-          # Renamed from `rot_royale_push_profile_20260716`: that profile was invalidated the moment
-          # Sign in with Apple was added to the App ID (any entitlement change invalidates every
-          # existing profile), and the re-issued upload came in under this name. The old name had
-          # also stopped being true — it says "push", and the profile now carries push AND Sign in
-          # with Apple.
-          - profile: Rot Royale Upload
+          # The name is historical and no longer describes the contents — it says "push", and the
+          # profile now carries push AND Sign in with Apple. It is left alone anyway: the string has
+          # to match the upload, and renaming it means editing two places that fail separately.
+          #
+          # Adding Sign in with Apple to the App ID INVALIDATED this profile (any entitlement change
+          # invalidates every existing profile for that App ID), which is what broke the archive.
+          # Fixing it took both halves: re-issue at Apple, then upload the new .mobileprovision here
+          # under this exact reference.
+          - profile: rot_royale_push_profile_20260716
             environment_variable: ROT_ROYALE_PROFILE_PATH
         certificates:
           - rotroyale_distribution
