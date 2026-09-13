@@ -37,7 +37,21 @@ workflows:
       cocoapods: default
       ios_signing:
         provisioning_profiles:
-          - profile: rot_royale_push_profile_20260716
+          # THIS IS A CODEMAGIC REFERENCE NAME, not the profile's name in Apple's portal and not a
+          # filename. Codemagic signs from the file uploaded to Team settings -> Code signing
+          # identities and looks it up by this string; it does NOT fetch anything from App Store
+          # Connect at build time. So re-issuing a profile in Apple's portal fixes nothing here on
+          # its own — the new .mobileprovision has to be uploaded, and this name has to match the
+          # reference it was given. A mismatch fails with "No provisioning profile with reference
+          # '<name>' were found", which names the available options and is the quickest way to see
+          # what the store actually holds.
+          #
+          # Renamed from `rot_royale_push_profile_20260716`: that profile was invalidated the moment
+          # Sign in with Apple was added to the App ID (any entitlement change invalidates every
+          # existing profile), and the re-issued upload came in under this name. The old name had
+          # also stopped being true — it says "push", and the profile now carries push AND Sign in
+          # with Apple.
+          - profile: Rot Royale Upload
             environment_variable: ROT_ROYALE_PROFILE_PATH
         certificates:
           - rotroyale_distribution
