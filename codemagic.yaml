@@ -112,8 +112,37 @@ workflows:
           echo "Application identifier: $APP_IDENTIFIER"
           echo "Push environment: $PUSH_ENV"
 
-          if [ "$PROFILE_UUID" != "b4c19ed7-1ba3-429d-a5e6-edafaf1a3a8c" ]; then
-            echo "ERROR: Codemagic loaded the wrong provisioning profile."
+          # THE UUID IS PRINTED, NOT PINNED — and that is a deliberate change.
+          #
+          # This used to require one exact UUID. A profile gets a NEW UUID every time it is
+          # re-issued, and re-issuing is not exceptional: ANY entitlement change invalidates every
+          # profile for the App ID and forces one. So the guard failed on a correct, freshly-issued
+          # profile (right App ID, right push environment, right team) purely because the file was
+          # new — it pinned identity where what matters is CONTENTS.
+          #
+          # The checks below assert what actually has to be true. They would have caught the real
+          # failure this guard missed: a profile lacking the Sign in with Apple entitlement archives
+          # nowhere, and before this that surfaced as a bare "exit 65" from xcodebuild.
+
+          # Every entitlement the app declares in App.entitlements must be granted by the profile,
+          # or the archive fails at codesign with a message that does not name this step.
+          APPLE_SIGNIN=$(/usr/libexec/PlistBuddy -c \
+            "Print :Entitlements:com.apple.developer.applesignin" /tmp/rot-profile.plist 2>/dev/null || true)
+          if [ -z "$APPLE_SIGNIN" ]; then
+            echo "ERROR: Profile is missing the Sign in with Apple entitlement."
+            echo "  Enable 'Sign in with Apple' on App ID live.rotroyale.app, RE-ISSUE the profile,"
+            echo "  then upload the new .mobileprovision to Codemagic under the reference name in"
+            echo "  this file's ios_signing block. Re-issuing at Apple alone is not enough —"
+            echo "  Codemagic signs from its own stored copy."
+            exit 1
+          fi
+          echo "Sign in with Apple: granted"
+
+          # An expired profile is a confusing archive failure rather than an obvious one.
+          EXPIRES=$(/usr/libexec/PlistBuddy -c "Print :ExpirationDate" /tmp/rot-profile.plist)
+          echo "Expires: $EXPIRES"
+          if [ "$(date -u +%s)" -ge "$(date -u -j -f '%a %b %d %T %Z %Y' "$EXPIRES" +%s 2>/dev/null || echo 99999999999)" ]; then
+            echo "ERROR: Provisioning profile has expired ($EXPIRES)."
             exit 1
           fi
 
