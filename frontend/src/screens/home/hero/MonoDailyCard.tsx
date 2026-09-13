@@ -117,6 +117,9 @@ export function MonoDailyCard({ v }: { v: MonoDailyVisual }) {
 
   const cta = v.cta && (
     <button
+      // The day's headline action earns a firmer knock than a list row — declared, not fired by
+      // hand, so the one delegated listener stays the only thing deciding WHEN (lib/tapHaptics).
+      data-haptic="medium"
       type="button"
       className="rr-tap"
       onClick={v.cta.onClick}

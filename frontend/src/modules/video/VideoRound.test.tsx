@@ -14,7 +14,10 @@ const cogVideoAnswer = vi.fn();
 vi.mock("@/api/client", () => ({
   api: { cogVideoAnswer: (...a: unknown[]) => cogVideoAnswer(...a) },
 }));
-vi.mock("@/lib/haptics", () => ({ feedback: vi.fn() }));
+// `setHapticsEnabled` is called at MODULE LOAD by lib/sfx (one switch governs sound + touch),
+// and sfx is now imported by the in-run components — so a partial mock of this module throws
+// during import rather than failing an assertion.
+vi.mock("@/lib/haptics", () => ({ feedback: vi.fn(), setHapticsEnabled: vi.fn() }));
 
 import { VideoRound } from "./VideoRound";
 

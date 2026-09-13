@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/api/client";
 import { useT } from "@/i18n/useT";
-import { haptic } from "@/lib/sfx";
+import { feedback } from "@/lib/haptics";
+import * as sfx from "@/lib/sfx";
 import { Display } from "@/ui/Display";
 import { GlassCard } from "@/ui/GlassCard";
 import { PromptText } from "@/ui/PromptText";
@@ -15,10 +16,16 @@ import { useReducedMotion } from "@/ui/useReducedMotion";
  * coordinates to the cognition submit endpoint (bbox + tolerance are server-only), then onComplete
  * finalizes the Royale round via the /answer bridge.
  *
- * Presentation follows the shared round language (RoundHeader + GlassCard). The round's
- * `time_limit_ms` auto-submits a miss when it expires; that countdown used to run INVISIBLY, so a
- * player could be timed out with no warning. It is now the same gold ring every other timed round
- * uses — a fairness fix, not just a coat of paint.
+ * Presentation follows the shared round language (RoundHeader + GlassCard), with ONE deliberate
+ * inversion: this is the only round with two deadlines, so the ring counts the FRAME and the bar
+ * under the card's label counts the ROUND.
+ *
+ * The round's `time_limit_ms` auto-submits a miss when it expires, and that countdown once ran
+ * INVISIBLY — a player could be timed out with no warning. It has to stay visible, but it is not
+ * what anyone is playing to second-to-second: a ring falling 30 -> 0 while the pictures swap every
+ * 5-7s reads as pressure without meaning, because nothing says which clock it is. So the number is
+ * "how long can I still look at THIS image" (and it visibly resets at each swap, which makes the
+ * cycle legible), and the hard deadline is the steadily-falling bar.
  *
  * (Image URLs are stubs until real asset pairs land — the flicker + tap flow works regardless.)
  */
@@ -57,8 +64,9 @@ export const ChangeRound: React.FC<{
   const [left, setLeft] = useState(spec.time_limit_ms);
   const [mark, setMark] = useState<{ x: number; y: number } | null>(null);
   const [ready, setReady] = useState(false);
-  // How long the frame CURRENTLY on screen has left. The gold ring counts the whole round; this is
-  // the one the player is actually working to — "how long can I still study this image".
+  // How long the frame CURRENTLY on screen has left — "how long can I still study this image".
+  // This is what the gold ring shows, because it is what the player is actually working to; the
+  // round's own limit is the bar under the card label. (`left`, above, is that round limit.)
   const [phaseLeft, setPhaseLeft] = useState(0);
   const phaseEndsAt = useRef(0);
   // Set the instant a tap lands: freezes the flicker so the scene holds still under the finger.
@@ -196,7 +204,11 @@ export const ChangeRound: React.FC<{
     // Hold the scene still and confirm the hit physically. Strobing on under a committed tap is
     // what made this feel glitchy — the answer is locked, so the picture should stop arguing.
     setLocked(true);
-    haptic(12);
+    // `feedback("medium")`, not the legacy `haptic(12)`. 12ms mapped to `light` — a TAP — but this
+    // is the commit: the tap is claimed, the scene stops, and nothing can change the answer after
+    // it. §7b1 asks for intent over milliseconds precisely so this distinction survives.
+    feedback("medium");
+    sfx.commitLock();
     window.setTimeout(() => void submit(x, y), reduced ? 0 : 320);
   };
 
@@ -218,7 +230,28 @@ export const ChangeRound: React.FC<{
 
   return (
     <div>
-      <RoundHeader label={t.rounds.spotTheChange} remainingMs={left} totalMs={spec.time_limit_ms} />
+      {/* THE RING COUNTS THE FRAME, NOT THE ROUND — the roles are deliberately the opposite way
+          round from every other round type, because this is the only one with two deadlines.
+
+          Counting the round here was ambiguous in the way that matters: a ring falling 30 -> 0
+          while the pictures swap every 5-7s does not tell you WHAT it is counting, so it reads as
+          pressure without meaning. What the player is actually working to is "how long can I still
+          look at THIS image" — so that is the number, and it resets visibly at every swap, which
+          also makes the cycle legible.
+
+          The ROUND limit did not disappear; it moved to the bar under the card's label, where it
+          is ambient rather than a competing set of digits. It still has to be visible somewhere:
+          it auto-submits a miss, and §5d added a visible countdown precisely because that used to
+          happen with no warning at all.
+
+          `ring={false}` during a titled beat, per §7a2 — the beat IS the announcement, and a
+          countdown ticking against the words just races whatever the player is trying to read. */}
+      <RoundHeader
+        label={t.rounds.spotTheChange}
+        remainingMs={between ? 0 : phaseLeft}
+        totalMs={phaseTotal}
+        ring={!between}
+      />
       {/* `overflow: hidden` is what lets the picture below bleed to the card's edges without
           squaring off its rounded corners. */}
       <GlassCard style={{ overflow: "hidden" }}>
@@ -253,19 +286,21 @@ export const ChangeRound: React.FC<{
               }}
             >
               <span>{showAltered ? t.rounds.secondImage : t.rounds.firstImage}</span>
-              <span
-                className="display"
-                style={{
-                  fontSize: 15,
-                  letterSpacing: 0,
-                  color: between ? "var(--faint)" : "var(--text)",
-                  fontVariantNumeric: "tabular-nums",
-                }}
-              >
-                {Math.ceil(phaseLeft / 1000)}s
-              </span>
+              {/* NO SECOND NUMBER HERE. This round has two clocks because it genuinely has two
+                  deadlines — the header ring is the ROUND limit that auto-submits a miss (§5d added
+                  it precisely because that used to happen invisibly), and this one is the current
+                  frame. Both are real, but rendering both as COUNTING DIGITS put two numbers on
+                  screen ticking at different rates against each other, and the player has to work
+                  out which one can end their round.
+                  The bar below carries the same information ambiently: you see the image is about
+                  to swap without reading anything. One number, one bar — a hierarchy instead of a
+                  race. Same reasoning as §7a2 hiding this countdown during a titled beat. */}
             </div>
-            {/* Depletes across the frame's own duration, so 5s and 8s both read as one full bar. */}
+            {/* Depletes across the WHOLE ROUND, not the frame — the ring above owns the frame now.
+                This is the hard deadline that auto-submits a miss, kept visible (§5d) but as a bar
+                rather than digits, so it informs without competing with the number you are actually
+                playing to. It falls steadily while the ring resets at every swap, which is what
+                makes the two readable as different things at a glance. */}
             <div
               style={{
                 height: 4,
@@ -278,7 +313,7 @@ export const ChangeRound: React.FC<{
               <div
                 style={{
                   height: "100%",
-                  width: `${Math.max(0, Math.min(1, phaseLeft / phaseTotal)) * 100}%`,
+                  width: `${Math.max(0, Math.min(1, left / spec.time_limit_ms)) * 100}%`,
                   background: showAltered
                     ? "linear-gradient(90deg, var(--brand), var(--brand-2))"
                     : "var(--faint)",

@@ -1,4 +1,5 @@
 import { Capacitor } from "@capacitor/core";
+import { installTapHaptics } from "@/lib/tapHaptics";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode, Suspense, lazy } from "react";
 import { createRoot } from "react-dom/client";
@@ -77,6 +78,15 @@ createRoot(rootEl).render(
  * The native branch also UNREGISTERS anything a previously shipped binary installed, so the first
  * build carrying this code cleans up after its predecessors rather than inheriting the problem.
  */
+/**
+ * App-wide tap feedback. Installed ONCE, here, because it is a property of the application rather
+ * than of any screen — and because installing it per-screen is how it ends up installed twice.
+ *
+ * On the web this is a no-op on iOS (Safari has never implemented navigator.vibrate) and a light
+ * buzz on Android. Inside the app it reaches the Taptic Engine, which is the point (§7b1).
+ */
+installTapHaptics();
+
 if (Capacitor.isNativePlatform()) {
   void navigator.serviceWorker
     ?.getRegistrations?.()

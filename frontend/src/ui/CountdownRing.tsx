@@ -1,5 +1,7 @@
-import { useId } from "react";
+import { useEffect, useId, useRef } from "react";
 import { useArtStyle } from "@/theme/useArtStyle";
+import { feedback } from "@/lib/haptics";
+import * as sfx from "@/lib/sfx";
 
 /**
  * Circular gold countdown ring (DESIGN §4) — the primary timer, built like a watch face:
@@ -29,6 +31,29 @@ export function CountdownRing({
   const seconds = Math.ceil(remainingMs / 1000);
   // "urgent" is the last few seconds — drives a tighter pulse + the breathing red halo.
   const urgent = remainingMs <= 3000 && remainingMs > 0;
+
+  // TIME RUNNING OUT IS FELT, NOT JUST SEEN. The ring already went red and pulsed; on a phone
+  // held one-handed, in a timed round, that is the one signal most likely to be missed — the
+  // player is reading options, not watching a dial.
+  //
+  // It lives HERE rather than in any one round so every timed type inherits it: trivia, change
+  // detection and the video questions all render this ring.
+  //
+  // Per SECOND, not per frame: keyed on the integer second so a 100ms render loop cannot turn
+  // a countdown into a buzz. `warning` is the documented intent for "time running out", and it
+  // fires once as the band opens rather than on every tick inside it.
+  const tickedRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!urgent) {
+      tickedRef.current = null; // re-arm for the next round
+      return;
+    }
+    if (tickedRef.current === seconds) return;
+    const first = tickedRef.current === null;
+    tickedRef.current = seconds;
+    sfx.timerTick();
+    if (first) feedback("warning");
+  }, [urgent, seconds]);
   const stroke = 7;
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;

@@ -42,11 +42,20 @@ afterEach(() => {
 });
 
 describe("ChangeRound — chrome", () => {
-  it("shows the verb header and the countdown that governs the auto-miss", () => {
+  it("shows the verb header, and the auto-miss deadline as a BAR rather than a second number", () => {
     const html = renderToStaticMarkup(<ChangeRound spec={spec} onComplete={() => {}} />);
     expect(html).toContain("Spot the change");
-    // 8000ms → the ring reads "8"; previously this timer had NO on-screen representation.
-    expect(html).toContain(">8<");
+
+    // This assertion inverted, and the inversion is the point. The ring used to count the ROUND
+    // (8000ms → ">8<"). That is the deadline that auto-submits a miss, so it must stay visible —
+    // but it is NOT what the player works to second-to-second, and a ring falling 8 → 0 while the
+    // pictures swap every few seconds reads as pressure without saying which clock it is.
+    //
+    // The ring now counts the FRAME (and is hidden entirely during a titled beat, §7a2), while the
+    // round deadline is the depleting bar under the label. So: no round number in the header, and
+    // a bar that starts full.
+    expect(html).not.toContain(">8<");
+    expect(html).toContain("width:100%"); // the round bar, full at the start
   });
 
   it("uses the shared themed surfaces, not the old hardcoded debug card", () => {

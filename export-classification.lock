@@ -838,8 +838,11 @@ public	frontend/src/lib/rounds.test.ts
 public	frontend/src/lib/rounds.ts
 public	frontend/src/lib/seenResults.test.ts
 public	frontend/src/lib/seenResults.ts
+public	frontend/src/lib/sfx.inrun.test.ts
 public	frontend/src/lib/sfx.test.ts
 public	frontend/src/lib/sfx.ts
+public	frontend/src/lib/tapHaptics.test.ts
+public	frontend/src/lib/tapHaptics.ts
 public	frontend/src/lib/time.test.ts
 public	frontend/src/lib/time.ts
 public	frontend/src/lib/titleCase.ts

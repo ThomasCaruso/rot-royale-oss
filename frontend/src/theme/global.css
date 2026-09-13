@@ -294,6 +294,20 @@ body {
   60% { transform: scale(1.08); opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
 }
+/* The question card arriving, and an answer being committed. Both end on the RESTING state so the
+   global reduced-motion collapse (one 0.001ms iteration) lands on the finished look rather than
+   freezing them mid-move — the same reason the front door's idle loops are written 0%,100%. */
+@keyframes rr-q-in {
+  0% { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: none; }
+}
+/* A commit is a thing being SET: it presses IN and returns. Never a bounce — a bounce reads as a
+   reward, and the reward has not been decided yet at this point in the round. */
+@keyframes rr-commit {
+  0% { transform: scale(1); }
+  40% { transform: scale(0.965); }
+  100% { transform: scale(1); }
+}
 @keyframes rr-shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -370,6 +384,8 @@ body {
   .rr-tap-halo { opacity: 0; }
 }
 
+.rr-q-in { animation: rr-q-in 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.1) both; }
+.rr-commit { animation: rr-commit 0.16s ease-out; }
 .rr-pop { animation: rr-pop 0.4s ease; }
 .rr-shake { animation: rr-shake 0.45s ease; }
 .rr-tile-flash { animation: rr-tile-flash 0.32s ease; }

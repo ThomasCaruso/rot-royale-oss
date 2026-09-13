@@ -144,3 +144,69 @@ export function haptic(pattern: number | number[]): void {
   }
   feedback(peak <= 10 ? "selection" : peak <= 15 ? "light" : peak <= 25 ? "medium" : "heavy");
 }
+
+// --- IN-RUN cues -------------------------------------------------------------------------------
+//
+// Everything above this line fires on the RESULTS screen. The run itself — the ninety seconds that
+// are actually the game — had no sound at all and two haptics in total. These are the beats of the
+// loop: anticipate, commit, confirm, advance.
+//
+// The whole set is deliberately quiet (gain <= 0.09) and short (<= 0.26s). A timed round is played
+// in public, often one-handed, sometimes with someone else in the room; a cue that announces itself
+// gets the sound switched off, and then NONE of it works. Restraint is what keeps it on.
+
+/** A question arrives. A small lift, not a fanfare — this is anticipation, not reward. */
+export const questionIn = () =>
+  play([{ freq: 300, to: 520, start: 0, dur: 0.12, gain: 0.045, type: "sine" }]);
+
+/** An answer is committed. Short, dry, downward: the sound of a thing being SET, not celebrated. */
+export const commitLock = () =>
+  play([{ freq: 420, to: 300, start: 0, dur: 0.07, gain: 0.06, type: "triangle" }]);
+
+/**
+ * Correct. Two notes rising, transposed UP by `step` semitones so a streak audibly climbs.
+ *
+ * The escalation is free — the run already tracks consecutive-correct to gate confetti — and it is
+ * the one moment worth spending delight on: §5c says the job is evidence your brain still works,
+ * and a rising line is that evidence in a form you feel before you have read anything.
+ */
+export const correctChime = (step = 0) => {
+  const k = Math.pow(2, Math.max(0, step) / 12);
+  play([
+    { freq: 660 * k, start: 0, dur: 0.075, gain: 0.07, type: "sine" },
+    { freq: 880 * k, start: 0.065, dur: 0.13, gain: 0.07, type: "sine" },
+  ]);
+};
+
+/**
+ * Wrong. ONE warm low note, and deliberately not a buzzer.
+ *
+ * This player is already worried their attention span is cooked (§5c) — that is the whole premise
+ * of the product. A harsh or comedic failure sound confirms the fear it exists to relieve, and it
+ * is the single easiest way to make someone close the app. It should read as "noted", not "wrong".
+ */
+export const wrongThud = () =>
+  play([{ freq: 240, to: 180, start: 0, dur: 0.16, gain: 0.055, type: "sine" }]);
+
+/** The last seconds. Barely there on purpose — pressure, not panic. */
+export const timerTick = () =>
+  play([{ freq: 1500, start: 0, dur: 0.022, gain: 0.03, type: "triangle" }]);
+
+/**
+ * One memory-flash tile, pitched by its index.
+ *
+ * A pentatonic set, chosen so ANY order of tiles is consonant — a Simon sequence is random, so a
+ * scale with semitones would produce genuinely sour pairs about a third of the time, and a round
+ * that sounds wrong when you are playing it right is worse than silence.
+ */
+const TILE_NOTES = [523, 587, 659, 784, 880, 1047, 1175, 1319, 1568]; // C D E G A C D E G
+export const tilePing = (index: number) =>
+  play([
+    {
+      freq: TILE_NOTES[((index % TILE_NOTES.length) + TILE_NOTES.length) % TILE_NOTES.length],
+      start: 0,
+      dur: 0.11,
+      gain: 0.05,
+      type: "sine",
+    },
+  ]);

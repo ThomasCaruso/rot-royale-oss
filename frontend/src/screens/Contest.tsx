@@ -4,6 +4,7 @@ import { type ChallengeCreateResponse, type EnterResponse } from "@/api/client";
 import { api } from "@/api/client";
 import { nextStreak, shouldCelebrate } from "@/lib/celebrate";
 import { feedback } from "@/lib/haptics";
+import * as sfx from "@/lib/sfx";
 import { initialPacing, pacingReducer, type RevealData } from "@/lib/pacing";
 import { roundFraming, type RoundBlockKey } from "@/lib/rounds";
 import { buildRotReport, type RoundLog } from "@/lib/rotReport";
@@ -28,6 +29,19 @@ import { errorMessage } from "@/i18n/errors";
 
 const SPLASH_MS = 1000;
 const REVEAL_MS = 3000;
+
+/**
+ * Round types that fire their OWN commit cue, so this screen must not fire a second one.
+ *
+ * It is §5d's interactive class by another name, and the reason is timing rather than taxonomy.
+ * An ATOMIC round commits at `onComplete` — the tap and the finish are the same instant, so the
+ * screen is the right place to sound it. An INTERACTIVE round commits earlier and elsewhere: change
+ * detection claims the tap and then waits ~320ms so the mark is visible, and estimate spends a
+ * guess twice before the one that ends the round. Sounding it here too plays the thunk twice for
+ * the same action — which is exactly what it did, and a doubled cue reads as a glitch rather than
+ * as feedback.
+ */
+const SELF_COMMITTING = new Set(["change_detection", "estimate", "video"]);
 
 const wrap: React.CSSProperties = {
   width: "100%",
@@ -140,6 +154,11 @@ function ContestPlay({
   // final question only). `celebrate` is the resolved per-reveal flag handed to RevealView.
   const streakRef = useRef(0);
   const [celebrate, setCelebrate] = useState(false);
+  // The streak AS OF this reveal, mirrored into state so the reveal can pitch its chime by it.
+  // Read from state rather than the ref because the ref is a render-time read of a mutable box;
+  // state is what actually guarantees the reveal re-renders with the value it is describing.
+  const [revealStreak, setRevealStreak] = useState(0);
+  const reduced = useReducedMotion();
 
   const answeredRef = useRef(false); // one answer-send per round
   // Ranked permanence gate: a GUEST finishing a ranked run sees the save-profile gate once —
@@ -170,6 +189,12 @@ function ContestPlay({
       const id = window.setTimeout(() => dispatch({ type: "SPLASH_DONE" }), SPLASH_MS);
       return () => window.clearTimeout(id);
     }
+    if (pacing.phase === "playing") {
+      // The question ARRIVING. Pairs with the card's rr-q-in entrance so the beat is seen and
+      // heard together; a lift, not a fanfare, because nothing has been earned yet.
+      sfx.questionIn();
+      return undefined;
+    }
     if (pacing.phase === "reveal") {
       const id = window.setTimeout(() => dispatch({ type: "REVEAL_DONE" }), REVEAL_MS);
       return () => window.clearTimeout(id);
@@ -196,6 +221,15 @@ function ContestPlay({
       const category =
         (entry.rounds[pacing.idx]?.client_spec as { category?: string } | undefined)?.category ??
         null;
+      // THE COMMIT BEAT. Distinct from the tap that selected the option (AnswerPill already fires a
+      // `selection` tick there) and from the outcome that follows: this is the moment the answer
+      // stops being changeable. Without it the run went straight from a feather-light tap to a
+      // verdict with nothing in between, so the most consequential action in the game was also its
+      // quietest. `medium` is the documented intent for "a commit: locked in, submitted".
+      if (!SELF_COMMITTING.has(entry.rounds[pacing.idx]?.type ?? "")) {
+        feedback("medium");
+        sfx.commitLock();
+      }
       dispatch({ type: "LOCKED" });
       api
         .answerRound(entry.entry_id, pacing.idx, result as Record<string, unknown>)
@@ -221,6 +255,7 @@ function ContestPlay({
           // (milestone streak, or the final question). Wrong answers reset the streak.
           const streak = nextStreak(streakRef.current, rev.correct);
           streakRef.current = streak;
+          setRevealStreak(streak);
           setCelebrate(
             shouldCelebrate({
               correct: rev.correct,
@@ -318,9 +353,14 @@ function ContestPlay({
         )}
 
         {(pacing.phase === "playing" || pacing.phase === "holding") && (
+          // Wrapped so the card ARRIVES rather than appearing. The module owns its own insides,
+          // so the entrance belongs out here — and it wraps rather than being passed down, which
+          // means every round type gets the same arrival for free, including the cognition ones.
+          // Keyed on the round index so each question animates in, not just the first.
           // The round module owns its own question card; we hand it the round eyebrow + (while
           // holding) the "locked in" note as in-card chrome. The countdown ring renders in a header
           // BAR above that card, so its glow halo is never clipped (PR: definitive timer-ring fix).
+          <div key={`q${pacing.idx}`} className={reduced ? undefined : "rr-q-in"}>
           <Component
             key={pacing.idx}
             spec={round.client_spec as never}
@@ -348,6 +388,7 @@ function ContestPlay({
               ) : undefined
             }
           />
+          </div>
         )}
 
         {pacing.phase === "reveal" && pacing.reveal && (
@@ -357,6 +398,7 @@ function ContestPlay({
             choice={choice}
             result={lastResult}
             celebrate={celebrate}
+            streak={revealStreak}
           />
         )}
       </div>
@@ -370,6 +412,7 @@ export function RevealView({
   choice,
   result = {},
   celebrate = false,
+  streak = 0,
 }: {
   round: EnterResponse["rounds"][number];
   reveal: RevealData;
@@ -379,6 +422,8 @@ export function RevealView({
   // Confetti is gated to streak milestones + the final question (the host decides); a plain correct
   // answer still gets the "Correct!" pop + points count-up below, just no confetti.
   celebrate?: boolean;
+  /** Consecutive-correct count AS OF this reveal — pitches the correct chime. */
+  streak?: number;
 }) {
   const t = useT();
   const spec = round.client_spec as { prompt?: string; options?: string[] };
@@ -390,9 +435,28 @@ export function RevealView({
   // The outcome deserves its own feel, distinct from the tap that caused it: iOS success/error
   // notification haptics, which are a pattern rather than a single knock. Keyed on the round index
   // so it fires ONCE per reveal, not on every re-render of this card.
+  const soundedRef = useRef<number | null>(null);
   useEffect(() => {
+    // EXACTLY ONCE PER REVEAL, enforced by a ref rather than by the dependency array.
+    //
+    // StrictMode double-invokes effects in development, so the chime played twice on every reveal —
+    // audible, and the kind of thing that ships because it only happens in the build nobody
+    // measures. The index guard also covers the general case: an effect may re-run for reasons that
+    // have nothing to do with the round changing, and a cue is not idempotent the way a render is.
+    if (soundedRef.current === reveal.idx) return;
+    soundedRef.current = reveal.idx;
     feedback(reveal.correct ? "success" : "error");
-  }, [reveal.idx, reveal.correct]);
+    if (reveal.correct) {
+      // The chime transposes UP with the streak, so a run that is going well audibly climbs. The
+      // steps are the existing celebration milestones (3/5/7) rather than a new ladder — one idea
+      // of "this is going well", expressed in two senses instead of one.
+      sfx.correctChime(streak >= 7 ? 3 : streak >= 5 ? 2 : streak >= 3 ? 1 : 0);
+    } else {
+      // Deliberately NOT a buzzer — see the cue's own note. This player already suspects their
+      // brain is cooked; a comedic failure sound confirms the fear the product exists to relieve.
+      sfx.wrongThud();
+    }
+  }, [reveal.idx, reveal.correct, streak]);
 
   return (
     <GlassCard style={{ display: "flex", flexDirection: "column", gap: 14 }}>

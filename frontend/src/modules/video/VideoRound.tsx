@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/api/client";
 import { useT } from "@/i18n/useT";
 import { feedback } from "@/lib/haptics";
+import * as sfx from "@/lib/sfx";
 import { AnswerPill, type PillState } from "@/ui/AnswerPill";
 import { GlassCard } from "@/ui/GlassCard";
 import { PromptText } from "@/ui/PromptText";
@@ -138,6 +139,12 @@ export function VideoRound({
       setChoice(picked);
       answersRef.current = [...answersRef.current, picked];
       const elapsed = Math.min(limit, Math.max(0, Date.now() - startedAt.current));
+
+      // The video round asks THREE questions inside one Royale slot, and `onComplete` fires only
+      // after the last — so without a cue here the first two commits would be silent while the
+      // third sounded. Each answer is a commit; each gets the beat.
+      feedback("medium");
+      sfx.commitLock();
 
       const sent = api
         .cogVideoAnswer(spec.cognition_instance_id, questionIndex, picked, elapsed)

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { feedback } from "@/lib/haptics";
+import { resumeAudio } from "@/lib/sfx";
 import { useArtStyle } from "@/theme/useArtStyle";
 
 const LETTERS = ["A", "B", "C", "D", "E", "F"];
@@ -149,10 +149,15 @@ export function AnswerPill({
       onPointerDown={() => {
         if (!interactive) return;
         setPressed(true);
-        // On POINTER DOWN, not on click. The tick has to land with the finger — a haptic that
-        // waits for the click event arrives after the decision and reads as lag. This is the
-        // single biggest difference between an app that feels responsive and one that doesn't.
-        feedback("selection");
+        // The tap tick comes from the app-wide delegated listener (lib/tapHaptics.ts) now, at
+        // the same moment and with the same `selection` intent — firing it here as well would
+        // be two ticks for one press. `resumeAudio` stays: it must run inside a real gesture,
+        // and this is the first one of a run.
+        // Unlock audio on the first real gesture of the run. Browsers refuse to start an
+        // AudioContext outside a user gesture, and a useEffect is not one — so without this the
+        // in-run cues stay silent until the player happens to open the results screen, which is
+        // the only other place that resumes it. Cheap and idempotent after the first call.
+        resumeAudio();
       }}
       onPointerUp={() => setPressed(false)}
       onPointerLeave={() => setPressed(false)}

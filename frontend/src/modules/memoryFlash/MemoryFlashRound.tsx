@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { fmt } from "@/i18n";
 import { useT } from "@/i18n/useT";
 import { feedback } from "@/lib/haptics";
+import * as sfx from "@/lib/sfx";
 import { MemoryHeadline } from "@/modules/memoryFlash/MemoryHeadline";
 import { MemoryTile, type TileState } from "@/modules/memoryFlash/MemoryTile";
 import { MemoryTimer } from "@/modules/memoryFlash/MemoryTimer";
@@ -167,6 +168,10 @@ export const MemoryFlashRound: React.FC<{
           // A tick per flash, so the pattern has a rhythm you FEEL and not only see. iOS has no
           // navigator.vibrate, so this must route through feedback() to exist at all (§7b1).
           feedback("selection");
+          // ...and HEAR. A Simon grid is the one round where sound is not decoration: pitching each
+          // tile turns the sequence into a short melody, which is a second channel to remember it
+          // by. Keyed to the tile index, so a given tile is always the same note.
+          sfx.tilePing(tile);
         }, at),
       );
       timers.push(setTimeout(() => setLit(-1), at + gap * FLASH_ON_FRACTION));
@@ -254,10 +259,15 @@ export const MemoryFlashRound: React.FC<{
       if (taps.current.length >= sequence.length) {
         bankWave();
         feedback("success");
+        // A wave banked is real progress inside the round, so it gets the rising note one step up —
+        // the same escalation the run uses, scaled down to a beat within a single round.
+        sfx.correctChime(1);
         if (waveIdx >= waves.length - 1) finish("won");
         else setPhase("cleared");
       } else {
         feedback("selection");
+        // Echo the tile's own note back, so repeating the sequence sounds like the sequence.
+        sfx.tilePing(i);
       }
       return;
     }
@@ -265,6 +275,7 @@ export const MemoryFlashRound: React.FC<{
     // telling the player what it already knows, not deciding the round.
     setMiss(i);
     feedback("error");
+    sfx.wrongThud();
     bankWave();
     finish("lost");
   };

@@ -1,4 +1,3 @@
-import { feedback } from "@/lib/haptics";
 import { FitText } from "@/ui/FitText";
 
 /** Primary gold CTA (DESIGN §4) — gradient, dark text, glow + slow idle pulse, presses 2px. Pass
@@ -23,15 +22,18 @@ export function GoldButton({
 }) {
   return (
     <button
+      data-haptic="light"
       type={type}
       onClick={onClick}
       disabled={disabled}
       className="display"
       onPointerDown={(e) => {
         e.currentTarget.style.transform = "translateY(2px)";
-        // Fires with the finger, not with the click — see AnswerPill for why that ordering is the
-        // whole difference. Light, because a primary tap is a touch, not an outcome.
-        if (!disabled) feedback("light");
+        // The tick is no longer fired here. One delegated pointerdown listener
+        // (lib/tapHaptics.ts) ticks every control in the app, which is what gives the 67 screens
+        // with a raw <button> any feel at all — and firing here TOO would double-tap the one
+        // control that already had it. The intent is declared on the element instead: a primary
+        // CTA earns a firmer knock than a list row.
       }}
       onPointerUp={(e) => (e.currentTarget.style.transform = "translateY(0)")}
       onPointerLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}

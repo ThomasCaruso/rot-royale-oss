@@ -1,6 +1,8 @@
 import { useCallback, useRef, useState } from "react";
 import { api, type CogEstimateResolve } from "@/api/client";
 import { useT } from "@/i18n/useT";
+import { feedback } from "@/lib/haptics";
+import * as sfx from "@/lib/sfx";
 import { LogSlider } from "@/modules/estimate/LogSlider";
 import { clamp, fmtNum, geomMid, roundNice } from "@/modules/estimate/logScale";
 import { GlassCard } from "@/ui/GlassCard";
@@ -140,6 +142,11 @@ export const EstimateRound: React.FC<{
     setBusy(true);
     try {
       const committed = roundNice(value);
+      // A guess is a COMMIT, and this round had no feel whatsoever — the player dragged a dial and
+      // tapped, and nothing in the hand confirmed the number had been spent. Estimate is guess-
+      // LIMITED rather than timed, so each of the three matters MORE than a single trivia tap.
+      feedback("medium");
+      sfx.commitLock();
       const r = await api.cogEstimateGuess(spec.cognition_instance_id, committed);
       if (r.done) {
         done.current = true;
@@ -168,6 +175,13 @@ export const EstimateRound: React.FC<{
         onComplete({ final_guess: committed, ...(reveal ? { reveal } : {}) });
         return;
       }
+      // The guess missed and the range narrows. "close" gets the rising note — it is real progress
+      // and the only signal that the search is converging — while "far" gets the neutral low one.
+      // Neither is the correct/wrong pair: the round is NOT over, and borrowing the outcome cues
+      // here would make a narrowing feel like a verdict the player has not actually received.
+      if (r.band === "close") sfx.correctChime(0);
+      else sfx.wrongThud();
+      feedback(r.band === "close" ? "light" : "warning");
       setAttempts((a) => [...a, { value: committed, direction: r.direction, band: r.band }]);
       setBounds({ min: r.slider_min, max: r.slider_max });
       // Keep the slider where the player left it (their last guess), only clamped into the newly
